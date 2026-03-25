@@ -256,40 +256,61 @@
 
 <script>
   // ===== Init Telegram Web App =====
-  const tg = window.Telegram?.WebApp;
+  const tg = window.Telegram?.WebApp || null;
   if (tg) {
     tg.ready();
     tg.expand();
-    tg.enableClosingConfirmation();
   }
 
-  // ===== Get course URL from Telegram startapp or query params =====
-  const params = new URLSearchParams(window.location.search);
-  // يقرأ من startapp (عند الفتح عبر t.me) أو من course (عند الفتح المباشر)
-  const startParam = tg?.initDataUnsafe?.start_param || params.get('startapp') || params.get('course') || '';
-  const COURSE_URL = startParam ? decodeURIComponent(startParam) : 'https://www.udemy.com/';
+  // ===== قراءة رابط الكورس من كل المصادر الممكنة =====
+  function getCourseUrl() {
+    // 1. من Telegram initDataUnsafe (الطريقة الرسمية لـ startapp)
+    const startParam = tg?.initDataUnsafe?.start_param;
+    if (startParam) return decodeURIComponent(startParam);
 
-  // ===== AdsGram block ID =====
+    // 2. من query string مباشرة
+    const params = new URLSearchParams(window.location.search);
+    const fromQuery = params.get('course') || params.get('startapp');
+    if (fromQuery) return decodeURIComponent(fromQuery);
+
+    // 3. من hash
+    const hash = window.location.hash.replace('#', '');
+    if (hash && hash.startsWith('http')) return decodeURIComponent(hash);
+
+    return null;
+  }
+
+  const COURSE_URL = getCourseUrl();
   const BLOCK_ID = "25863";
-
   let AdController = null;
 
   // ===== Screen Management =====
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
   }
 
-  // ===== Init AdsGram =====
+  // ===== Init AdsGram مع انتظار تحميل SDK =====
   function initAds() {
-    try {
-      AdController = window.Adsgram.init({ blockId: BLOCK_ID });
-      showScreen('screen-ad');
-    } catch (e) {
-      console.error('AdsGram init failed:', e);
-      // إذا فشل التهيئة، نوجه المستخدم مباشرة
-      goToCourse();
-    }
+    // انتظر حتى يتحمل window.Adsgram
+    let tries = 0;
+    const interval = setInterval(() => {
+      tries++;
+      if (window.Adsgram) {
+        clearInterval(interval);
+        try {
+          AdController = window.Adsgram.init({ blockId: BLOCK_ID });
+          showScreen('screen-ad');
+        } catch(e) {
+          showScreen('screen-ad'); // اعرض الشاشة حتى لو فشل التهيئة
+        }
+      } else if (tries > 20) {
+        // بعد 4 ثوانٍ إذا لم يتحمل — اعرض الشاشة بدونه
+        clearInterval(interval);
+        showScreen('screen-ad');
+      }
+    }, 200);
   }
 
   // ===== Watch Ad =====
@@ -299,37 +320,33 @@
     btn.innerHTML = '<span>⏳</span><span>Loading Ad...</span>';
 
     if (!AdController) {
-      showScreen('screen-error');
+      // AdsGram غير متاح — وجّه مباشرة
+      showSuccessAndRedirect();
       return;
     }
 
     AdController.show()
       .then(() => {
-        // ✅ المستخدم شاهد الإعلان حتى النهاية
         showSuccessAndRedirect();
       })
       .catch((result) => {
-        // ❌ أغلق الإعلان أو حدث خطأ
         btn.disabled = false;
         btn.innerHTML = '<span>▶</span><span>Watch Ad & Get Free Course</span>';
-
+        // إذا كان خطأ حقيقي وليس مجرد إغلاق
         if (result?.error) {
           showScreen('screen-error');
         }
-        // إذا أغلق المستخدم الإعلان نعيد الزر فقط
       });
   }
 
   // ===== Success + Countdown =====
   function showSuccessAndRedirect() {
     showScreen('screen-success');
-    document.getElementById('progress-bar') && (document.getElementById('progress-bar').style.width = '100%');
-
     let count = 3;
     const el = document.getElementById('countdown-num');
     const timer = setInterval(() => {
       count--;
-      el.textContent = count;
+      if (el) el.textContent = count;
       if (count <= 0) {
         clearInterval(timer);
         goToCourse();
@@ -339,17 +356,20 @@
 
   // ===== Go To Course =====
   function goToCourse() {
-    if (tg) {
-      tg.openLink(COURSE_URL);
-      setTimeout(() => tg.close(), 500);
+    const url = COURSE_URL || 'https://www.udemy.com/';
+    if (tg && tg.openLink) {
+      tg.openLink(url);
+      setTimeout(() => tg.close(), 800);
     } else {
-      window.location.href = COURSE_URL;
+      window.open(url, '_blank');
     }
   }
 
   // ===== Start =====
   window.addEventListener('load', () => {
-    setTimeout(initAds, 800); // تأخير بسيط لتحميل SDK
+    // أظهر شاشة التحميل أولاً ثم ابدأ
+    showScreen('screen-loading');
+    setTimeout(initAds, 1000);
   });
 </script>
 </body>
