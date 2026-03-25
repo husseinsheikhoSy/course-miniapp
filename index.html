@@ -262,25 +262,30 @@
     tg.expand();
   }
 
-  // ===== قراءة رابط الكورس من كل المصادر الممكنة =====
+  // ===== فك تشفير رابط الكورس من Base64 =====
   function getCourseUrl() {
-    // 1. من Telegram initDataUnsafe (الطريقة الرسمية لـ startapp)
-    const startParam = tg?.initDataUnsafe?.start_param;
-    if (startParam) return decodeURIComponent(startParam);
+    // احصل على الكود من Telegram startapp
+    const code = tg?.initDataUnsafe?.start_param
+      || new URLSearchParams(window.location.search).get('startapp')
+      || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
 
-    // 2. من query string مباشرة
-    const params = new URLSearchParams(window.location.search);
-    const fromQuery = params.get('course') || params.get('startapp');
-    if (fromQuery) return decodeURIComponent(fromQuery);
+    if (!code) return null;
 
-    // 3. من hash
-    const hash = window.location.hash.replace('#', '');
-    if (hash && hash.startsWith('http')) return decodeURIComponent(hash);
-
+    try {
+      // أضف padding لـ Base64 إذا كان ناقصاً
+      const padded = code + '=='.slice(0, (4 - code.length % 4) % 4);
+      // استبدل الرموز الآمنة بالأصلية
+      const base64 = padded.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = atob(base64);
+      // تحقق أن النتيجة رابط صحيح
+      if (decoded.startsWith('http')) return decoded;
+    } catch(e) {
+      console.error('Base64 decode failed:', e);
+    }
     return null;
   }
 
-  const COURSE_URL = getCourseUrl();
+  let COURSE_URL = null;
   const BLOCK_ID = "25863";
   let AdController = null;
 
@@ -291,9 +296,13 @@
     if (el) el.classList.add('active');
   }
 
-  // ===== Init AdsGram مع انتظار تحميل SDK =====
-  function initAds() {
-    // انتظر حتى يتحمل window.Adsgram
+  // ===== Init: جلب الرابط ثم تهيئة AdsGram =====
+  async function initAds() {
+    // اجلب رابط الكورس (sync الآن)
+    COURSE_URL = getCourseUrl();
+    console.log('COURSE_URL:', COURSE_URL);
+
+    // انتظر تحميل AdsGram SDK
     let tries = 0;
     const interval = setInterval(() => {
       tries++;
@@ -301,12 +310,9 @@
         clearInterval(interval);
         try {
           AdController = window.Adsgram.init({ blockId: BLOCK_ID });
-          showScreen('screen-ad');
-        } catch(e) {
-          showScreen('screen-ad'); // اعرض الشاشة حتى لو فشل التهيئة
-        }
+        } catch(e) { console.error('Adsgram init error:', e); }
+        showScreen('screen-ad');
       } else if (tries > 20) {
-        // بعد 4 ثوانٍ إذا لم يتحمل — اعرض الشاشة بدونه
         clearInterval(interval);
         showScreen('screen-ad');
       }
