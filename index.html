@@ -263,9 +263,11 @@
     tg.enableClosingConfirmation();
   }
 
-  // ===== Get course URL from query params =====
+  // ===== Get course URL from Telegram startapp or query params =====
   const params = new URLSearchParams(window.location.search);
-  const COURSE_URL = params.get('course') || 'https://www.udemy.com/';
+  // يقرأ من startapp (عند الفتح عبر t.me) أو من course (عند الفتح المباشر)
+  const startParam = tg?.initDataUnsafe?.start_param || params.get('startapp') || params.get('course') || '';
+  const COURSE_URL = startParam ? decodeURIComponent(startParam) : 'https://www.udemy.com/';
 
   // ===== AdsGram block ID =====
   const BLOCK_ID = "25863";
