@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Free Course Access</title>
+
+  <!-- Telegram Mini App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- AdsGram SDK -->
+  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --tg-bg: var(--tg-theme-bg-color, #0f0f1a);
+      --tg-text: var(--tg-theme-text-color, #ffffff);
+      --tg-btn: var(--tg-theme-button-color, #6c63ff);
+      --tg-btn-text: var(--tg-theme-button-text-color, #ffffff);
+      --tg-hint: var(--tg-theme-hint-color, #aaaaaa);
+      --accent: #6c63ff;
+      --accent2: #f97316;
+      --card-bg: rgba(255,255,255,0.05);
+      --radius: 16px;
+    }
+
+    body {
+      background: var(--tg-bg);
+      color: var(--tg-text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* ===== SCREEN MANAGEMENT ===== */
+    .screen { display: none; width: 100%; max-width: 420px; animation: fadeIn 0.4s ease; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== LOADING SCREEN ===== */
+    #screen-loading .spinner {
+      width: 52px; height: 52px;
+      border: 4px solid rgba(108,99,255,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #screen-loading p { color: var(--tg-hint); font-size: 14px; }
+
+    /* ===== AD SCREEN ===== */
+    #screen-ad { text-align: center; gap: 0; }
+
+    .ad-header {
+      width: 100%; background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .ad-header .icon { font-size: 48px; margin-bottom: 10px; }
+    .ad-header h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .ad-header p { color: var(--tg-hint); font-size: 13px; line-height: 1.5; }
+
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--accent), #9333ea);
+      color: #fff; font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .free-badge {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(249,115,22,0.12);
+      border: 1px solid rgba(249,115,22,0.3);
+      border-radius: var(--radius);
+      padding: 12px 20px;
+      margin-bottom: 24px;
+      font-size: 15px; font-weight: 600; color: var(--accent2);
+    }
+
+    /* Main CTA Button */
+    .btn-watch {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), #9333ea);
+      color: #fff; border: none;
+      border-radius: var(--radius);
+      padding: 16px 24px;
+      font-size: 16px; font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+      margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-watch:active { transform: scale(0.97); box-shadow: none; }
+
+    .hint-text {
+      font-size: 12px; color: var(--tg-hint);
+      line-height: 1.5; text-align: center;
+    }
+
+    /* Progress bar */
+    .progress-wrap {
+      width: 100%; background: rgba(255,255,255,0.07);
+      border-radius: 99px; height: 6px;
+      margin-bottom: 16px; overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #9333ea);
+      border-radius: 99px;
+      transition: width 0.3s ease;
+    }
+
+    /* Step indicators */
+    .steps {
+      display: flex; gap: 8px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    .step {
+      flex: 1; height: 4px; border-radius: 99px;
+      background: rgba(255,255,255,0.1);
+      transition: background 0.4s;
+    }
+    .step.done { background: var(--accent); }
+    .step.active { background: var(--accent2); animation: pulse-step 1s infinite; }
+    @keyframes pulse-step { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    /* ===== SUCCESS SCREEN ===== */
+    #screen-success { text-align: center; gap: 16px; }
+    .success-icon { font-size: 64px; animation: bounceIn 0.5s ease; }
+    @keyframes bounceIn {
+      0% { transform: scale(0); } 70% { transform: scale(1.1); } 100% { transform: scale(1); }
+    }
+    #screen-success h2 { font-size: 22px; font-weight: 800; }
+    #screen-success p { color: var(--tg-hint); font-size: 14px; max-width: 300px; line-height: 1.6; }
+
+    .countdown-circle {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #9333ea);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 900;
+      box-shadow: 0 0 30px rgba(108,99,255,0.5);
+    }
+
+    .btn-enroll {
+      width: 100%;
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: #fff; border: none;
+      border-radius: var(--radius);
+      padding: 16px 24px;
+      font-size: 16px; font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(22,163,74,0.4);
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: transform 0.15s;
+    }
+    .btn-enroll:active { transform: scale(0.97); }
+
+    /* ===== ERROR SCREEN ===== */
+    #screen-error { text-align: center; gap: 16px; }
+    #screen-error .err-icon { font-size: 52px; }
+    #screen-error h2 { font-size: 20px; font-weight: 700; }
+    #screen-error p { color: var(--tg-hint); font-size: 13px; }
+    .btn-retry {
+      background: rgba(255,255,255,0.08);
+      color: var(--tg-text); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius);
+      padding: 12px 28px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SCREEN 1: Loading -->
+  <div id="screen-loading" class="screen active">
+    <div class="spinner"></div>
+    <p>Preparing your free course...</p>
+  </div>
+
+  <!-- SCREEN 2: Watch Ad -->
+  <div id="screen-ad" class="screen">
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step done" id="step1"></div>
+      <div class="step active" id="step2"></div>
+      <div class="step" id="step3"></div>
+    </div>
+
+    <div class="ad-header">
+      <div class="icon">🎓</div>
+      <span class="badge">Free Access</span>
+      <h2>One Quick Step!</h2>
+      <p>Watch a short ad to unlock your <strong>100% free course</strong>. It only takes a few seconds.</p>
+    </div>
+
+    <div class="free-badge">
+      <span>🏷</span>
+      <span>Course Value: <strong>$0.00 (FREE)</strong></span>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar" style="width: 50%"></div>
+    </div>
+
+    <button class="btn-watch" id="btn-watch-ad" onclick="watchAd()">
+      <span>▶</span>
+      <span>Watch Ad & Get Free Course</span>
+    </button>
+    <p class="hint-text">✅ Your access is guaranteed after watching the ad.<br>No payment required.</p>
+  </div>
+
+  <!-- SCREEN 3: Success + Countdown -->
+  <div id="screen-success" class="screen">
+    <div class="steps">
+      <div class="step done"></div>
+      <div class="step done"></div>
+      <div class="step done"></div>
+    </div>
+    <div class="success-icon">🎉</div>
+    <h2>Access Unlocked!</h2>
+    <p>Redirecting you to your free course in...</p>
+    <div class="countdown-circle" id="countdown-num">3</div>
+    <button class="btn-enroll" id="btn-enroll" onclick="goToCourse()">
+      <span>🚀</span>
+      <span>Go to Course Now</span>
+    </button>
+    <p class="hint-text">You'll be redirected automatically.</p>
+  </div>
+
+  <!-- SCREEN 4: Error -->
+  <div id="screen-error" class="screen">
+    <div class="err-icon">⚠️</div>
+    <h2>Ad Not Available</h2>
+    <p>No ads available right now. You can still access the course directly.</p>
+    <button class="btn-enroll" onclick="goToCourse()" style="margin-top:8px">
+      <span>🔗</span> <span>Access Course Directly</span>
+    </button>
+    <button class="btn-retry" onclick="watchAd()" style="margin-top:8px">Try Again</button>
+  </div>
+
+<script>
+  // ===== Init Telegram Web App =====
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    tg.enableClosingConfirmation();
+  }
+
+  // ===== Get course URL from query params =====
+  const params = new URLSearchParams(window.location.search);
+  const COURSE_URL = params.get('course') || 'https://www.udemy.com/';
+
+  // ===== AdsGram block ID =====
+  const BLOCK_ID = "43e6523123484e6bbb5ed1ae5b97c623";
+
+  let AdController = null;
+
+  // ===== Screen Management =====
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ===== Init AdsGram =====
+  function initAds() {
+    try {
+      AdController = window.Adsgram.init({ blockId: BLOCK_ID });
+      showScreen('screen-ad');
+    } catch (e) {
+      console.error('AdsGram init failed:', e);
+      // إذا فشل التهيئة، نوجه المستخدم مباشرة
+      goToCourse();
+    }
+  }
+
+  // ===== Watch Ad =====
+  function watchAd() {
+    const btn = document.getElementById('btn-watch-ad');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span><span>Loading Ad...</span>';
+
+    if (!AdController) {
+      showScreen('screen-error');
+      return;
+    }
+
+    AdController.show()
+      .then(() => {
+        // ✅ المستخدم شاهد الإعلان حتى النهاية
+        showSuccessAndRedirect();
+      })
+      .catch((result) => {
+        // ❌ أغلق الإعلان أو حدث خطأ
+        btn.disabled = false;
+        btn.innerHTML = '<span>▶</span><span>Watch Ad & Get Free Course</span>';
+
+        if (result?.error) {
+          showScreen('screen-error');
+        }
+        // إذا أغلق المستخدم الإعلان نعيد الزر فقط
+      });
+  }
+
+  // ===== Success + Countdown =====
+  function showSuccessAndRedirect() {
+    showScreen('screen-success');
+    document.getElementById('progress-bar') && (document.getElementById('progress-bar').style.width = '100%');
+
+    let count = 3;
+    const el = document.getElementById('countdown-num');
+    const timer = setInterval(() => {
+      count--;
+      el.textContent = count;
+      if (count <= 0) {
+        clearInterval(timer);
+        goToCourse();
+      }
+    }, 1000);
+  }
+
+  // ===== Go To Course =====
+  function goToCourse() {
+    if (tg) {
+      tg.openLink(COURSE_URL);
+      setTimeout(() => tg.close(), 500);
+    } else {
+      window.location.href = COURSE_URL;
+    }
+  }
+
+  // ===== Start =====
+  window.addEventListener('load', () => {
+    setTimeout(initAds, 800); // تأخير بسيط لتحميل SDK
+  });
+</script>
+</body>
+</html>
