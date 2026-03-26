@@ -6,14 +6,7 @@
   <title>Free Course Access</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   
-  <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
-  <script>
-    window.TelegramAdsController = new TelegramAdsController();
-    window.TelegramAdsController.initialize({
-      pubId: "1006337",
-      appId: "6751",
-    });
-  </script>
+  <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -192,6 +185,16 @@
 </div>
 
 <script>
+  // ── تهيئة محرك الإعلانات الجديد ──
+  // تأكد من وضع Spot ID الخاص بك هنا
+  window.initCdTma?.({ id: 'ضع_معرف_الـ_Spot_ID_هنا' })
+    .then(show => {
+        window.showTmaAd = show;
+        console.log("Ad engine initialized successfully.");
+    })
+    .catch(e => console.log("Ad engine init error:", e));
+
+
   // ── Telegram ──
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
@@ -238,7 +241,12 @@
 
     // أخفِ زر المشاهدة
     const watchBtn = document.getElementById('btn-watch');
-    if (watchBtn) { watchBtn.style.opacity = '0.4'; watchBtn.disabled = true; watchBtn.textContent = 'Ad Watched ✅'; }
+    if (watchBtn) { 
+        watchBtn.classList.remove('loading');
+        watchBtn.style.opacity = '0.4'; 
+        watchBtn.disabled = true; 
+        watchBtn.innerHTML = '<span>✅</span><span>Ad Watched</span>'; 
+    }
   }
 
   // ── الانتقال للكورس ──
@@ -261,27 +269,21 @@
     if (watchBtn)   { watchBtn.disabled = true; watchBtn.classList.add('loading'); }
     if (watchLabel) { watchLabel.textContent = 'Watching Ad...'; }
 
-    try {
-      // استدعاء الإعلان من مكتبة richinfo
-      if (window.TelegramAdsController) {
-         if (typeof window.TelegramAdsController.show === 'function') {
-             window.TelegramAdsController.show();
-         } else if (typeof window.TelegramAdsController.showAd === 'function') {
-             window.TelegramAdsController.showAd();
-         }
-      }
-
-      // محاكاة انتهاء الإعلان بعد 15 ثانية وفتح الزر للمستخدم
-      // نستخدم هذا الإجراء الاحتياطي في حال عدم وجود Callback صريح للإغلاق
-      setTimeout(() => {
-        console.log('✅ Ad duration finished');
-        if (watchBtn) watchBtn.classList.remove('loading');
-        unlockEnrollButton();
-      }, 15000);
-
-    } catch (err) {
-      console.error('Ad error:', err);
-      // إذا حدث خطأ نفتح الزر فوراً كي لا يتعطل المستخدم
+    // التأكد من أن دالة الإعلان تم تهيئتها
+    if (window.showTmaAd) {
+      window.showTmaAd()
+        .then(() => {
+          console.log('tma ad played successfully');
+          unlockEnrollButton();
+        })
+        .catch(e => {
+          console.error('Ad play error:', e);
+          // في حال حدوث خطأ أثناء جلب الإعلان، نفتح الزر فوراً حتى لا يتعطل المستخدم
+          unlockEnrollButton(); 
+        });
+    } else {
+      console.warn('Ad engine not ready or blocked.');
+      // إذا لم يكن سكريبت الإعلانات جاهزاً، نسمح للمستخدم بالمرور
       unlockEnrollButton();
     }
   }
