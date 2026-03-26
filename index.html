@@ -5,16 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Free Course Access</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  
-  <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
-  <script>
-    window.TelegramAdsController = new TelegramAdsController();
-    window.TelegramAdsController.initialize({
-      pubId: "1006337",
-      appId: "6751",
-    });
-  </script>
-
+  <script src="https://w.tads.me/widget.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -138,11 +129,13 @@
 </head>
 <body>
 
+<!-- شاشة 1: تحميل -->
 <div id="s-loading" class="screen active">
   <div class="spinner"></div>
   <p style="color:var(--hint);font-size:13px">Preparing your free course...</p>
 </div>
 
+<!-- شاشة 2: الرئيسية -->
 <div id="s-main" class="screen">
 
   <div class="steps">
@@ -164,11 +157,13 @@
 
     <div class="divider"></div>
 
-    <button class="btn-watch" id="btn-watch" onclick="startAd()">
+    <!-- زر مشاهدة الإعلان -->
+    <button class="btn-watch" id="btn-watch">
       <span>▶</span>
       <span id="btn-watch-label">Watch Ad to Unlock</span>
     </button>
 
+    <!-- زر التسجيل — مقفل حتى انتهاء الإعلان -->
     <button class="btn-enroll" id="btn-enroll" disabled>
       <span class="lock-icon" id="lock-icon">🔒</span>
       <span id="enroll-label">Enroll Course — Watch ad first</span>
@@ -181,6 +176,7 @@
 
 </div>
 
+<!-- شاشة 3: خطأ / لا يوجد إعلان -->
 <div id="s-error" class="screen">
   <div style="font-size:52px">⚠️</div>
   <h2 style="font-size:19px;font-weight:800">Ad Unavailable</h2>
@@ -190,6 +186,9 @@
   </button>
   <button class="btn-ghost" onclick="startAd()">Try Again</button>
 </div>
+
+<!-- TADS container مخفي — الـ fullscreen لا يحتاجه ظاهراً -->
+<div id="tads-container-9578" style="display:none"></div>
 
 <script>
   // ── Telegram ──
@@ -211,7 +210,9 @@
   }
 
   const COURSE_URL = getCourseUrl();
-  let adWatched = false;
+  const WIDGET_ID  = 9578;
+  let   adController = null;
+  let   adWatched    = false;
 
   // ── إدارة الشاشات ──
   function showScreen(id) {
@@ -238,7 +239,7 @@
 
     // أخفِ زر المشاهدة
     const watchBtn = document.getElementById('btn-watch');
-    if (watchBtn) { watchBtn.style.opacity = '0.4'; watchBtn.disabled = true; watchBtn.textContent = 'Ad Watched ✅'; }
+    if (watchBtn) { watchBtn.style.opacity = '0.4'; watchBtn.disabled = true; }
   }
 
   // ── الانتقال للكورس ──
@@ -253,47 +254,89 @@
     }
   }
 
-  // ── تشغيل الإعلان بالخدمة الجديدة ──
+  // ── تشغيل الإعلان Fullscreen ──
   function startAd() {
     const watchBtn   = document.getElementById('btn-watch');
     const watchLabel = document.getElementById('btn-watch-label');
 
     if (watchBtn)   { watchBtn.disabled = true; watchBtn.classList.add('loading'); }
-    if (watchLabel) { watchLabel.textContent = 'Watching Ad...'; }
+    if (watchLabel) { watchLabel.textContent = 'Loading Ad...'; }
+
+    if (!adController) {
+      console.warn('adController not ready');
+      unlockEnrollButton(); // fallback
+      return;
+    }
+
+    adController.showAd()
+      .then(() => {
+        console.log('✅ Ad shown successfully');
+        unlockEnrollButton();
+      })
+      .catch((err) => {
+        console.error('Ad error:', err);
+        // أعد الزر للحالة الطبيعية
+        if (watchBtn)   { watchBtn.disabled = false; watchBtn.classList.remove('loading'); }
+        if (watchLabel) { watchLabel.textContent = 'Watch Ad to Unlock'; }
+        // إذا لم يوجد إعلان — فعّل الزر مباشرة
+        if (err?.type === 'ADS_NOT_FOUND' || !err) {
+          unlockEnrollButton();
+        }
+      });
+  }
+
+  // ── تهيئة TADS ──
+  function initTads() {
+    if (!window.tads?.init) return;
+
+    document.addEventListener('DOMContentLoaded', function() {});
 
     try {
-      // استدعاء الإعلان من مكتبة richinfo
-      if (window.TelegramAdsController) {
-         if (typeof window.TelegramAdsController.show === 'function') {
-             window.TelegramAdsController.show();
-         } else if (typeof window.TelegramAdsController.showAd === 'function') {
-             window.TelegramAdsController.showAd();
-         }
-      }
+      adController = window.tads.init({
+        widgetId: WIDGET_ID,
+        type: 'fullscreen',
+        debug: false,
+        onShowReward: (result) => {
+          // ✅ الإعلان اكتمل — فعّل زر Enroll
+          console.log('onShowReward:', result);
+          unlockEnrollButton();
+        },
+        onAdsNotFound: () => {
+          console.warn('No ads found');
+          // لا يوجد إعلان — فعّل الزر مباشرة
+          unlockEnrollButton();
+        }
+      });
 
-      // محاكاة انتهاء الإعلان بعد 15 ثانية وفتح الزر للمستخدم
-      // نستخدم هذا الإجراء الاحتياطي في حال عدم وجود Callback صريح للإغلاق
-      setTimeout(() => {
-        console.log('✅ Ad duration finished');
-        if (watchBtn) watchBtn.classList.remove('loading');
-        unlockEnrollButton();
-      }, 15000);
+      // اربط زر المشاهدة
+      document.getElementById('btn-watch')?.addEventListener('click', startAd);
 
-    } catch (err) {
-      console.error('Ad error:', err);
-      // إذا حدث خطأ نفتح الزر فوراً كي لا يتعطل المستخدم
-      unlockEnrollButton();
+      showScreen('s-main');
+
+    } catch(e) {
+      console.error('TADS init error:', e);
+      showScreen('s-error');
     }
   }
 
   // ── ابدأ عند تحميل الصفحة ──
   window.addEventListener('load', () => {
     showScreen('s-loading');
-    
-    // محاكاة تحميل بسيط ثم عرض الشاشة الرئيسية
-    setTimeout(() => {
-      showScreen('s-main');
-    }, 1200);
+
+    // انتظر تحميل TADS SDK
+    let tries = 0;
+    const iv = setInterval(() => {
+      tries++;
+      if (window.tads?.init) {
+        clearInterval(iv);
+        initTads();
+      } else if (tries > 40) {
+        // بعد 8 ثوانٍ — أظهر الشاشة الرئيسية بدون إعلان
+        clearInterval(iv);
+        unlockEnrollButton();
+        showScreen('s-main');
+      }
+    }, 200);
   });
 </script>
 </body>
