@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Free Course Access</title>
+
+  <!-- Telegram Mini App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- TADS.me Widget SDK -->
+  <script src="https://w.tads.me/widget.js" async></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: var(--tg-theme-bg-color, #0f0f1a);
+      --text: var(--tg-theme-text-color, #ffffff);
+      --hint: var(--tg-theme-hint-color, #888);
+      --accent: #6c63ff;
+      --green: #16a34a;
+      --radius: 16px;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+
+    .screen {
+      display: none; width: 100%; max-width: 420px;
+      flex-direction: column; align-items: center;
+      gap: 18px; text-align: center;
+      animation: fadeIn 0.3s ease;
+    }
+    .screen.active { display: flex; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    /* Loading */
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid rgba(108,99,255,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: var(--hint); font-size: 14px; }
+
+    /* Ad screen */
+    .icon-big { font-size: 52px; }
+    h2 { font-size: 21px; font-weight: 800; }
+    .subtitle { color: var(--hint); font-size: 13px; line-height: 1.6; max-width: 300px; }
+    .badge-free {
+      background: rgba(22,163,74,0.12);
+      border: 1px solid rgba(22,163,74,0.3);
+      color: #4ade80;
+      border-radius: 99px;
+      padding: 5px 16px;
+      font-size: 12px; font-weight: 700;
+    }
+
+    /* TADS container */
+    #tads-container-9578 {
+      width: 100%;
+      min-height: 120px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%; padding: 14px; border: none; border-radius: var(--radius);
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-purple { background: linear-gradient(135deg, var(--accent), #9333ea); color: #fff; box-shadow: 0 4px 20px rgba(108,99,255,0.35); }
+    .btn-green  { background: linear-gradient(135deg, var(--green), #15803d);  color: #fff; box-shadow: 0 4px 20px rgba(22,163,74,0.35); }
+    .btn-ghost  { background: rgba(255,255,255,0.07); color: var(--text); border: 1px solid rgba(255,255,255,0.12); }
+    .hint-small { color: var(--hint); font-size: 12px; line-height: 1.5; }
+
+    /* Success */
+    .big-emoji { font-size: 64px; animation: pop 0.4s ease; }
+    @keyframes pop { 0%{transform:scale(0)} 70%{transform:scale(1.15)} 100%{transform:scale(1)} }
+    .circle-count {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #9333ea);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 900;
+      box-shadow: 0 0 28px rgba(108,99,255,0.5);
+    }
+
+    /* Error */
+    .err-icon { font-size: 52px; }
+    .err-msg { color: var(--hint); font-size: 13px; line-height: 1.6; max-width: 280px; }
+  </style>
+</head>
+<body>
+
+<!-- شاشة 1: تحميل -->
+<div id="s-loading" class="screen active">
+  <div class="spinner"></div>
+  <p class="loading-text">Loading your free course...</p>
+</div>
+
+<!-- شاشة 2: عرض الإعلان -->
+<div id="s-ad" class="screen">
+  <div class="icon-big">🎓</div>
+  <h2>One Quick Step!</h2>
+  <p class="subtitle">Watch the ad below to unlock your <strong>100% free</strong> Udemy course.</p>
+  <span class="badge-free">✅ FREE — No payment needed</span>
+
+  <!-- ✅ TADS Widget Container -->
+  <div id="tads-container-9578"></div>
+
+  <!-- زر احتياطي إذا لم يُحمَّل الإعلان -->
+  <button class="btn btn-green" id="btn-skip" onclick="showSuccessAndRedirect()" style="display:none">
+    <span>🔗</span><span>Access Course Directly</span>
+  </button>
+
+  <p class="hint-small">Your course will open automatically after the ad.</p>
+</div>
+
+<!-- شاشة 3: نجاح + عداد تنازلي -->
+<div id="s-success" class="screen">
+  <div class="big-emoji">🎉</div>
+  <h2>Access Unlocked!</h2>
+  <p class="subtitle">Redirecting to your free course in...</p>
+  <div class="circle-count" id="count-num">3</div>
+  <button class="btn btn-green" onclick="goToCourse()">
+    <span>🚀</span><span>Go to Course Now</span>
+  </button>
+</div>
+
+<!-- شاشة 4: خطأ -->
+<div id="s-error" class="screen">
+  <div class="err-icon">⚠️</div>
+  <h2>Ad Unavailable</h2>
+  <p class="err-msg">No ads available right now. You can still access your course directly.</p>
+  <button class="btn btn-green" onclick="goToCourse()"><span>🔗</span><span>Access Course Directly</span></button>
+  <button class="btn btn-ghost" onclick="initTads()" style="margin-top:4px">Try Again</button>
+</div>
+
+<script>
+  // ===== Telegram Init =====
+  const tg = window.Telegram?.WebApp || null;
+  if (tg) { tg.ready(); tg.expand(); }
+
+  // ===== فك تشفير رابط الكورس من Base64 =====
+  function getCourseUrl() {
+    const code = tg?.initDataUnsafe?.start_param
+      || new URLSearchParams(window.location.search).get('startapp')
+      || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
+
+    if (!code) { console.warn('No startapp param'); return null; }
+
+    try {
+      const padded = code + '=='.slice(0, (4 - code.length % 4) % 4);
+      const b64 = padded.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = atob(b64);
+      console.log('✅ Course URL:', decoded);
+      if (decoded.startsWith('http')) return decoded;
+    } catch(e) {
+      console.error('❌ Base64 decode error:', e);
+    }
+    return null;
+  }
+
+  const COURSE_URL = getCourseUrl();
+  const WIDGET_ID = 9578;
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id)?.classList.add('active');
+  }
+
+  // ===== تهيئة TADS وتشغيل الإعلان =====
+  function initTads() {
+    if (!window.tads || !window.tads.init) {
+      console.warn('TADS SDK not ready yet');
+      return;
+    }
+
+    try {
+      const adController = window.tads.init({
+        widgetId: WIDGET_ID,
+        type: 'static',        // TGB — إعلان نصي/صوري يظهر داخل الصفحة
+        debug: false,
+        onShowReward: (adId) => {
+          // ✅ المستخدم شاهد الإعلان — وجّهه للكورس
+          console.log('Ad shown, reward user:', adId);
+          setTimeout(showSuccessAndRedirect, 1500);
+        },
+        onClickReward: (adId) => {
+          // ✅ المستخدم ضغط على الإعلان — وجّهه للكورس أيضاً
+          console.log('Ad clicked:', adId);
+          setTimeout(showSuccessAndRedirect, 500);
+        },
+        onAdsNotFound: () => {
+          console.warn('No ads found');
+          showScreen('s-error');
+        }
+      });
+
+      // حمّل الإعلان وأظهره
+      adController.loadAd()
+        .then(() => {
+          showScreen('s-ad');
+          return adController.showAd();
+        })
+        .catch((err) => {
+          console.error('Ad load/show error:', err);
+          showScreen('s-error');
+        });
+
+      // زر احتياطي بعد 15 ثانية إذا لم يتفاعل المستخدم
+      setTimeout(() => {
+        const skipBtn = document.getElementById('btn-skip');
+        if (skipBtn) skipBtn.style.display = 'flex';
+      }, 15000);
+
+    } catch(e) {
+      console.error('TADS init error:', e);
+      showScreen('s-error');
+    }
+  }
+
+  // ===== عداد النجاح والتوجيه =====
+  function showSuccessAndRedirect() {
+    showScreen('s-success');
+    let n = 3;
+    const el = document.getElementById('count-num');
+    const t = setInterval(() => {
+      n--;
+      if (el) el.textContent = n;
+      if (n <= 0) { clearInterval(t); goToCourse(); }
+    }, 1000);
+  }
+
+  // ===== الانتقال للكورس =====
+  function goToCourse() {
+    const url = COURSE_URL || 'https://www.udemy.com/';
+    console.log('🎓 Going to:', url);
+    if (tg?.openLink) {
+      tg.openLink(url);
+      setTimeout(() => tg.close(), 800);
+    } else {
+      window.open(url, '_blank');
+    }
+  }
+
+  // ===== ابدأ: انتظر TADS SDK ثم شغّل تلقائياً =====
+  window.addEventListener('load', () => {
+    showScreen('s-loading');
+
+    let tries = 0;
+    const interval = setInterval(() => {
+      tries++;
+      if (window.tads && window.tads.init) {
+        clearInterval(interval);
+        initTads();
+      } else if (tries > 30) {
+        // بعد 6 ثوانٍ — أظهر شاشة الخطأ
+        clearInterval(interval);
+        showScreen('s-error');
+      }
+    }, 200);
+  });
+</script>
+</body>
+</html>
