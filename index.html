@@ -210,7 +210,7 @@
   }
 
   const COURSE_URL = getCourseUrl();
-  const WIDGET_ID  = 9578;
+  const WIDGET_ID  = 9579;
   let   adController = null;
   let   adWatched    = false;
 
@@ -330,7 +330,7 @@
       if (window.tads?.init) {
         clearInterval(iv);
         initTads();
-      } else if (tries > 40) {
+      } else if (tries > 60) {
         // بعد 8 ثوانٍ — أظهر الشاشة الرئيسية بدون إعلان
         clearInterval(iv);
         unlockEnrollButton();
