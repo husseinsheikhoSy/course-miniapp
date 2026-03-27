@@ -1,152 +1,113 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Free Course Access</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading...</title>
 
-  <!-- Telegram -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- ✅ SDK الجديد -->
-  <script src='//libtl.com/sdk.js' data-zone='10788963' data-sdk='show_10788963'></script>
+<!-- SDK -->
+<script src='//libtl.com/sdk.js' data-zone='10788963' data-sdk='show_10788963'></script>
 
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --bg:#0f0f1a;
-      --card:#1a1a2e;
-      --text:#ffffff;
-      --hint:#888;
-      --accent:#6c63ff;
-      --green:#16a34a;
-      --radius:18px;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: sans-serif;
-      display:flex; align-items:center; justify-content:center;
-      height:100vh;
-    }
-
-    .card {
-      background: var(--card);
-      padding:20px;
-      border-radius:var(--radius);
-      width:100%;
-      max-width:400px;
-      text-align:center;
-    }
-
-    button {
-      width:100%;
-      padding:14px;
-      margin-top:10px;
-      border:none;
-      border-radius:var(--radius);
-      font-weight:bold;
-      cursor:pointer;
-    }
-
-    .btn-watch {
-      background: var(--accent);
-      color:#fff;
-    }
-
-    .btn-enroll {
-      background: #333;
-      color:#aaa;
-      cursor:not-allowed;
-    }
-
-    .btn-enroll.unlocked {
-      background: var(--green);
-      color:#fff;
-      cursor:pointer;
-    }
-  </style>
+<style>
+body {
+  background:#0f0f1a;
+  color:#fff;
+  font-family:sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+  text-align:center;
+}
+.loader {
+  border:4px solid rgba(255,255,255,0.2);
+  border-top:4px solid #6c63ff;
+  border-radius:50%;
+  width:50px;
+  height:50px;
+  animation:spin 1s linear infinite;
+  margin:auto;
+}
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+</style>
 </head>
+
 <body>
 
-<div class="card">
-  <h2>Unlock Your Course</h2>
-  <p style="color:var(--hint)">Watch ad to unlock</p>
-
-  <button class="btn-watch" id="btn-watch">▶ Watch Ad</button>
-
-  <button class="btn-enroll" id="btn-enroll" disabled>
-    🔒 Enroll Course
-  </button>
+<div>
+  <div class="loader"></div>
+  <p style="margin-top:15px;color:#aaa">
+    Preparing your course...
+  </p>
 </div>
 
 <script>
-  const tg = window.Telegram?.WebApp;
-  if (tg) { tg.ready(); tg.expand(); }
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
 
-  // فك الرابط
-  function getCourseUrl() {
-    const code = tg?.initDataUnsafe?.start_param
-      || new URLSearchParams(location.search).get('startapp');
+// فك الرابط
+function getCourseUrl() {
+  const code = tg?.initDataUnsafe?.start_param
+    || new URLSearchParams(location.search).get('startapp');
 
-    if (!code) return null;
+  if (!code) return "https://www.udemy.com/";
 
-    try {
-      const padded = code + '=='.slice(0, (4 - code.length % 4) % 4);
-      return atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
-    } catch {
-      return null;
-    }
+  try {
+    const padded = code + '=='.slice(0, (4 - code.length % 4) % 4);
+    return atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
+  } catch {
+    return "https://www.udemy.com/";
   }
+}
 
-  const COURSE_URL = getCourseUrl();
+const COURSE_URL = getCourseUrl();
 
-  function unlock() {
-    const btn = document.getElementById('btn-enroll');
-    btn.disabled = false;
-    btn.classList.add('unlocked');
-    btn.textContent = "🚀 Enroll Course";
-    btn.onclick = goToCourse;
+// التوجيه للكورس
+function goToCourse() {
+  console.log("Redirecting...");
+  if (tg?.openLink) {
+    tg.openLink(COURSE_URL);
+    setTimeout(() => tg.close(), 500);
+  } else {
+    location.href = COURSE_URL;
   }
+}
 
-  function goToCourse() {
-    if (tg?.openLink) {
-      tg.openLink(COURSE_URL);
-      setTimeout(() => tg.close(), 500);
-    } else {
-      location.href = COURSE_URL;
-    }
+// ▶ تشغيل الإعلان مباشرة
+function startAd() {
+  try {
+    show_10788963({
+      type: 'inApp',
+      inAppSettings: {
+        frequency: 2,
+        capping: 0.1,
+        interval: 30,
+        timeout: 5,
+        everyPage: false
+      }
+    });
+    console.log("Ad requested");
+  } catch(e) {
+    console.error("Ad error", e);
   }
+}
 
-  // ▶ تشغيل الإعلان
-  document.getElementById('btn-watch').onclick = () => {
+// انتظر تحميل الصفحة
+window.onload = () => {
 
-    // تشغيل الإعلان
-    try {
-      show_10788963({
-        type: 'inApp',
-        inAppSettings: {
-          frequency: 2,
-          capping: 0.1,
-          interval: 30,
-          timeout: 5,
-          everyPage: false
-        }
-      });
+  // شغّل الإعلان
+  startAd();
 
-      console.log("Ad triggered");
+  // ⏳ انتظر 15 ثانية كحد أقصى
+  setTimeout(() => {
+    goToCourse();
+  }, 15000);
 
-    } catch(e) {
-      console.error("Ad error", e);
-    }
-
-    // ⏳ بعد 5 ثواني افتح الزر (لأنه لا يوجد callback)
-    setTimeout(() => {
-      unlock();
-    }, 5000);
-  };
+};
 </script>
 
 </body>
