@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://w.tads.me/widget.js"></script>
+  <script src="https://inapp.telega.io/sdk/v1/sdk.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -498,8 +498,6 @@
   <button class="btn-ghost" onclick="startAd()">Try Again</button>
 </div>
 
-<div id="tads-container-9578" style="display:none"></div>
-
 <script>
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
@@ -517,10 +515,9 @@
     return null;
   }
 
-  const COURSE_URL   = getCourseUrl();
-  const WIDGET_ID    = 9579;
-  let   adController = null;
-  let   adWatched    = false;
+  const COURSE_URL = getCourseUrl();
+  let   ads        = null;
+  let   adWatched  = false;
 
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -533,7 +530,7 @@
 
     const step2 = document.getElementById('step2');
     const step3 = document.getElementById('step3');
-    if (step2) { step2.innerHTML = ''; step2.classList.replace('active','done'); }
+    if (step2) { step2.innerHTML = ''; step2.classList.replace('active', 'done'); }
     if (step3) { step3.classList.add('active'); step3.innerHTML = '<div class="step-pulse"></div>'; }
 
     document.querySelector('.steps-label span:last-child').textContent = 'Step 3 — Enroll!';
@@ -561,34 +558,36 @@
     if (watchBtn)   { watchBtn.disabled = true; watchBtn.classList.add('loading'); }
     if (watchLabel) { watchLabel.textContent = 'Loading Ad...'; }
 
-    if (!adController) {
+    if (!ads) {
+      // SDK not ready — unlock directly
       unlockEnrollButton();
       return;
     }
-    adController.showAd()
-      .then(() => { unlockEnrollButton(); })
-      .catch((err) => {
-        console.error('Ad error:', err);
-        if (watchBtn)   { watchBtn.disabled = false; watchBtn.classList.remove('loading'); }
-        if (watchLabel) { watchLabel.textContent = 'Watch Ad to Unlock'; }
-        if (err?.type === 'ADS_NOT_FOUND' || !err) { unlockEnrollButton(); }
-      });
+
+    ads.ad_show({
+      adBlockUuid: '37bc4389-341b-4974-b67c-ae37aef5e277'
+    }).then(() => {
+      // Ad finished successfully
+      unlockEnrollButton();
+    }).catch((err) => {
+      console.error('Telega ad error:', err);
+      // Re-enable watch button in case of error
+      if (watchBtn)   { watchBtn.disabled = false; watchBtn.classList.remove('loading'); }
+      if (watchLabel) { watchLabel.textContent = 'Watch Ad to Unlock'; }
+      // If no ads found, unlock anyway
+      unlockEnrollButton();
+    });
   }
 
-  function initTads() {
-    if (!window.tads?.init) return;
+  function initTelega() {
     try {
-      adController = window.tads.init({
-        widgetId: WIDGET_ID,
-        type: 'fullscreen',
-        debug: false,
-        onShowReward: (result) => { unlockEnrollButton(); },
-        onAdsNotFound: () => { unlockEnrollButton(); }
+      ads = window.TelegaIn.AdsController.create_miniapp({
+        token: '0ffb7d2c-8b45-4b17-b256-70df12cae24e'
       });
       document.getElementById('btn-watch')?.addEventListener('click', startAd);
       showScreen('s-main');
     } catch(e) {
-      console.error('TADS init error:', e);
+      console.error('Telega init error:', e);
       showScreen('s-error');
     }
   }
@@ -598,11 +597,12 @@
     let tries = 0;
     const iv = setInterval(() => {
       tries++;
-      if (window.tads?.init) {
+      if (window.TelegaIn?.AdsController) {
         clearInterval(iv);
-        initTads();
+        initTelega();
       } else if (tries > 40) {
         clearInterval(iv);
+        // SDK failed to load — unlock directly
         unlockEnrollButton();
         showScreen('s-main');
       }
