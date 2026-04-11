@@ -157,7 +157,7 @@
       🚀 Enroll Now - Free
     </button>
 
-    <div id="status-note">Initializing system...</div>
+    <div id="status-note">Checking available offers…</div>
   </div>
 </div>
 
@@ -165,16 +165,19 @@
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
-  let adUnlocked   = false;
-  let adInProgress = false;
+  /* ═══════════════════════════════════════════════
+     المتغيرات المركزية
+  ═══════════════════════════════════════════════ */
+  let adUnlocked   = false;  // true = يحق للمستخدم الدخول للكورس
+  let adInProgress = false;  // منع الضغط المزدوج
   let adsCtrl      = null;
   let progressTimer= null;
   let checkInterval= null;
   let checkAttempts= 0;
-  
-  // 14 محاولة × 500 ملي ثانية = 7 ثوانٍ
-  const MAX_CHECK_ATTEMPTS = 10; 
 
+  /* ═══════════════════════════════════════════════
+     التهيئة عند التحميل
+  ═══════════════════════════════════════════════ */
   window.addEventListener('load', () => {
     if (typeof TelegramAdsController !== 'undefined') {
       try {
@@ -182,49 +185,47 @@
         adsCtrl.initialize({ pubId: "1006337", appId: "6751" });
         console.log('[Ads] Initialized');
         
-        // نبدأ الفحص الدوري
+        // البدء بفحص حالة توفر الإعلان كل نصف ثانية
         checkInterval = setInterval(verifyAdStatus, 500);
       } catch(e) {
-        console.warn('[Ads] Init error, waiting for timeout');
-        // لا نفتح الكورس فوراً هنا، بل نترك العداد يكمل عمله
-        checkInterval = setInterval(verifyAdStatus, 500);
+        console.warn('[Ads] Init error:', e);
+        unlockDirect('Init error');
       }
     } else {
-      // في حال عدم وجود المكتبة نهائياً، انتظر أيضاً 7 ثوانٍ لضمان استقرار الواجهة
-      checkInterval = setInterval(verifyAdStatus, 500);
+      unlockDirect('Ad library not loaded');
     }
   });
 
+  /* ═══════════════════════════════════════════════
+     التحقق من توفر الإعلان (Polling) لمنع التخطي المبكر
+  ═══════════════════════════════════════════════ */
   function verifyAdStatus() {
-    checkAttempts++;
-    console.log('[Ads] Checking attempt:', checkAttempts);
-    
-    // تحديث رسالة الحالة للمستخدم ليشعر بالانتظار
-    if (checkAttempts < MAX_CHECK_ATTEMPTS && !adUnlocked) {
-        setStatus(`Checking available offers... (${Math.ceil((MAX_CHECK_ATTEMPTS - checkAttempts)/2)}s)`, 'rgba(255,255,255,0.4)');
-    }
-
-    // فحص هل الإعلان جاهز فعلياً؟
-    if (adsCtrl) {
-      const checkFn = adsCtrl.isAdAvailable ?? adsCtrl.isReady ?? null;
-      let isAvailable = false;
-      if (typeof checkFn === 'function') {
-        try { isAvailable = checkFn.call(adsCtrl); } catch(e) {}
-      }
-
-      if (isAvailable) {
-        clearInterval(checkInterval);
-        enableWatchButton('▶ Watch Ad to Unlock', 'Ad is ready! Watch to get access.');
-        return;
-      }
-    }
-
-    // إذا وصلنا للحد الأقصى (7 ثوانٍ) ولم نجد إعلان، افتح الكورس
-    if (checkAttempts >= MAX_CHECK_ATTEMPTS) {
+    if (!adsCtrl) {
       clearInterval(checkInterval);
-      if (!adUnlocked) {
-        unlockDirect('No ads available after wait');
-      }
+      return unlockDirect('No controller');
+    }
+
+    checkAttempts++;
+    const checkFn = adsCtrl.isAdAvailable ?? adsCtrl.isReady ?? null;
+
+    if (typeof checkFn !== 'function') {
+      // المكتبة لا تدعم الفحص المسبق، نتيح الزر للمستخدم للتجربة اليدوية
+      clearInterval(checkInterval);
+      enableWatchButton('▶ Watch Ad to Unlock', 'Tap below to check for ads.');
+      return;
+    }
+
+    let isAvailable = false;
+    try { isAvailable = checkFn.call(adsCtrl); } catch(e) {}
+
+    if (isAvailable) {
+      // الإعلان جاهز وموجود فعلياً
+      clearInterval(checkInterval);
+      enableWatchButton('▶ Watch Ad to Unlock', 'Watch the short ad below to unlock your course.');
+    } else if (checkAttempts >= 10) { 
+      // بعد 4 ثوانٍ (8 محاولات)، إذا تأكدنا من عدم وجود إعلانات في الخدمة، نفتح الكورس
+      clearInterval(checkInterval);
+      unlockDirect('Timeout: No ads available from service');
     }
   }
 
@@ -232,9 +233,12 @@
     const btnW = document.getElementById('btn-watch');
     btnW.disabled = false;
     document.getElementById('watch-text').innerText = btnText;
-    setStatus(statusText, '#6366f1');
+    setStatus(statusText, 'rgba(255,255,255,0.8)');
   }
 
+  /* ═══════════════════════════════════════════════
+     فتح الكورس مباشرة (بدون إعلان)
+  ═══════════════════════════════════════════════ */
   function unlockDirect(reason) {
     console.log('[Ads] Direct unlock:', reason);
     adUnlocked = true;
@@ -243,6 +247,9 @@
     setStatus('✅ Course ready! Tap below to enroll.', '#10b981');
   }
 
+  /* ═══════════════════════════════════════════════
+     الضغط على "Watch Ad"
+  ═══════════════════════════════════════════════ */
   async function handleAdClick() {
     if (adInProgress || adUnlocked) return;
     adInProgress = true;
@@ -256,44 +263,68 @@
 
     try {
       await adsCtrl.show();
+
+      /*
+       * ✅ resolve = الإعلان اكتمل بنجاح
+       */
       stopProgressBar(true);
       adUnlocked = true;
       btnW.style.display = 'none';
       enableEnroll();
       setStatus('✅ Course Unlocked! Tap below to enroll.', '#10b981');
+
     } catch(err) {
       stopProgressBar(false);
       const msg = String(err?.message || err?.code || err || '').toLowerCase();
-      const userSkipped = msg.includes('skip') || msg.includes('close') || msg.includes('dismiss');
+      console.warn('[Ads] show() error:', msg);
+
+      const userSkipped =
+        msg.includes('skip')    || msg.includes('close')   ||
+        msg.includes('dismiss') || msg.includes('cancel')  ||
+        msg.includes('abort');
 
       if (userSkipped) {
         btnW.disabled = false;
         txt.innerText = '▶ Watch Ad to Unlock';
         setStatus('⚠️ Please watch the full ad to continue.', '#f59e0b');
       } else {
-        unlockDirect('Ad error: ' + msg);
+        // خطأ تقني أو لا يوجد إعلان → افتح مباشرة
+        unlockDirect('Ad error (non-skip): ' + msg);
       }
     } finally {
       adInProgress = false;
     }
   }
 
+  /* ═══════════════════════════════════════════════
+     تفعيل زر الكورس
+  ═══════════════════════════════════════════════ */
   function enableEnroll() {
     const btn = document.getElementById('btn-enroll');
     btn.disabled = false;
     btn.style.opacity = '1';
   }
 
+  /* ═══════════════════════════════════════════════
+     الانتقال للكورس
+  ═══════════════════════════════════════════════ */
   function goToCourse() {
-    if (!adUnlocked) return;
-    const code = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('startapp');
+    if (!adUnlocked) {
+      setStatus('⚠️ Please complete the ad first.', '#ef4444');
+      return;
+    }
+
+    const code = tg?.initDataUnsafe?.start_param
+               || new URLSearchParams(window.location.search).get('startapp');
     let url = 'https://www.udemy.com/';
+
     if (code) {
       try {
         const decoded = atob(code.replace(/-/g, '+').replace(/_/g, '/'));
         if (decoded.startsWith('http')) url = decoded;
       } catch(e) {}
     }
+
     if (tg?.openLink) {
       tg.openLink(url);
       setTimeout(() => tg.close(), 800);
@@ -302,10 +333,14 @@
     }
   }
 
+  /* ═══════════════════════════════════════════════
+     شريط التقدم البصري
+  ═══════════════════════════════════════════════ */
   function startProgressBar() {
     const wrap = document.getElementById('ad-progress-wrap');
     const bar  = document.getElementById('ad-progress-bar');
     wrap.style.display = 'block';
+    bar.style.background = 'linear-gradient(90deg, #6366f1, #a855f7)';
     bar.style.width = '0%';
     const start = Date.now();
     progressTimer = setInterval(() => {
@@ -315,17 +350,24 @@
   }
 
   function stopProgressBar(success) {
-    if (progressTimer) clearInterval(progressTimer);
-    const wrap = document.getElementById('ad-progress-wrap');
+    if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
     const bar  = document.getElementById('ad-progress-bar');
+    const wrap = document.getElementById('ad-progress-wrap');
+    bar.style.background = success ? '#10b981' : '#ef4444';
     if (success) bar.style.width = '100%';
-    setTimeout(() => { wrap.style.display = 'none'; }, 800);
+    setTimeout(() => {
+      wrap.style.display = 'none';
+      bar.style.width = '0%';
+    }, 800);
   }
 
+  /* ═══════════════════════════════════════════════
+     رسائل الحالة
+  ═══════════════════════════════════════════════ */
   function setStatus(msg, color) {
     const el = document.getElementById('status-note');
     el.innerText   = msg;
-    el.style.color = color;
+    el.style.color = color || 'rgba(255,255,255,0.3)';
   }
 </script>
 </body>
