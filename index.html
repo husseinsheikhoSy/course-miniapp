@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@800&display=swap" rel="stylesheet">
   
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  
   <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 
   <style>
@@ -37,6 +38,7 @@
       overflow: hidden;
     }
 
+    /* خلفية فنية متطورة */
     .bg-glow {
       position: fixed;
       width: 100vw;
@@ -57,10 +59,7 @@
     }
     .screen.active { display: flex; }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     .card {
       background: var(--card);
@@ -85,9 +84,9 @@
     }
 
     @keyframes pulse-icon {
-      0%   { transform: scale(1);    box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4); }
-      50%  { transform: scale(1.05); box-shadow: 0 15px 45px rgba(99, 102, 241, 0.6); }
-      100% { transform: scale(1);    box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4); }
+      0% { transform: scale(1); box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 15px 45px rgba(99, 102, 241, 0.6); }
+      100% { transform: scale(1); box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4); }
     }
 
     h1 {
@@ -95,8 +94,7 @@
       font-size: 28px;
       margin-bottom: 12px;
       background: linear-gradient(to right, #fff, #cbd5e1);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
 
     p { color: var(--hint); font-size: 14px; line-height: 1.6; margin-bottom: 30px; }
@@ -112,22 +110,14 @@
       font-size: 16px;
       cursor: pointer;
       transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
     }
 
-    .btn-main:hover  { transform: translateY(-2px); filter: brightness(0.9); }
+    .btn-main:hover { transform: translateY(-2px); filter: brightness(0.9); }
     .btn-main:active { transform: scale(0.98); }
 
-    .btn-main.loading {
-      opacity: 0.65;
-      pointer-events: none;
-      cursor: not-allowed;
-    }
+    .btn-main.loading { opacity: 0.7; pointer-events: none; }
 
-    /* زر الانتقال للكورس — مخفي حتى إتمام الإعلان */
     #btn-enroll {
       display: none;
       background: linear-gradient(135deg, #10b981, #059669);
@@ -136,53 +126,15 @@
     }
 
     .info-bar {
-      display: flex;
-      justify-content: space-around;
+      display: flex; justify-content: space-around;
       margin-bottom: 25px;
       padding: 15px;
       background: rgba(255,255,255,0.03);
       border-radius: 15px;
     }
-    .info-item span     { display: block; }
-    .info-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      color: var(--hint);
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
+    .info-item span { display: block; }
+    .info-label { font-size: 10px; text-transform: uppercase; color: var(--hint); font-weight: 700; margin-bottom: 4px; }
     .info-val { font-size: 13px; font-weight: 700; }
-
-    /* شريط تقدم الإعلان */
-    #ad-progress-wrap {
-      display: none;
-      margin-top: 18px;
-    }
-    #ad-progress-label {
-      font-size: 12px;
-      color: var(--hint);
-      margin-bottom: 8px;
-    }
-    #ad-progress-bar-bg {
-      width: 100%;
-      height: 6px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    #ad-progress-bar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      border-radius: 99px;
-      transition: width 0.5s linear;
-    }
-
-    #status-note {
-      margin-top: 20px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.3);
-    }
   </style>
 </head>
 <body>
@@ -210,179 +162,83 @@
       </div>
     </div>
 
-    <!-- زر مشاهدة الإعلان -->
     <button class="btn-main" id="btn-watch" onclick="handleAdClick()">
-      <span id="watch-text">▶ Watch Ad to Unlock</span>
+      <span id="watch-text">Watch Ad to Unlock</span>
     </button>
 
-    <!-- شريط التقدم — يظهر فقط أثناء تشغيل الإعلان -->
-    <div id="ad-progress-wrap">
-      <div id="ad-progress-label">Watching ad… please wait</div>
-      <div id="ad-progress-bar-bg">
-        <div id="ad-progress-bar"></div>
-      </div>
-    </div>
-
-    <!-- زر الكورس — مخفي حتى إتمام الإعلان -->
     <button class="btn-main" id="btn-enroll" onclick="goToCourse()">
       🚀 Enroll Now - Free
     </button>
 
-    <div id="status-note">Secure connection established</div>
+    <div id="status-note" style="margin-top:20px; font-size:12px; color:rgba(255,255,255,0.3)">
+      Secure connection established
+    </div>
   </div>
 </div>
 
 <script>
-  /* ─── Telegram WebApp ─── */
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
-  /* ─── الحالات الممكنة للإعلان ─── */
-  const AdState = {
-    IDLE:      'idle',       // لم يُضغط بعد
-    LOADING:   'loading',    // يتم تحميل الإعلان
-    PLAYING:   'playing',    // الإعلان يعرض الآن
-    COMPLETED: 'completed',  // اكتمل بنجاح → يُفتح الكورس
-    SKIPPED:   'skipped',    // تم تخطيه أو فشل → لا يُفتح الكورس
-    UNAVAIL:   'unavail',    // لا يوجد إعلان متاح → يُفتح الكورس مباشرة
-  };
-
-  let adState       = AdState.IDLE;
+  // تهيئة المتحكم بالإعلانات
   let adsController = null;
-  let progressTimer = null;
-
-  /* ─── تهيئة مكتبة الإعلانات ─── */
+  
   function initAds() {
     if (typeof TelegramAdsController !== 'undefined') {
       adsController = new TelegramAdsController();
-      adsController.initialize({ pubId: "1006337", appId: "6751" });
-      console.log('[Ads] Controller initialized');
+      adsController.initialize({
+        pubId: "1006337",
+        appId: "6751",
+      });
+      console.log("Ads Controller Initialized");
     }
   }
+
+  // محاولة التهيئة عند التحميل
   window.addEventListener('load', initAds);
 
-  /* ─── الضغط على زر المشاهدة ─── */
   async function handleAdClick() {
-    if (adState !== AdState.IDLE) return;
-
-    setAdState(AdState.LOADING);
-
-    if (!adsController) initAds();
-
-    if (!adsController) {
-      // المكتبة غير محملة → نتعامل كأنه لا يوجد إعلان
-      console.warn('[Ads] Controller not available — unlocking directly');
-      setAdState(AdState.UNAVAIL);
-      unlockCourse();
-      return;
-    }
-
-    try {
-      setAdState(AdState.PLAYING);
-      startProgressBar();
-
-      /*
-       * adsController.show() يُرجع Promise.
-       * - resolve  → اكتمل الإعلان بنجاح
-       * - reject   → تم تخطيه، أُغلق، أو حدث خطأ
-       *
-       * لا نضع timeout هنا عمداً — الإعلان يتحكم في مدته بنفسه.
-       * فقط نحن نمنع الوصول للكورس قبل resolve.
-       */
-      await adsController.show();
-
-      // ✅ وصلنا هنا = اكتمل الإعلان فعلاً
-      setAdState(AdState.COMPLETED);
-      stopProgressBar(true);
-      unlockCourse();
-
-    } catch (err) {
-      console.warn('[Ads] Ad not completed:', err);
-      stopProgressBar(false);
-
-      /*
-       * إذا رفض الإعلان (تخطي، إغلاق، خطأ شبكة):
-       * نفحص نوع الخطأ — إن لم يكن هناك إعلان متاح نفتح الكورس،
-       * وإن كان تخطياً نُعيد الزر ليحاول المستخدم مجدداً.
-       */
-      const msg = (err?.message || err?.code || '').toLowerCase();
-      const noAdAvailable = msg.includes('no ad') || msg.includes('unavailable') || msg.includes('empty');
-
-      if (noAdAvailable) {
-        setAdState(AdState.UNAVAIL);
-        unlockCourse();
-      } else {
-        // تخطي أو إغلاق → أعد الزر ولا تفتح الكورس
-        setAdState(AdState.IDLE);
-        setStatus('Please watch the full ad to unlock the course.', '#f59e0b');
-      }
-    }
-  }
-
-  /* ─── إدارة الحالات ─── */
-  function setAdState(state) {
-    adState = state;
     const btn = document.getElementById('btn-watch');
     const txt = document.getElementById('watch-text');
+    
+    btn.classList.add('loading');
+    txt.innerText = "Loading Ad...";
 
-    switch (state) {
-      case AdState.IDLE:
-        btn.classList.remove('loading');
-        btn.style.display = 'flex';
-        txt.innerText = '▶ Watch Ad to Unlock';
-        hideProgressBar();
-        break;
+    // إذا لم يتم تحميل السكربت بعد، نحاول تهيئته مجدداً
+    if (!adsController) initAds();
 
-      case AdState.LOADING:
-        btn.classList.add('loading');
-        txt.innerText = 'Loading Ad…';
-        break;
-
-      case AdState.PLAYING:
-        btn.classList.add('loading');
-        txt.innerText = 'Ad is playing…';
-        showProgressBar();
-        break;
-
-      case AdState.COMPLETED:
-      case AdState.UNAVAIL:
-        btn.style.display = 'none';
-        hideProgressBar();
-        break;
-
-      case AdState.SKIPPED:
-        btn.classList.remove('loading');
-        btn.style.display = 'flex';
-        txt.innerText = '▶ Watch Ad to Unlock';
-        hideProgressBar();
-        break;
+    try {
+      if (adsController) {
+        // ننتظر قليلاً للتأكد من استجابة السكربت
+        await Promise.race([
+          adsController.show().catch(e => console.log("Ad show error", e)),
+          new Promise(resolve => setTimeout(resolve, 5000)) // مهلة 5 ثواني
+        ]);
+      }
+    } catch (e) {
+      console.error("Ad interaction failed", e);
+    } finally {
+      // في كل الأحوال، نقوم بتفعيل الزر للمستخدم بعد 2 ثانية من المحاولة
+      setTimeout(unlockCourse, 1500);
     }
   }
 
-  /* ─── فتح زر الكورس ─── */
   function unlockCourse() {
     document.getElementById('btn-watch').style.display = 'none';
-    document.getElementById('btn-enroll').style.display = 'flex';
-    setStatus('✅ Course Unlocked! Tap below to enroll.', '#10b981');
+    const enrollBtn = document.getElementById('btn-enroll');
+    enrollBtn.style.display = 'flex';
+    document.getElementById('status-note').innerText = "Course Unlocked Successfully!";
   }
 
-  /* ─── الانتقال للكورس ─── */
   function goToCourse() {
-    // حماية إضافية: لا نسمح بالانتقال إلا بعد اكتمال الإعلان
-    if (adState !== AdState.COMPLETED && adState !== AdState.UNAVAIL) {
-      setStatus('⚠️ Please complete the ad first.', '#ef4444');
-      return;
-    }
-
-    const code = tg?.initDataUnsafe?.start_param
-               || new URLSearchParams(window.location.search).get('startapp');
-    let url = 'https://www.udemy.com/';
-
+    const code = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('startapp');
+    let url = 'https://www.udemy.com/'; // الرابط الافتراضي
+    
     if (code) {
       try {
         const decoded = atob(code.replace(/-/g, '+').replace(/_/g, '/'));
         if (decoded.startsWith('http')) url = decoded;
-      } catch (e) {}
+      } catch(e) {}
     }
 
     if (tg?.openLink) {
@@ -391,49 +247,6 @@
     } else {
       window.location.href = url;
     }
-  }
-
-  /* ─── شريط التقدم (بصري فقط) ─── */
-  function showProgressBar() {
-    document.getElementById('ad-progress-wrap').style.display = 'block';
-  }
-
-  function hideProgressBar() {
-    document.getElementById('ad-progress-wrap').style.display = 'none';
-    document.getElementById('ad-progress-bar').style.width = '0%';
-    if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
-  }
-
-  function startProgressBar(durationMs = 15000) {
-    showProgressBar();
-    const bar   = document.getElementById('ad-progress-bar');
-    const start = Date.now();
-    bar.style.width = '0%';
-
-    progressTimer = setInterval(() => {
-      const pct = Math.min(((Date.now() - start) / durationMs) * 100, 95);
-      bar.style.width = pct + '%';
-    }, 300);
-  }
-
-  function stopProgressBar(success) {
-    if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
-    const bar = document.getElementById('ad-progress-bar');
-    if (success) {
-      bar.style.background = '#10b981';
-      bar.style.width = '100%';
-      setTimeout(hideProgressBar, 800);
-    } else {
-      bar.style.background = '#ef4444';
-      setTimeout(hideProgressBar, 600);
-    }
-  }
-
-  /* ─── رسائل الحالة ─── */
-  function setStatus(msg, color = 'rgba(255,255,255,0.3)') {
-    const el = document.getElementById('status-note');
-    el.innerText = msg;
-    el.style.color = color;
   }
 </script>
 
