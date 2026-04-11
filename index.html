@@ -4,68 +4,80 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Free Course Access</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://inapp.telega.io/sdk/v1/sdk.js"></script>
+  
+  <script src="https://w.tads.me/widget.js" async></script>
+
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:        var(--tg-theme-bg-color,          #07070f);
-      --card:      var(--tg-theme-secondary-bg-color, #0e0e1c);
-      --text:      var(--tg-theme-text-color,         #f0eeff);
-      --hint:      var(--tg-theme-hint-color,         #6b6b8a);
-      --accent:    #7c6dfa;
-      --accent2:   #a78bfa;
-      --green:     #22c55e;
-      --green2:    #16a34a;
-      --radius:    20px;
-      --glow:      rgba(124, 109, 250, 0.35);
-      --glow-g:    rgba(34, 197, 94, 0.35);
+      --bg: var(--tg-theme-bg-color, #05050a);
+      --card: rgba(20, 20, 30, 0.6);
+      --text: var(--tg-theme-text-color, #f8f8ff);
+      --hint: var(--tg-theme-hint-color, #8b8b9f);
+      --accent: #8b5cf6;
+      --accent2: #c4b5fd;
+      --green: #10b981;
+      --green2: #059669;
+      --radius: 24px;
+      --glow-purple: rgba(139, 92, 246, 0.4);
+      --glow-green: rgba(16, 185, 129, 0.4);
     }
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 24px;
       overflow-x: hidden;
       position: relative;
     }
 
-    /* ── Background Orbs ── */
+    /* ── Animated Background Orbs ── */
     body::before, body::after {
       content: '';
       position: fixed;
       border-radius: 50%;
-      filter: blur(80px);
+      filter: blur(100px);
       pointer-events: none;
       z-index: 0;
+      animation: float-bg 8s ease-in-out infinite alternate;
     }
     body::before {
-      width: 320px; height: 320px;
-      background: radial-gradient(circle, rgba(124,109,250,0.18) 0%, transparent 70%);
-      top: -80px; right: -60px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+      top: -100px; right: -100px;
     }
     body::after {
-      width: 260px; height: 260px;
-      background: radial-gradient(circle, rgba(34,197,94,0.12) 0%, transparent 70%);
-      bottom: -60px; left: -60px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%);
+      bottom: -100px; left: -100px;
+      animation-delay: -4s;
+    }
+
+    @keyframes float-bg {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-30px, 30px); }
     }
 
     /* ── Screens ── */
     .screen {
       display: none;
       width: 100%;
-      max-width: 390px;
+      max-width: 400px;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 20px;
       text-align: center;
       position: relative;
       z-index: 1;
@@ -73,9 +85,9 @@
     .screen.active { display: flex; }
 
     /* ── Loading ── */
-    #s-loading { gap: 20px; }
+    #s-loading { gap: 24px; }
     .loader-ring {
-      width: 56px; height: 56px;
+      width: 64px; height: 64px;
       position: relative;
     }
     .loader-ring::before, .loader-ring::after {
@@ -85,392 +97,257 @@
       border-radius: 50%;
     }
     .loader-ring::before {
-      border: 3px solid rgba(124,109,250,0.15);
+      border: 3px solid rgba(139,92,246,0.1);
     }
     .loader-ring::after {
       border: 3px solid transparent;
       border-top-color: var(--accent);
       border-right-color: var(--accent2);
-      animation: spin .9s cubic-bezier(.6,.2,.4,.8) infinite;
+      animation: spin 1s cubic-bezier(.6,.2,.4,.8) infinite;
     }
     @keyframes spin { to { transform: rotate(360deg) } }
 
     .loading-text {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 500;
       color: var(--hint);
-      letter-spacing: .5px;
+      letter-spacing: 0.5px;
     }
     .loading-dots::after {
       content: '';
       animation: dots 1.5s steps(4, end) infinite;
     }
     @keyframes dots {
-      0%   { content: ''; }
-      25%  { content: '.'; }
-      50%  { content: '..'; }
-      75%  { content: '...'; }
-      100% { content: ''; }
+      0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } 100% { content: ''; }
     }
 
     /* ── Step Progress ── */
-    .steps-wrap {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .steps-wrap { width: 100%; display: flex; flex-direction: column; gap: 10px; }
     .steps-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--hint);
-      font-weight: 500;
-      letter-spacing: .3px;
+      display: flex; justify-content: space-between;
+      font-size: 12px; color: var(--hint); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
     }
-    .steps { display: flex; gap: 6px; width: 100%; }
+    .steps { display: flex; gap: 8px; width: 100%; }
     .step {
-      flex: 1;
-      height: 4px;
-      border-radius: 99px;
-      background: rgba(255,255,255,.08);
-      transition: background .5s ease;
-      overflow: hidden;
-      position: relative;
+      flex: 1; height: 6px; border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      position: relative; overflow: hidden;
     }
     .step.done { background: var(--accent); }
-    .step.active {
-      background: rgba(124,109,250,.25);
-    }
+    .step.active { background: rgba(139,92,246,0.2); }
     .step.active::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--accent);
-      border-radius: 99px;
-      animation: fill-step 0s forwards;
-      transform: scaleX(0);
-      transform-origin: left;
-    }
-    @keyframes fill-step {
-      to { transform: scaleX(1); }
-    }
-    .step.active .step-pulse {
-      position: absolute;
-      inset: 0;
+      content: ''; position: absolute; inset: 0;
       background: linear-gradient(90deg, var(--accent), var(--accent2));
-      border-radius: 99px;
-      animation: bar-pulse 1.4s ease-in-out infinite;
+      border-radius: 10px;
+      animation: pulse-bar 1.5s infinite alternate;
     }
-    @keyframes bar-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    @keyframes pulse-bar { 0% { opacity: 0.5; } 100% { opacity: 1; } }
 
-    /* ── Main Card ── */
+    /* ── Main Card (Glassmorphism) ── */
     .card {
       width: 100%;
       background: var(--card);
-      border: 1px solid rgba(255,255,255,.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: var(--radius);
-      padding: 24px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(124,109,250,.5), transparent);
+      padding: 32px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.2);
     }
 
     /* ── Icon Badge ── */
     .icon-badge {
-      width: 72px; height: 72px;
-      border-radius: 22px;
-      background: linear-gradient(135deg, rgba(124,109,250,.2), rgba(167,139,250,.1));
-      border: 1px solid rgba(124,109,250,.25);
+      width: 80px; height: 80px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(196,181,253,0.05));
+      border: 1px solid rgba(139,92,246,0.3);
       display: flex; align-items: center; justify-content: center;
-      font-size: 36px;
-      box-shadow: 0 8px 32px rgba(124,109,250,.2);
-      animation: float 3s ease-in-out infinite;
+      font-size: 40px;
+      box-shadow: 0 12px 32px rgba(139,92,246,0.15);
+      animation: float-icon 4s ease-in-out infinite;
     }
-    @keyframes float {
-      0%,100% { transform: translateY(0); }
-      50%      { transform: translateY(-5px); }
+    @keyframes float-icon {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
     }
 
     .card-title {
       font-family: 'Syne', sans-serif;
-      font-size: 22px;
+      font-size: 26px;
       font-weight: 800;
-      line-height: 1.25;
-      letter-spacing: -.3px;
-      background: linear-gradient(135deg, var(--text) 40%, var(--accent2) 100%);
+      line-height: 1.2;
+      background: linear-gradient(135deg, #ffffff 30%, var(--accent2) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      background-clip: text;
     }
     .card-sub {
       color: var(--hint);
-      font-size: 13px;
-      line-height: 1.65;
-      max-width: 290px;
-    }
-
-    /* ── Divider ── */
-    .divider {
-      width: 100%;
-      height: 1px;
-      background: rgba(255,255,255,.05);
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 300px;
     }
 
     /* ── Info Grid ── */
     .info-grid {
-      width: 100%;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
     }
     .info-chip {
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.06);
-      border-radius: 12px;
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex; align-items: center; gap: 10px;
       text-align: left;
+      transition: background 0.3s;
     }
-    .info-chip.wide {
-      grid-column: 1 / -1;
-    }
-    .chip-icon { font-size: 16px; flex-shrink: 0; }
-    .chip-content { display: flex; flex-direction: column; gap: 1px; }
-    .chip-label { font-size: 10px; color: var(--hint); text-transform: uppercase; letter-spacing: .6px; font-weight: 600; }
-    .chip-value { font-size: 13px; font-weight: 600; color: var(--text); }
-    .chip-value.green { color: #4ade80; }
+    .info-chip:hover { background: rgba(255,255,255,0.06); }
+    .info-chip.wide { grid-column: 1 / -1; }
+    .chip-icon { font-size: 20px; }
+    .chip-content { display: flex; flex-direction: column; gap: 2px; }
+    .chip-label { font-size: 11px; color: var(--hint); font-weight: 600; text-transform: uppercase; }
+    .chip-value { font-size: 14px; font-weight: 700; color: var(--text); }
+    .chip-value.green { color: #34d399; }
 
-    /* ── Watch Ad Button ── */
+    /* ── Buttons ── */
     .btn-watch {
-      width: 100%;
-      padding: 16px 20px;
-      border: none;
-      border-radius: var(--radius);
-      background: linear-gradient(135deg, var(--accent) 0%, #9333ea 100%);
-      color: #fff;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 6px 28px var(--glow);
-      transition: transform .15s, box-shadow .2s, opacity .2s;
-      position: relative;
-      overflow: hidden;
-      letter-spacing: .2px;
+      width: 100%; padding: 18px 24px;
+      border: none; border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
+      color: #fff; font-family: inherit; font-size: 16px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px;
+      box-shadow: 0 8px 32px var(--glow-purple);
+      transition: all 0.2s ease;
+      position: relative; overflow: hidden;
     }
     .btn-watch::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 60%);
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
       pointer-events: none;
     }
-    .btn-watch:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 36px var(--glow);
-    }
-    .btn-watch:active:not(:disabled)  { transform: scale(.97); }
-    .btn-watch:disabled {
-      opacity: .4;
-      cursor: not-allowed;
-      background: rgba(255,255,255,.08);
-      box-shadow: none;
-    }
+    .btn-watch:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 40px var(--glow-purple); }
+    .btn-watch:active:not(:disabled) { transform: scale(0.96); }
+    .btn-watch:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; filter: grayscale(50%); }
+    
     .btn-watch.loading::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.12) 50%, transparent 100%);
-      animation: shimmer 1.3s infinite;
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      animation: loading-shimmer 1.5s infinite;
     }
-    @keyframes shimmer { from{transform:translateX(-100%)} to{transform:translateX(100%)} }
+    @keyframes loading-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 
     .play-icon {
-      width: 28px; height: 28px;
-      background: rgba(255,255,255,.2);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px;
-      flex-shrink: 0;
+      width: 28px; height: 28px; background: rgba(255,255,255,0.2);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; padding-left: 2px;
     }
 
-    /* ── Enroll Button ── */
     .btn-enroll {
-      width: 100%;
-      padding: 16px 20px;
-      border: 1.5px solid rgba(255,255,255,.1);
-      border-radius: var(--radius);
-      background: rgba(255,255,255,.04);
-      color: var(--hint);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: not-allowed;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: all .45s cubic-bezier(.34,1.56,.64,1);
-      position: relative;
-      letter-spacing: .2px;
+      width: 100%; padding: 18px 24px;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+      background: rgba(255,255,255,0.02); color: var(--hint);
+      font-family: inherit; font-size: 16px; font-weight: 700;
+      cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 12px;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .btn-enroll.unlocked {
       background: linear-gradient(135deg, var(--green) 0%, var(--green2) 100%);
-      border-color: transparent;
-      color: #fff;
-      cursor: pointer;
-      box-shadow: 0 6px 28px var(--glow-g);
-      animation: pop-in .5s cubic-bezier(.34,1.56,.64,1);
+      border-color: transparent; color: #fff; cursor: pointer;
+      box-shadow: 0 8px 32px var(--glow-green);
+      animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .btn-enroll.unlocked:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 36px var(--glow-g);
-    }
-    .btn-enroll.unlocked:active { transform: scale(.97); }
-    .btn-enroll.unlocked::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,.18) 0%, transparent 60%);
-      pointer-events: none;
-      border-radius: var(--radius);
-    }
+    .btn-enroll.unlocked:hover { transform: translateY(-2px); box-shadow: 0 12px 40px var(--glow-green); }
+    .btn-enroll.unlocked:active { transform: scale(0.96); }
     @keyframes pop-in {
-      0%   { transform: scale(.88); opacity: .5; }
-      60%  { transform: scale(1.03); }
-      100% { transform: scale(1);   opacity: 1; }
+      0% { transform: scale(0.9); opacity: 0; }
+      60% { transform: scale(1.05); }
+      100% { transform: scale(1); opacity: 1; }
     }
 
-    /* ── Note ── */
-    .note-text {
-      font-size: 11px;
-      color: var(--hint);
-      line-height: 1.5;
-      opacity: .7;
-    }
+    .note-text { font-size: 12px; color: var(--hint); opacity: 0.8; }
 
     /* ── Error Screen ── */
-    #s-error { gap: 14px; }
+    #s-error { gap: 16px; }
     .error-icon {
-      width: 70px; height: 70px;
-      border-radius: 24px;
-      background: rgba(239,68,68,.12);
-      border: 1px solid rgba(239,68,68,.2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 34px;
+      width: 80px; height: 80px; border-radius: 24px;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+      display: flex; align-items: center; justify-content: center; font-size: 36px;
     }
-    .error-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 20px;
-      font-weight: 800;
-    }
-    .error-sub {
-      font-size: 13px;
-      color: var(--hint);
-      line-height: 1.6;
-    }
+    .error-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; }
+    .error-sub { font-size: 14px; color: var(--hint); line-height: 1.6; }
 
     .btn-ghost {
-      width: 100%;
-      padding: 14px;
-      border: 1.5px solid rgba(255,255,255,.1);
-      border-radius: var(--radius);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .2s, border-color .2s;
-      letter-spacing: .2px;
+      width: 100%; padding: 16px; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px;
+      background: transparent; color: var(--text); font-family: inherit; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
     }
-    .btn-ghost:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.05); }
 
-    /* ── Entrance animation ── */
+    /* ── Entrance Animation ── */
     @keyframes slide-up {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .screen.active > * {
-      animation: slide-up .4s ease backwards;
-    }
-    .screen.active > *:nth-child(1) { animation-delay: .04s; }
-    .screen.active > *:nth-child(2) { animation-delay: .10s; }
-    .screen.active > *:nth-child(3) { animation-delay: .16s; }
+    .screen.active > * { animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+    .screen.active > *:nth-child(1) { animation-delay: 0.05s; }
+    .screen.active > *:nth-child(2) { animation-delay: 0.1s; }
+    .screen.active > *:nth-child(3) { animation-delay: 0.15s; }
+    .screen.active > *:nth-child(4) { animation-delay: 0.2s; }
+    .screen.active > *:nth-child(5) { animation-delay: 0.25s; }
   </style>
 </head>
 <body>
 
-<!-- Screen 1: Loading -->
+<div id="tads-container-9579"></div>
+
 <div id="s-loading" class="screen active">
   <div class="loader-ring"></div>
-  <p class="loading-text">Preparing your free course<span class="loading-dots"></span></p>
+  <p class="loading-text">Preparing your course<span class="loading-dots"></span></p>
 </div>
 
-<!-- Screen 2: Main -->
 <div id="s-main" class="screen">
 
   <div class="steps-wrap">
     <div class="steps-label">
       <span>Step 2 of 3</span>
-      <span>Almost there!</span>
+      <span>Almost there</span>
     </div>
     <div class="steps">
       <div class="step done"></div>
-      <div class="step active" id="step2"><div class="step-pulse"></div></div>
+      <div class="step active" id="step2"></div>
       <div class="step" id="step3"></div>
     </div>
   </div>
 
   <div class="card">
     <div class="icon-badge">🎓</div>
-    <div class="card-title">Unlock Your Free Course</div>
-    <p class="card-sub">Watch a short ad to activate the <strong style="color:var(--text)">Enroll</strong> button and access your course completely free.</p>
-
-    <div class="divider"></div>
+    <div class="card-title">Unlock Full Access</div>
+    <p class="card-sub">Support us by watching a short ad to instantly unlock your free course.</p>
 
     <div class="info-grid">
       <div class="info-chip">
-        <span class="chip-icon">🏷</span>
+        <span class="chip-icon">🏷️</span>
         <div class="chip-content">
           <span class="chip-label">Price</span>
-          <span class="chip-value green">FREE · 100% off</span>
+          <span class="chip-value green">100% Free</span>
         </div>
       </div>
       <div class="info-chip">
-        <span class="chip-icon">⏱</span>
+        <span class="chip-icon">⏱️</span>
         <div class="chip-content">
-          <span class="chip-label">Takes</span>
-          <span class="chip-value">~15 seconds</span>
+          <span class="chip-label">Duration</span>
+          <span class="chip-value">~15 Seconds</span>
         </div>
       </div>
       <div class="info-chip wide">
         <span class="chip-icon">✅</span>
         <div class="chip-content">
           <span class="chip-label">Requirements</span>
-          <span class="chip-value">No payment · No signup needed</span>
+          <span class="chip-value">No sign-ups or payments required</span>
         </div>
       </div>
     </div>
-
-    <div class="divider"></div>
 
     <button class="btn-watch" id="btn-watch">
       <span class="play-icon">▶</span>
@@ -482,68 +359,70 @@
       <span id="enroll-label">Enroll — Watch ad first</span>
     </button>
 
-    <p class="note-text">Enroll button activates automatically after the ad ends.</p>
+    <p class="note-text">The enroll button will activate automatically.</p>
   </div>
-
 </div>
 
-<!-- Screen 3: Error -->
 <div id="s-error" class="screen">
   <div class="error-icon">⚠️</div>
   <div class="error-title">Ad Unavailable</div>
-  <p class="error-sub">No ads available right now. You can still access your course directly.</p>
+  <p class="error-sub">No ads are available right now, but we don't want to keep you waiting.</p>
   <button class="btn-enroll unlocked" onclick="goToCourse()" style="cursor:pointer">
     <span>🚀</span><span>Access Course Directly</span>
   </button>
-  <button class="btn-ghost" onclick="startAd()">Try Again</button>
+  <button class="btn-ghost" onclick="showScreen('s-main')">Go Back</button>
 </div>
 
 <script>
+  // ── Telegram Web App Initialization ──
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
   function getCourseUrl() {
-    const code = tg?.initDataUnsafe?.start_param
+    const code = tg?.initDataUnsafe?.start_param 
       || new URLSearchParams(window.location.search).get('startapp')
       || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
-    if (!code) { console.warn('No startapp param'); return null; }
+    if (!code) return null;
     try {
       const padded = code + '=='.slice(0, (4 - code.length % 4) % 4);
       const decoded = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
-      if (decoded.startsWith('http')) { return decoded; }
+      if (decoded.startsWith('http')) return decoded;
     } catch(e) { console.error('Base64 error:', e); }
     return null;
   }
 
   const COURSE_URL = getCourseUrl();
-  let   ads        = null;
-  let   adWatched  = false;
 
+  // ── UI Navigation ──
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id)?.classList.add('active');
   }
 
   function unlockEnrollButton() {
-    if (adWatched) return;
-    adWatched = true;
-
     const step2 = document.getElementById('step2');
     const step3 = document.getElementById('step3');
     if (step2) { step2.innerHTML = ''; step2.classList.replace('active', 'done'); }
-    if (step3) { step3.classList.add('active'); step3.innerHTML = '<div class="step-pulse"></div>'; }
+    if (step3) { step3.classList.add('active'); }
 
-    document.querySelector('.steps-label span:last-child').textContent = 'Step 3 — Enroll!';
+    document.querySelector('.steps-label span:last-child').textContent = 'Step 3 — Ready!';
 
-    const btn   = document.getElementById('btn-enroll');
-    const icon  = document.getElementById('lock-icon');
+    const btn = document.getElementById('btn-enroll');
+    const icon = document.getElementById('lock-icon');
     const label = document.getElementById('enroll-label');
-    if (btn)   { btn.disabled = false; btn.classList.add('unlocked'); btn.onclick = goToCourse; }
-    if (icon)  { icon.textContent = '🚀'; }
+    
+    if (btn && !btn.classList.contains('unlocked')) { 
+      btn.disabled = false; 
+      btn.classList.add('unlocked'); 
+      btn.onclick = goToCourse; 
+    }
+    if (icon) { icon.textContent = '🚀'; }
     if (label) { label.textContent = 'Enroll Now — FREE'; }
 
     const watchBtn = document.getElementById('btn-watch');
-    if (watchBtn) { watchBtn.style.opacity = '0.3'; watchBtn.disabled = true; }
+    if (watchBtn) { 
+      watchBtn.style.display = 'none'; 
+    }
   }
 
   function goToCourse() {
@@ -552,61 +431,100 @@
     else { window.location.href = url; }
   }
 
-  function startAd() {
-    const watchBtn   = document.getElementById('btn-watch');
-    const watchLabel = document.getElementById('btn-watch-label');
-    if (watchBtn)   { watchBtn.disabled = true; watchBtn.classList.add('loading'); }
-    if (watchLabel) { watchLabel.textContent = 'Loading Ad...'; }
 
-    if (!ads) {
-      // SDK not ready — unlock directly
-      unlockEnrollButton();
-      return;
-    }
+  // ── Tads.me Integration ──
+  const WIDGET_ID = "9579";
+  const IS_DEBUG = false; // Set to false for live production
+  const TYPE = "fullscreen";
 
-    ads.ad_show({
-      adBlockUuid: '37bc4389-341b-4974-b67c-ae37aef5e277'
-    }).then(() => {
-      // Ad finished successfully
-      unlockEnrollButton();
-    }).catch((err) => {
-      console.error('Telega ad error:', err);
-      // Re-enable watch button in case of error
-      if (watchBtn)   { watchBtn.disabled = false; watchBtn.classList.remove('loading'); }
-      if (watchLabel) { watchLabel.textContent = 'Watch Ad to Unlock'; }
-      // If no ads found, unlock anyway
-      unlockEnrollButton();
+  let adController = null;
+  let tadsReady = false;
+
+  const onShowRewardCallback = (result) => {
+    console.log("Show ads, reward user:", result);
+    unlockEnrollButton();
+  };
+
+  const onAdsNotFound = () => {
+    console.log("No ads found to show");
+    showScreen('s-error'); // Route to fallback screen
+  };
+
+  function waitForTadsReady(timeout = 5000) {
+    return new Promise((resolve, reject) => {
+      if (window.tads && typeof window.tads.init === "function") {
+        return resolve();
+      }
+      const start = performance.now();
+      const iv = setInterval(() => {
+        if (window.tads && typeof window.tads.init === "function") {
+          clearInterval(iv);
+          resolve();
+        } else if (performance.now() - start > timeout) {
+          clearInterval(iv);
+          reject(new Error("TADS widget script not loaded in time."));
+        }
+      }, 50);
     });
   }
 
-  function initTelega() {
+  async function startAd() {
+    const watchBtn = document.getElementById('btn-watch');
+    const watchLabel = document.getElementById('btn-watch-label');
+    
+    // UI state: loading
+    if (watchBtn) { watchBtn.disabled = true; watchBtn.classList.add('loading'); }
+    if (watchLabel) { watchLabel.textContent = 'Loading Ad...'; }
+
     try {
-      ads = window.TelegaIn.AdsController.create_miniapp({
-        token: '0ffb7d2c-8b45-4b17-b256-70df12cae24e'
-      });
-      document.getElementById('btn-watch')?.addEventListener('click', startAd);
-      showScreen('s-main');
-    } catch(e) {
-      console.error('Telega init error:', e);
-      showScreen('s-error');
+      if (!tadsReady) {
+        await waitForTadsReady();
+        tadsReady = true;
+      }
+
+      if (!adController) {
+        adController = window.tads.controllers?.[WIDGET_ID] || window.tads.init({
+          widgetId: WIDGET_ID,
+          type: TYPE,
+          debug: IS_DEBUG,
+          onShowReward: onShowRewardCallback,
+          onAdsNotFound: onAdsNotFound,
+        });
+      }
+
+      if (adController && typeof adController.showAd === "function") {
+        adController.showAd().then(() => {
+            // Revert loading state if the ad finishes without triggering the reward callback
+            if (watchBtn && !document.getElementById('btn-enroll').classList.contains('unlocked')) {
+                watchBtn.disabled = false;
+                watchBtn.classList.remove('loading');
+                watchLabel.textContent = 'Watch Ad to Unlock';
+            }
+        }).catch((err) => {
+          console.error(`Error showing ad:`, err);
+          unlockEnrollButton(); // Graceful degradation: unlock if ad fails
+        });
+      } else {
+        console.warn("Ad controller not ready.");
+        unlockEnrollButton();
+      }
+    } catch (err) {
+      console.error("Failed to load TADS:", err);
+      unlockEnrollButton(); // Graceful degradation
     }
   }
 
-  window.addEventListener('load', () => {
-    showScreen('s-loading');
-    let tries = 0;
-    const iv = setInterval(() => {
-      tries++;
-      if (window.TelegaIn?.AdsController) {
-        clearInterval(iv);
-        initTelega();
-      } else if (tries > 40) {
-        clearInterval(iv);
-        // SDK failed to load — unlock directly
-        unlockEnrollButton();
-        showScreen('s-main');
-      }
-    }, 200);
+  // ── Startup Flow ──
+  window.addEventListener('DOMContentLoaded', () => {
+    // Show short loading animation then present the main UI
+    setTimeout(() => {
+      showScreen('s-main');
+    }, 1200);
+
+    const watchBtn = document.getElementById('btn-watch');
+    if (watchBtn) {
+      watchBtn.addEventListener("click", startAd);
+    }
   });
 </script>
 </body>
