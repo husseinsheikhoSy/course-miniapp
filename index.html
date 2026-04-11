@@ -222,8 +222,8 @@
       // الإعلان جاهز وموجود فعلياً
       clearInterval(checkInterval);
       enableWatchButton('▶ Watch Ad to Unlock', 'Watch the short ad below to unlock your course.');
-    } else if (checkAttempts >= 8) { 
-      // بعد 4 ثوانٍ (8 محاولات)، إذا تأكدنا من عدم وجود إعلانات في الخدمة، نفتح الكورس
+    } else if (checkAttempts >= 14) { 
+      // بعد 7 ثوانٍ (14 محاولات)، إذا تأكدنا من عدم وجود إعلانات في الخدمة، نفتح الكورس
       clearInterval(checkInterval);
       unlockDirect('Timeout: No ads available from service');
     }
