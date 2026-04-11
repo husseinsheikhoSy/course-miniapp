@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Free Course Access</title>
-  
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@800&display=swap" rel="stylesheet">
-  
+
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 
@@ -55,320 +55,235 @@
 
     .card {
       background: var(--card);
-      backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+      backdrop-filter: blur(30px);
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: var(--radius); padding: 40px 24px;
-      text-align: center; box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+      border-radius: var(--radius);
+      padding: 40px 24px;
+      text-align: center;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.5);
     }
 
     .icon-box {
       width: 80px; height: 80px; margin: 0 auto 24px;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 24px; display: flex; align-items: center; justify-content: center;
-      font-size: 35px; box-shadow: 0 15px 35px rgba(99,102,241,0.4);
-      animation: pulse-icon 3s infinite;
-    }
-    @keyframes pulse-icon {
-      0%,100% { transform: scale(1);    box-shadow: 0 15px 35px rgba(99,102,241,0.4); }
-      50%      { transform: scale(1.05); box-shadow: 0 15px 45px rgba(99,102,241,0.6); }
+      border-radius: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 35px;
     }
 
-    h1 {
-      font-family: 'Syne', sans-serif; font-size: 28px; margin-bottom: 12px;
-      background: linear-gradient(to right, #fff, #cbd5e1);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    p { color: var(--hint); font-size: 14px; line-height: 1.6; margin-bottom: 30px; }
-
-    .info-bar {
-      display: flex; justify-content: space-around;
-      margin-bottom: 25px; padding: 15px;
-      background: rgba(255,255,255,0.03); border-radius: 15px;
-    }
-    .info-item span { display: block; }
-    .info-label { font-size: 10px; text-transform: uppercase; color: var(--hint); font-weight: 700; margin-bottom: 4px; }
-    .info-val   { font-size: 13px; font-weight: 700; }
+    h1 { font-size: 28px; margin-bottom: 12px; }
+    p { color: var(--hint); font-size: 14px; margin-bottom: 30px; }
 
     .btn-main {
-      width: 100%; padding: 20px; border: none; border-radius: 20px;
-      background: #fff; color: #000; font-weight: 700; font-size: 16px;
-      cursor: pointer; transition: all 0.3s;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%;
+      padding: 20px;
+      border: none;
+      border-radius: 20px;
+      background: #fff;
+      color: #000;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
     }
-    .btn-main:hover  { transform: translateY(-2px); filter: brightness(0.9); }
-    .btn-main:active { transform: scale(0.98); }
-    .btn-main:disabled { opacity: 0.35; pointer-events: none; cursor: not-allowed; }
+
+    .btn-main:disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
 
     #btn-enroll {
       background: linear-gradient(135deg, #10b981, #059669);
-      color: #fff; margin-top: 10px;
+      color: #fff;
+      margin-top: 10px;
     }
 
-    #ad-progress-wrap { display: none; margin-top: 18px; }
-    #ad-progress-label { font-size: 12px; color: var(--hint); margin-bottom: 8px; }
+    #status-note {
+      margin-top: 20px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    #ad-progress-wrap { display:none; margin-top:15px; }
     #ad-progress-bar-bg {
-      width: 100%; height: 6px;
-      background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden;
+      width:100%; height:6px; background:#222; border-radius:10px;
     }
     #ad-progress-bar {
-      height: 100%; width: 0%;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      border-radius: 99px; transition: width 0.4s linear;
+      height:100%; width:0%;
+      background:linear-gradient(90deg,#6366f1,#a855f7);
     }
 
-    #status-note { margin-top: 20px; font-size: 12px; color: rgba(255,255,255,0.3); }
   </style>
 </head>
+
 <body>
 
 <div class="bg-glow"></div>
 
-<div id="s-main" class="screen active">
+<div class="screen active">
   <div class="card">
+
     <div class="icon-box">🎓</div>
     <h1>Premium Access</h1>
-    <p>Unlock your professional course for free by watching a short sponsor video.</p>
-
-    <div class="info-bar">
-      <div class="info-item">
-        <span class="info-label">Price</span>
-        <span class="info-val" style="color:#10b981">FREE</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Type</span>
-        <span class="info-val">Certified</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Time</span>
-        <span class="info-val">~15s</span>
-      </div>
-    </div>
+    <p>Watch a short ad to unlock your course.</p>
 
     <button class="btn-main" id="btn-watch" onclick="handleAdClick()">
-      <span id="watch-text">▶ Watch Ad to Unlock</span>
+      <span id="watch-text">▶ Watch Ad</span>
     </button>
 
     <div id="ad-progress-wrap">
-      <div id="ad-progress-label">Watching ad… please wait</div>
-      <div id="ad-progress-bar-bg"><div id="ad-progress-bar"></div></div>
+      <div id="ad-progress-bar-bg">
+        <div id="ad-progress-bar"></div>
+      </div>
     </div>
 
-    <!-- زر الكورس معطّل افتراضياً — يُفعَّل فقط بعد التحقق -->
-    <button class="btn-main" id="btn-enroll" onclick="goToCourse()" disabled style="margin-top:10px">
-      🚀 Enroll Now - Free
+    <button class="btn-main" id="btn-enroll" onclick="goToCourse()" disabled>
+      🚀 Enroll Now
     </button>
 
-    <div id="status-note">Checking available offers…</div>
+    <div id="status-note">Checking ads...</div>
+
   </div>
 </div>
 
 <script>
-  const tg = window.Telegram?.WebApp || null;
-  if (tg) { tg.ready(); tg.expand(); }
 
-  /* ═══════════════════════════════════════════════
-     المتغيرات المركزية
-  ═══════════════════════════════════════════════ */
-  let adUnlocked   = false;  // true = يحق للمستخدم الدخول للكورس
-  let adInProgress = false;  // منع الضغط المزدوج
-  let adsCtrl      = null;
-  let progressTimer= null;
+/* ===== Telegram ===== */
+const tg = window.Telegram?.WebApp || null;
+if (tg) { tg.ready(); tg.expand(); }
 
-  /* ═══════════════════════════════════════════════
-     التهيئة عند التحميل
-  ═══════════════════════════════════════════════ */
-  window.addEventListener('load', () => {
-    // حاول تهيئة مكتبة الإعلانات
-    if (typeof TelegramAdsController !== 'undefined') {
-      try {
-        adsCtrl = new TelegramAdsController();
-        adsCtrl.initialize({ pubId: "1006337", appId: "6751" });
-        console.log('[Ads] Initialized');
-      } catch(e) {
-        console.warn('[Ads] Init error:', e);
-        adsCtrl = null;
-      }
-    }
+/* ===== SYSTEM ===== */
+let adUnlocked=false, adInProgress=false, adsCtrl=null;
+let adStartTime=0, tabHidden=false, lastClick=0;
 
-    /*
-     * القرار المبكر:
-     * إذا لم تُحمَّل المكتبة أصلاً → لا يوجد إعلان → افتح الكورس فوراً.
-     * إذا حُمِّلت → انتظر ثانية واحدة ثم اسأل إن كان الإعلان جاهزاً.
-     */
-    if (!adsCtrl) {
-      unlockDirect('Ad library not loaded');
-    } else {
-      setTimeout(probeAdAvailability, 1000);
-    }
-  });
+const MIN_WATCH_TIME = 7000;
+const CLICK_COOLDOWN = 3000;
 
-  /*
-   * probeAdAvailability:
-   * تفحص إن كانت المكتبة تعرف مسبقاً أنه لا يوجد إعلان.
-   * إذا لم توفر دالة فحص → نُبقي الحاجز ونعتمد على نتيجة show() لاحقاً.
-   */
-  function probeAdAvailability() {
-    if (!adsCtrl) { unlockDirect('No controller'); return; }
+/* ===== TAB DETECT ===== */
+document.addEventListener("visibilitychange", ()=>{
+  tabHidden = document.hidden;
+});
 
-    // بعض المكتبات توفر isAdAvailable() أو isReady()
-    const checkFn = adsCtrl.isAdAvailable ?? adsCtrl.isReady ?? null;
-    if (typeof checkFn === 'function') {
-      try {
-        if (!checkFn.call(adsCtrl)) {
-          unlockDirect('isAdAvailable() = false');
-          return;
-        }
-      } catch(e) { /* نكمل */ }
-    }
-
-    // المكتبة موجودة ولم تنفِ وجود إعلان → أبقِ الحاجز
-    setStatus('Watch the short ad below to unlock your course.', 'rgba(255,255,255,0.45)');
-    console.log('[Ads] Gate active — waiting for user action');
-  }
-
-  /* ═══════════════════════════════════════════════
-     فتح الكورس مباشرة (بدون إعلان)
-  ═══════════════════════════════════════════════ */
-  function unlockDirect(reason) {
-    console.log('[Ads] Direct unlock:', reason);
-    adUnlocked = true;
-    document.getElementById('btn-watch').style.display = 'none';
-    enableEnroll();
-    setStatus('✅ Course ready! Tap below to enroll.', '#10b981');
-  }
-
-  /* ═══════════════════════════════════════════════
-     الضغط على "Watch Ad"
-  ═══════════════════════════════════════════════ */
-  async function handleAdClick() {
-    if (adInProgress || adUnlocked) return;
-    adInProgress = true;
-
-    const btnW = document.getElementById('btn-watch');
-    const txt  = document.getElementById('watch-text');
-    btnW.disabled  = true;
-    txt.innerText  = 'Loading Ad…';
-
-    startProgressBar();
-
+/* ===== INIT ===== */
+window.addEventListener("load", ()=>{
+  if (typeof TelegramAdsController !== 'undefined') {
     try {
-      await adsCtrl.show();
-
-      /*
-       * ✅ resolve = الإعلان اكتمل بنجاح
-       * هذه الحالة الوحيدة التي نفتح فيها الكورس عند وجود إعلان.
-       */
-      stopProgressBar(true);
-      adUnlocked = true;
-      btnW.style.display = 'none';
-      enableEnroll();
-      setStatus('✅ Course Unlocked! Tap below to enroll.', '#10b981');
-
-    } catch(err) {
-      stopProgressBar(false);
-      const msg = String(err?.message || err?.code || err || '').toLowerCase();
-      console.warn('[Ads] show() error:', msg);
-
-      /*
-       * تصنيف الخطأ:
-       *
-       * 1. تخطي / إغلاق / رفض من المستخدم
-       *    → أعد الزر واطلب منه إعادة المحاولة
-       *
-       * 2. لا يوجد إعلان / خطأ شبكة / أي خطأ آخر
-       *    → لا نعاقب المستخدم على شيء خارج إرادته → افتح الكورس
-       */
-      const userSkipped =
-        msg.includes('skip')    || msg.includes('close')   ||
-        msg.includes('dismiss') || msg.includes('cancel')  ||
-        msg.includes('abort');
-
-      if (userSkipped) {
-        btnW.disabled = false;
-        txt.innerText = '▶ Watch Ad to Unlock';
-        setStatus('⚠️ Please watch the full ad to continue.', '#f59e0b');
-      } else {
-        // خطأ تقني أو لا يوجد إعلان → افتح مباشرة
-        unlockDirect('Ad error (non-skip): ' + msg);
-      }
-    } finally {
-      adInProgress = false;
-    }
+      adsCtrl = new TelegramAdsController();
+      adsCtrl.initialize({ pubId:"1006337", appId:"6751" });
+    } catch(e){ adsCtrl=null; }
   }
 
-  /* ═══════════════════════════════════════════════
-     تفعيل زر الكورس
-  ═══════════════════════════════════════════════ */
-  function enableEnroll() {
-    const btn = document.getElementById('btn-enroll');
-    btn.disabled = false;
-    btn.style.opacity = '1';
+  if (!adsCtrl) unlockDirect();
+  else setStatus('Watch ad to unlock', '#aaa');
+});
+
+/* ===== CLICK ===== */
+async function handleAdClick(){
+
+  const now = Date.now();
+  if (now - lastClick < CLICK_COOLDOWN) {
+    setStatus('Wait...', '#f59e0b');
+    return;
   }
 
-  /* ═══════════════════════════════════════════════
-     الانتقال للكورس
-  ═══════════════════════════════════════════════ */
-  function goToCourse() {
-    if (!adUnlocked) {
-      setStatus('⚠️ Please complete the ad first.', '#ef4444');
-      return;
-    }
+  lastClick = now;
 
-    const code = tg?.initDataUnsafe?.start_param
-               || new URLSearchParams(window.location.search).get('startapp');
-    let url = 'https://www.udemy.com/';
+  if (adInProgress || adUnlocked) return;
 
-    if (code) {
-      try {
-        const decoded = atob(code.replace(/-/g, '+').replace(/_/g, '/'));
-        if (decoded.startsWith('http')) url = decoded;
-      } catch(e) {}
-    }
+  adInProgress=true;
+  tabHidden=false;
 
-    if (tg?.openLink) {
-      tg.openLink(url);
-      setTimeout(() => tg.close(), 800);
+  const btn=document.getElementById('btn-watch');
+  const txt=document.getElementById('watch-text');
+
+  btn.disabled=true;
+  txt.innerText='Loading...';
+
+  startProgressBar();
+
+  try{
+    adStartTime=Date.now();
+
+    await adsCtrl.show();
+
+    const watchTime = Date.now()-adStartTime;
+
+    if (tabHidden) throw 'tab_switch';
+    if (watchTime < MIN_WATCH_TIME) throw 'too_fast';
+
+    stopProgressBar(true);
+
+    adUnlocked=true;
+    btn.style.display='none';
+
+    enableEnroll();
+    setStatus('✅ Unlocked!', '#10b981');
+
+  }catch(e){
+
+    stopProgressBar(false);
+
+    const msg = String(e).toLowerCase();
+
+    if (msg.includes('too_fast') || msg.includes('tab')) {
+      btn.disabled=false;
+      txt.innerText='▶ Watch Ad';
+      setStatus('⚠️ Watch full ad', '#ef4444');
     } else {
-      window.location.href = url;
+      unlockDirect();
     }
-  }
 
-  /* ═══════════════════════════════════════════════
-     شريط التقدم البصري
-  ═══════════════════════════════════════════════ */
-  function startProgressBar() {
-    const wrap = document.getElementById('ad-progress-wrap');
-    const bar  = document.getElementById('ad-progress-bar');
-    wrap.style.display = 'block';
-    bar.style.background = 'linear-gradient(90deg, #6366f1, #a855f7)';
-    bar.style.width = '0%';
-    const start = Date.now();
-    progressTimer = setInterval(() => {
-      const pct = Math.min(((Date.now() - start) / 15000) * 100, 90);
-      bar.style.width = pct + '%';
-    }, 300);
+  }finally{
+    adInProgress=false;
   }
+}
 
-  function stopProgressBar(success) {
-    if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
-    const bar  = document.getElementById('ad-progress-bar');
-    const wrap = document.getElementById('ad-progress-wrap');
-    bar.style.background = success ? '#10b981' : '#ef4444';
-    if (success) bar.style.width = '100%';
-    setTimeout(() => {
-      wrap.style.display = 'none';
-      bar.style.width = '0%';
-    }, 800);
-  }
+/* ===== UNLOCK ===== */
+function unlockDirect(){
+  adUnlocked=true;
+  document.getElementById('btn-watch').style.display='none';
+  enableEnroll();
+  setStatus('✅ Ready', '#10b981');
+}
 
-  /* ═══════════════════════════════════════════════
-     رسائل الحالة
-  ═══════════════════════════════════════════════ */
-  function setStatus(msg, color) {
-    const el = document.getElementById('status-note');
-    el.innerText   = msg;
-    el.style.color = color || 'rgba(255,255,255,0.3)';
-  }
+/* ===== HELPERS ===== */
+function enableEnroll(){
+  const btn=document.getElementById('btn-enroll');
+  btn.disabled=false;
+}
+
+function goToCourse(){
+  if (!adUnlocked) return;
+  window.location.href="https://www.udemy.com/";
+}
+
+function setStatus(msg,color){
+  const el=document.getElementById('status-note');
+  el.innerText=msg;
+  el.style.color=color;
+}
+
+/* ===== PROGRESS ===== */
+function startProgressBar(){
+  const wrap=document.getElementById('ad-progress-wrap');
+  const bar=document.getElementById('ad-progress-bar');
+  wrap.style.display='block';
+  bar.style.width='0%';
+
+  let start=Date.now();
+  window.prog=setInterval(()=>{
+    let p=Math.min((Date.now()-start)/150,90);
+    bar.style.width=p+'%';
+  },200);
+}
+
+function stopProgressBar(ok){
+  clearInterval(window.prog);
+  const bar=document.getElementById('ad-progress-bar');
+  bar.style.width = ok ? '100%' : '0%';
+}
+
 </script>
+
 </body>
 </html>
