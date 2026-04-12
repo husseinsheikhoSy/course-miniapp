@@ -262,11 +262,11 @@
     if (watchBtn)   { watchBtn.disabled = true; watchBtn.classList.add('loading'); }
     if (watchLabel) { watchLabel.textContent = 'Loading Ad...'; }
 
-    // ── Hard timeout: unlock after 20s regardless ──
+    // ── If no ad found within 2s — unlock immediately ──
     adTimeoutId = setTimeout(() => {
-      console.warn('⏱ Ad timeout — unlocking anyway');
+      console.warn('⏱ No ad found — unlocking');
       unlockEnrollButton();
-    }, 20000);
+    }, 2000);
 
     const adMethod = getAdMethod();
 
