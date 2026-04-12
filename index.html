@@ -1,398 +1,539 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Free Course Access</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎓 احصل على كورسك المجاني</title>
+
+  <!-- Telegram Ad Scripts -->
   <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+    :root {
+      --gold: #f5c842;
+      --gold-dim: #c9952a;
+      --dark: #0e0e14;
+      --card: #16161f;
+      --border: #2a2a3a;
+      --text: #e8e8f0;
+      --muted: #8888aa;
+      --green: #22c55e;
+      --red: #ef4444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* === Starfield Background === */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 20%, #1a0a3a55 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, #0a1a3a44 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      opacity: 0;
+      animation: twinkle var(--d) var(--delay) infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0; transform: scale(1); }
+      50%       { opacity: var(--brightness); transform: scale(1.5); }
+    }
+
+    /* === Card === */
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px 28px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 0 60px #0008, 0 0 0 1px #ffffff08 inset;
+      animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === Icon === */
+    .icon-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .icon-badge {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, #f5c842, #e08c00);
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+      box-shadow: 0 8px 30px #f5c84240;
+      animation: pulse-icon 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse-icon {
+      0%, 100% { box-shadow: 0 8px 30px #f5c84240; }
+      50%       { box-shadow: 0 8px 50px #f5c84280; }
+    }
+
+    /* === Headings === */
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--gold);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    /* === Steps === */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #1e1e2a;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .step.active {
+      border-color: var(--gold-dim);
+      background: #22200f;
+    }
+    .step.done {
+      border-color: var(--green);
+      background: #0f2218;
+    }
+    .step-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      background: var(--border);
+      color: var(--muted);
+      transition: all 0.3s;
+    }
+    .step.active .step-num { background: var(--gold); color: #000; }
+    .step.done  .step-num { background: var(--green); color: #fff; }
+    .step-text { font-size: 0.9rem; line-height: 1.4; }
+    .step-label { font-weight: 700; display: block; }
+    .step-desc  { color: var(--muted); font-size: 0.82rem; }
+
+    /* === Ad button === */
+    #watchAdBtn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #f5c842, #e08c00);
+      color: #000;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 900;
+      font-size: 1.05rem;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 20px #f5c84240;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.3s;
+      margin-bottom: 12px;
+    }
+    #watchAdBtn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px #f5c84260;
+    }
+    #watchAdBtn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    #watchAdBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* === Timer bar === */
+    .timer-wrap {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .timer-wrap.visible { display: flex; }
+    .timer-label {
+      display: flex; justify-content: space-between;
+      font-size: 0.82rem; color: var(--muted);
+    }
+    .timer-bar-bg {
+      height: 6px; background: var(--border); border-radius: 99px; overflow: hidden;
+    }
+    .timer-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), #e08c00);
+      border-radius: 99px;
+      width: 0%;
+      transition: width 1s linear;
+    }
+
+    /* === Get course button === */
+    #getCourseBtn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #fff;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 900;
+      font-size: 1.05rem;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 20px #22c55e40;
+      transition: transform 0.15s, box-shadow 0.15s;
+      animation: greenPulse 1.5s ease-in-out infinite;
+      margin-bottom: 12px;
+    }
+    #getCourseBtn.visible { display: flex; }
+    #getCourseBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px #22c55e60;
+    }
+    @keyframes greenPulse {
+      0%, 100% { box-shadow: 0 4px 20px #22c55e40; }
+      50%       { box-shadow: 0 4px 40px #22c55e80; }
+    }
+
+    /* === Status message === */
+    #statusMsg {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+      min-height: 20px;
+      transition: color 0.3s;
+    }
+    #statusMsg.success { color: var(--green); }
+    #statusMsg.error   { color: var(--red); }
+
+    /* === Note === */
+    .note {
+      margin-top: 20px;
+      padding: 12px 14px;
+      background: #1a1a26;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+    .note strong { color: var(--gold); }
+
+    /* === Error State === */
+    #errorState {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    #errorState .err-icon { font-size: 48px; margin-bottom: 12px; }
+    #errorState p { color: var(--red); font-weight: 700; margin-bottom: 8px; }
+    #errorState small { color: var(--muted); font-size: 0.82rem; }
+
+  </style>
+</head>
+<body>
+
+  <!-- Stars -->
+  <div class="stars" id="stars"></div>
+
+  <div class="card">
+
+    <!-- Error State (hidden by default) -->
+    <div id="errorState">
+      <div class="err-icon">⚠️</div>
+      <p>رابط غير صالح</p>
+      <small>يبدو أن الرابط غير مكتمل أو انتهت صلاحيته. تواصل مع القناة للحصول على رابط جديد.</small>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent">
+      <div class="icon-wrap">
+        <div class="icon-badge">🎓</div>
+      </div>
+
+      <h1>كورس مجاني 100% بانتظارك!</h1>
+      <p class="subtitle">
+        لمساعدتنا في الاستمرار بتوفير كورسات مجانية،<br>
+        الرجاء مشاهدة إعلان قصير أولاً 🙏
+      </p>
+
+      <!-- Steps -->
+      <div class="steps">
+        <div class="step active" id="step1">
+          <div class="step-num">1</div>
+          <div class="step-text">
+            <span class="step-label">شاهد الإعلان</span>
+            <span class="step-desc">اضغط الزر أدناه وانتظر انتهاء الإعلان</span>
+          </div>
+        </div>
+        <div class="step" id="step2">
+          <div class="step-num">2</div>
+          <div class="step-text">
+            <span class="step-label">انتهى الإعلان</span>
+            <span class="step-desc">سيُفتح لك زر الوصول للكورس تلقائياً</span>
+          </div>
+        </div>
+        <div class="step" id="step3">
+          <div class="step-num">3</div>
+          <div class="step-text">
+            <span class="step-label">احصل على الكورس 🎉</span>
+            <span class="step-desc">اضغط "الانتقال للكورس" وسجّل مجاناً</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timer Bar (appears during ad) -->
+      <div class="timer-wrap" id="timerWrap">
+        <div class="timer-label">
+          <span>جاري تحميل الإعلان...</span>
+          <span id="timerCount">0s</span>
+        </div>
+        <div class="timer-bar-bg">
+          <div class="timer-bar-fill" id="timerFill"></div>
+        </div>
+      </div>
+
+      <!-- Watch Ad Button -->
+      <button id="watchAdBtn" onclick="startAd()">
+        ▶️ شاهد الإعلان للمتابعة
+      </button>
+
+      <!-- Get Course Button -->
+      <button id="getCourseBtn" onclick="goToCourse()">
+        🚀 الانتقال إلى الكورس المجاني
+      </button>
+
+      <div id="statusMsg"></div>
+
+      <div class="note">
+        <strong>ملاحظة:</strong> الكورسات مجانية بالكامل عبر كوبون خصم 100%.
+        مشاهدة الإعلان تساعد في استمرار هذه الخدمة المجانية للجميع. ❤️
+      </div>
+    </div>
+
+  </div>
+
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      if (typeof TelegramAdsController !== 'undefined') {
+    // =================== Stars ===================
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 80; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.cssText = `
+        left:${Math.random()*100}%;
+        top:${Math.random()*100}%;
+        --d:${2 + Math.random()*4}s;
+        --delay:${Math.random()*5}s;
+        --brightness:${0.3 + Math.random()*0.7};
+        width:${1+Math.random()*2}px;
+        height:${1+Math.random()*2}px;
+      `;
+      starsEl.appendChild(s);
+    }
+
+    // =================== Parse URL ===================
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      // Telegram Mini App passes ?startapp=BASE64
+      const startapp = url.searchParams.get('startapp') ||
+                       url.searchParams.get('tgWebAppStartParam') ||
+                       url.searchParams.get('url');
+      if (startapp) {
+        try {
+          // Add padding back
+          const padded = startapp + '=='.slice(0, (4 - startapp.length % 4) % 4);
+          return atob(padded.replace(/-/g,'+').replace(/_/g,'/'));
+        } catch(e) {}
+      }
+      return null;
+    }
+
+    const courseUrl = getParam('startapp');
+
+    if (!courseUrl || !courseUrl.includes('udemy.com')) {
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('errorState').style.display  = 'block';
+    }
+
+    // =================== Ad Flow ===================
+    let adCompleted  = false;
+    let adStarted    = false;
+    let timerInterval = null;
+
+    function setStatus(msg, cls = '') {
+      const el = document.getElementById('statusMsg');
+      el.textContent = msg;
+      el.className   = cls;
+    }
+
+    function markStepDone(n) {
+      const el = document.getElementById('step' + n);
+      if (el) { el.classList.remove('active'); el.classList.add('done'); }
+    }
+    function markStepActive(n) {
+      const el = document.getElementById('step' + n);
+      if (el) { el.classList.add('active'); }
+    }
+
+    function startTimer(durationSec) {
+      const wrap   = document.getElementById('timerWrap');
+      const fill   = document.getElementById('timerFill');
+      const count  = document.getElementById('timerCount');
+      wrap.classList.add('visible');
+
+      let elapsed = 0;
+      fill.style.width = '0%';
+      count.textContent = '0s';
+
+      timerInterval = setInterval(() => {
+        elapsed++;
+        const pct = Math.min((elapsed / durationSec) * 100, 100);
+        fill.style.width = pct + '%';
+        count.textContent = elapsed + 's';
+        if (elapsed >= durationSec) {
+          clearInterval(timerInterval);
+        }
+      }, 1000);
+    }
+
+    function onAdComplete() {
+      if (adCompleted) return;
+      adCompleted = true;
+      clearInterval(timerInterval);
+
+      // Update UI
+      document.getElementById('timerWrap').classList.remove('visible');
+      document.getElementById('watchAdBtn').style.display = 'none';
+
+      markStepDone(1);
+      markStepDone(2);
+      markStepActive(3);
+
+      document.getElementById('getCourseBtn').classList.add('visible');
+      setStatus('✅ رائع! يمكنك الآن الانتقال للكورس المجاني.', 'success');
+    }
+
+    function startAd() {
+      if (adStarted) return;
+      adStarted = true;
+
+      const btn = document.getElementById('watchAdBtn');
+      btn.disabled = true;
+      btn.innerHTML = '⏳ جاري تحميل الإعلان...';
+
+      setStatus('يرجى الانتظار حتى ينتهي الإعلان...');
+      startTimer(15);
+      markStepDone(1);
+      markStepActive(2);
+
+      // Show ad via TelegramAdsController
+      try {
+        if (window.TelegramAdsController) {
+          window.TelegramAdsController.showAd()
+            .then(() => {
+              onAdComplete();
+            })
+            .catch((err) => {
+              console.warn('Ad error or skipped:', err);
+              // Still unlock after a delay if ad fails
+              setTimeout(onAdComplete, 3000);
+            });
+        } else {
+          // Fallback: unlock after 15s if SDK not loaded
+          setTimeout(onAdComplete, 15000);
+        }
+      } catch(e) {
+        setTimeout(onAdComplete, 15000);
+      }
+    }
+
+    function goToCourse() {
+      if (!adCompleted) {
+        setStatus('⚠️ يرجى مشاهدة الإعلان أولاً!', 'error');
+        return;
+      }
+      if (!courseUrl) {
+        setStatus('⚠️ رابط الكورس غير متوفر.', 'error');
+        return;
+      }
+      setStatus('🔄 جاري فتح الكورس...', 'success');
+      setTimeout(() => {
+        window.location.href = courseUrl;
+      }, 400);
+    }
+
+    // =================== Init Ad SDK ===================
+    window.addEventListener('load', () => {
+      try {
         window.TelegramAdsController = new TelegramAdsController();
         window.TelegramAdsController.initialize({
           pubId: "1006337",
           appId: "6751",
         });
+      } catch(e) {
+        console.warn('TelegramAdsController init error:', e);
       }
     });
   </script>
-
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --bg: #07070a;
-      --card: rgba(22, 22, 32, 0.5);
-      --text: #ffffff;
-      --hint: #94a3b8;
-      --accent: #6366f1;
-      --accent2: #8b5cf6;
-      --accent-glow: rgba(99, 102, 241, 0.3);
-      --green: #10b981;
-      --green-glow: rgba(16, 185, 129, 0.3);
-      --radius: 28px;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      overflow-x: hidden;
-      position: relative;
-    }
-
-    /* ── Ambient Background Glow ── */
-    body::before, body::after {
-      content: '';
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(120px);
-      pointer-events: none;
-      z-index: 0;
-      animation: float-bg 10s ease-in-out infinite alternate;
-    }
-    body::before {
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
-      top: -150px; right: -150px;
-    }
-    body::after {
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 60%);
-      bottom: -100px; left: -100px;
-      animation-delay: -5s;
-    }
-
-    @keyframes float-bg {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(-40px, 40px) scale(1.1); }
-    }
-
-    /* ── Screens ── */
-    .screen {
-      display: none;
-      width: 100%;
-      max-width: 400px;
-      flex-direction: column;
-      align-items: center;
-      gap: 24px;
-      text-align: center;
-      position: relative;
-      z-index: 1;
-    }
-    .screen.active { display: flex; }
-
-    /* ── Loading Screen ── */
-    #s-loading { gap: 20px; }
-    .loader-ring {
-      width: 60px; height: 60px;
-      position: relative;
-    }
-    .loader-ring::before, .loader-ring::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-    }
-    .loader-ring::before { border: 3px solid rgba(255, 255, 255, 0.05); }
-    .loader-ring::after {
-      border: 3px solid transparent;
-      border-top-color: var(--accent);
-      border-right-color: var(--accent2);
-      animation: spin 1s cubic-bezier(.6,.2,.4,.8) infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg) } }
-    .loading-text { font-size: 15px; font-weight: 500; color: var(--hint); }
-    .loading-dots::after {
-      content: ''; animation: dots 1.5s steps(4, end) infinite;
-    }
-    @keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } 100% { content: ''; } }
-
-    /* ── Main Card (Premium Glassmorphism) ── */
-    .card {
-      width: 100%;
-      background: var(--card);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: var(--radius);
-      padding: 36px 24px;
-      display: flex; flex-direction: column; align-items: center; gap: 22px;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
-    }
-
-    /* ── Icon Badge ── */
-    .icon-badge {
-      width: 84px; height: 84px;
-      border-radius: 28px;
-      background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.05));
-      border: 1px solid rgba(139,92,246,0.2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 42px;
-      box-shadow: 0 16px 32px rgba(99,102,241,0.15);
-      animation: float-icon 4s ease-in-out infinite;
-    }
-    @keyframes float-icon {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-
-    .card-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 28px;
-      font-weight: 800;
-      line-height: 1.1;
-      background: linear-gradient(135deg, #ffffff 40%, var(--hint) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .card-sub { color: var(--hint); font-size: 14px; line-height: 1.6; max-width: 300px; }
-
-    /* ── Info Grid ── */
-    .info-grid { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .info-chip {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.04);
-      border-radius: 18px;
-      padding: 14px;
-      display: flex; align-items: center; gap: 12px;
-      text-align: left;
-    }
-    .info-chip.wide { grid-column: 1 / -1; }
-    .chip-icon { font-size: 22px; }
-    .chip-content { display: flex; flex-direction: column; gap: 4px; }
-    .chip-label { font-size: 11px; color: var(--hint); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
-    .chip-value { font-size: 14px; font-weight: 700; color: var(--text); }
-    .chip-value.green { color: #34d399; }
-
-    /* ── Buttons ── */
-    .btn-watch {
-      width: 100%; padding: 18px 24px;
-      border: none; border-radius: 20px;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-      color: #fff; font-family: inherit; font-size: 16px; font-weight: 700;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px;
-      box-shadow: 0 10px 30px var(--accent-glow);
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative; overflow: hidden;
-    }
-    .btn-watch::after {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
-      pointer-events: none;
-    }
-    .btn-watch:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 16px 40px var(--accent-glow); }
-    .btn-watch:active:not(:disabled) { transform: scale(0.97); }
-    .btn-watch:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; filter: grayscale(30%); }
-    
-    .btn-watch.loading::before {
-      content: ''; position: absolute; inset: 0; z-index: 2;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      animation: loading-shimmer 1.5s infinite;
-    }
-    @keyframes loading-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
-
-    .play-icon {
-      width: 32px; height: 32px; background: rgba(255,255,255,0.2);
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 13px; padding-left: 2px;
-      backdrop-filter: blur(5px);
-    }
-
-    .btn-enroll {
-      width: 100%; padding: 18px 24px;
-      border: 1px solid rgba(255,255,255,0.08); border-radius: 20px;
-      background: rgba(255,255,255,0.02); color: var(--hint);
-      font-family: inherit; font-size: 16px; font-weight: 700;
-      cursor: not-allowed; display: none; align-items: center; justify-content: center; gap: 12px;
-      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .btn-enroll.unlocked {
-      display: flex;
-      background: linear-gradient(135deg, var(--green) 0%, #059669 100%);
-      border-color: transparent; color: #fff; cursor: pointer;
-      box-shadow: 0 10px 30px var(--green-glow);
-      animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .btn-enroll.unlocked:hover { transform: translateY(-3px); box-shadow: 0 16px 40px var(--green-glow); }
-    .btn-enroll.unlocked:active { transform: scale(0.97); }
-    @keyframes pop-in {
-      0% { transform: scale(0.9); opacity: 0; }
-      60% { transform: scale(1.05); }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    .note-text { font-size: 13px; color: var(--hint); opacity: 0.7; font-weight: 500; }
-
-    /* ── Entrance Animation ── */
-    @keyframes slide-up {
-      from { opacity: 0; transform: translateY(20px) scale(0.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .screen.active > * { animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-    .screen.active > *:nth-child(1) { animation-delay: 0.05s; }
-    .screen.active > *:nth-child(2) { animation-delay: 0.1s; }
-    .screen.active > *:nth-child(3) { animation-delay: 0.15s; }
-    .screen.active > *:nth-child(4) { animation-delay: 0.2s; }
-    .screen.active > *:nth-child(5) { animation-delay: 0.25s; }
-  </style>
-</head>
-<body>
-
-<div id="s-loading" class="screen active">
-  <div class="loader-ring"></div>
-  <p class="loading-text">Preparing your course<span class="loading-dots"></span></p>
-</div>
-
-<div id="s-main" class="screen">
-  <div class="card">
-    <div class="icon-badge">✨</div>
-    <div class="card-title">Unlock Full Access</div>
-    <p class="card-sub">Support us by watching a short ad to instantly unlock your free course.</p>
-
-    <div class="info-grid">
-      <div class="info-chip">
-        <span class="chip-icon">🏷️</span>
-        <div class="chip-content">
-          <span class="chip-label">Price</span>
-          <span class="chip-value green">100% Free</span>
-        </div>
-      </div>
-      <div class="info-chip">
-        <span class="chip-icon">⏱️</span>
-        <div class="chip-content">
-          <span class="chip-label">Duration</span>
-          <span class="chip-value">~15 Seconds</span>
-        </div>
-      </div>
-      <div class="info-chip wide">
-        <span class="chip-icon">🔓</span>
-        <div class="chip-content">
-          <span class="chip-label">Requirements</span>
-          <span class="chip-value">No sign-ups or payments required</span>
-        </div>
-      </div>
-    </div>
-
-    <button class="btn-watch" id="btn-watch">
-      <span class="play-icon">▶</span>
-      <span id="btn-watch-label">Watch Ad to Unlock</span>
-    </button>
-
-    <button class="btn-enroll" id="btn-enroll" disabled>
-      <span id="lock-icon" style="font-size:18px">🚀</span>
-      <span id="enroll-label">Enroll Now — FREE</span>
-    </button>
-
-    <p class="note-text" id="bottom-note">The enroll button will activate automatically.</p>
-  </div>
-</div>
-
-<script>
-  // ── Telegram Web App Initialization ──
-  const tg = window.Telegram?.WebApp || null;
-  if (tg) { tg.ready(); tg.expand(); }
-
-  function getCourseUrl() {
-    const code = tg?.initDataUnsafe?.start_param 
-      || new URLSearchParams(window.location.search).get('startapp')
-      || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
-    if (!code) return null;
-    try {
-      const padded = code + '=='.slice(0, (4 - code.length % 4) % 4);
-      const decoded = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
-      if (decoded.startsWith('http')) return decoded;
-    } catch(e) { console.error('Base64 error:', e); }
-    return null;
-  }
-
-  const COURSE_URL = getCourseUrl();
-
-  function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id)?.classList.add('active');
-  }
-
-  // ── Unlock Logic (Always succeeds) ──
-  function unlockEnrollButton() {
-    const btn = document.getElementById('btn-enroll');
-    const watchBtn = document.getElementById('btn-watch');
-    const note = document.getElementById('bottom-note');
-    
-    // Hide watch button, show unlocked enroll button
-    if (watchBtn) watchBtn.style.display = 'none';
-    
-    if (btn) {
-      btn.disabled = false; 
-      btn.classList.add('unlocked'); 
-      btn.onclick = goToCourse; 
-    }
-
-    if (note) note.textContent = "Your course is ready to access!";
-  }
-
-  function goToCourse() {
-    const url = COURSE_URL || 'https://www.udemy.com/';
-    if (tg?.openLink) { tg.openLink(url); setTimeout(() => tg.close(), 600); }
-    else { window.location.href = url; }
-  }
-
-  // ── Ad Trigger Logic ──
-  async function startAd() {
-    const watchBtn = document.getElementById('btn-watch');
-    const watchLabel = document.getElementById('btn-watch-label');
-    
-    // Set loading state
-    if (watchBtn) { watchBtn.disabled = true; watchBtn.classList.add('loading'); }
-    if (watchLabel) { watchLabel.textContent = 'Loading Ad...'; }
-
-    try {
-      if (window.TelegramAdsController) {
-        // Attempt to show the ad. If there is no inventory or it fails,
-        // it will typically throw an error which we catch below.
-        if (typeof window.TelegramAdsController.showAd === 'function') {
-          await window.TelegramAdsController.showAd();
-        } else if (typeof window.TelegramAdsController.show === 'function') {
-          await window.TelegramAdsController.show();
-        } else {
-          // If methods aren't available yet, wait a second then unlock
-          await new Promise(resolve => setTimeout(resolve, 800));
-        }
-      }
-    } catch (error) {
-      console.warn("Ad unavailable or failed to show. Proceeding to unlock.");
-    } finally {
-      // REGARDLESS of success, failure, or no ads available: 
-      // The button unlocks so the user is never stuck.
-      unlockEnrollButton();
-    }
-  }
-
-  // ── Startup Flow ──
-  window.addEventListener('DOMContentLoaded', () => {
-    // Show main UI after a brief loading animation
-    setTimeout(() => {
-      showScreen('s-main');
-    }, 1200);
-
-    const watchBtn = document.getElementById('btn-watch');
-    if (watchBtn) {
-      watchBtn.addEventListener("click", startAd);
-    }
-  });
-</script>
 </body>
 </html>
