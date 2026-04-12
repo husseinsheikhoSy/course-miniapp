@@ -1,539 +1,395 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎓 احصل على كورسك المجاني</title>
+  <title>Udemy26 – Free Course Access</title>
 
-  <!-- Telegram Ad Scripts -->
+  <!-- Ad Script -->
   <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
 
     :root {
-      --gold: #f5c842;
-      --gold-dim: #c9952a;
-      --dark: #0e0e14;
-      --card: #16161f;
-      --border: #2a2a3a;
-      --text: #e8e8f0;
-      --muted: #8888aa;
-      --green: #22c55e;
-      --red: #ef4444;
+      --bg:      #0a0a0f;
+      --surface: #13131c;
+      --border:  #1f1f2e;
+      --accent:  #a259ff;
+      --accent2: #ff6b6b;
+      --gold:    #f5c518;
+      --text:    #e8e8f0;
+      --muted:   #6b6b80;
+      --success: #22d3a0;
+      --glow:    rgba(162,89,255,0.35);
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: var(--dark);
+    html, body {
+      height: 100%;
+      background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      font-family: 'DM Sans', sans-serif;
       overflow-x: hidden;
     }
 
-    /* === Starfield Background === */
     body::before {
       content: '';
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background:
-        radial-gradient(ellipse at 20% 20%, #1a0a3a55 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, #0a1a3a44 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
+        radial-gradient(ellipse 60% 50% at 20% 10%, rgba(162,89,255,.18) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 80% 90%, rgba(255,107,107,.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(34,211,160,.06) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
     }
 
-    .stars {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
+    .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .particle {
+      position: absolute; width: 2px; height: 2px; border-radius: 50%;
+      background: var(--accent); opacity: 0;
+      animation: float-up var(--dur, 8s) var(--delay, 0s) infinite ease-in;
     }
-    .star {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: #fff;
-      border-radius: 50%;
-      opacity: 0;
-      animation: twinkle var(--d) var(--delay) infinite;
-    }
-    @keyframes twinkle {
-      0%, 100% { opacity: 0; transform: scale(1); }
-      50%       { opacity: var(--brightness); transform: scale(1.5); }
+    @keyframes float-up {
+      0%   { opacity: 0; transform: translateY(0) scale(1); }
+      10%  { opacity: .6; }
+      90%  { opacity: .1; }
+      100% { opacity: 0; transform: translateY(-100vh) scale(.5); }
     }
 
-    /* === Card === */
+    .wrapper {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 24px 16px 40px; gap: 24px;
+    }
+
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      animation: slide-down .6s ease both;
+    }
+    .brand-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; box-shadow: 0 0 20px var(--glow);
+    }
+    .brand-name {
+      font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800;
+      letter-spacing: -.5px;
+      background: linear-gradient(90deg, #fff 40%, var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
     .card {
-      position: relative;
-      z-index: 1;
-      background: var(--card);
+      width: 100%; max-width: 420px;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 36px 28px;
-      max-width: 480px;
-      width: 100%;
-      box-shadow: 0 0 60px #0008, 0 0 0 1px #ffffff08 inset;
-      animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+      border-radius: 24px; padding: 32px 28px 28px;
+      position: relative; overflow: hidden;
+      animation: slide-up .7s ease both .1s;
     }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
     }
 
-    /* === Icon === */
-    .icon-wrap {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .icon-badge {
-      width: 72px; height: 72px;
-      background: linear-gradient(135deg, #f5c842, #e08c00);
-      border-radius: 18px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 36px;
-      box-shadow: 0 8px 30px #f5c84240;
-      animation: pulse-icon 2.5s ease-in-out infinite;
-    }
-    @keyframes pulse-icon {
-      0%, 100% { box-shadow: 0 8px 30px #f5c84240; }
-      50%       { box-shadow: 0 8px 50px #f5c84280; }
+    .course-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(245,197,24,.12); border: 1px solid rgba(245,197,24,.25);
+      border-radius: 50px; padding: 5px 12px;
+      font-size: 12px; font-weight: 500; color: var(--gold);
+      margin-bottom: 18px; letter-spacing: .3px;
     }
 
-    /* === Headings === */
-    h1 {
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: 900;
-      color: var(--gold);
-      line-height: 1.3;
-      margin-bottom: 8px;
+    .card h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(20px, 5vw, 26px); font-weight: 800; line-height: 1.2;
+      margin-bottom: 10px;
     }
-    .subtitle {
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.92rem;
-      margin-bottom: 28px;
-      line-height: 1.6;
+    .card h1 span { color: var(--accent); }
+
+    .card p.sub {
+      color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 26px;
     }
 
-    /* === Steps === */
-    .steps {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
+    .steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
     .step {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: #1e1e2a;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px 16px;
-      transition: border-color 0.3s, background 0.3s;
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 16px; border-radius: 14px;
+      border: 1px solid var(--border); background: rgba(255,255,255,.02);
+      transition: border-color .3s, background .3s;
     }
-    .step.active {
-      border-color: var(--gold-dim);
-      background: #22200f;
-    }
-    .step.done {
-      border-color: var(--green);
-      background: #0f2218;
-    }
+    .step.active  { border-color: rgba(162,89,255,.4);  background: rgba(162,89,255,.07); }
+    .step.done    { border-color: rgba(34,211,160,.35); background: rgba(34,211,160,.06); }
+
     .step-num {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700;
-      font-size: 0.85rem;
-      flex-shrink: 0;
+      flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
       background: var(--border);
-      color: var(--muted);
-      transition: all 0.3s;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--muted);
+      transition: background .3s, color .3s;
     }
-    .step.active .step-num { background: var(--gold); color: #000; }
-    .step.done  .step-num { background: var(--green); color: #fff; }
-    .step-text { font-size: 0.9rem; line-height: 1.4; }
-    .step-label { font-weight: 700; display: block; }
-    .step-desc  { color: var(--muted); font-size: 0.82rem; }
+    .step.active .step-num { background: var(--accent); color: #fff; box-shadow: 0 0 12px var(--glow); }
+    .step.done   .step-num { background: var(--success); color: #fff; }
 
-    /* === Ad button === */
-    #watchAdBtn {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #f5c842, #e08c00);
-      color: #000;
-      font-family: 'Cairo', sans-serif;
-      font-weight: 900;
-      font-size: 1.05rem;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 4px 20px #f5c84240;
-      transition: transform 0.15s, box-shadow 0.15s, opacity 0.3s;
-      margin-bottom: 12px;
-    }
-    #watchAdBtn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px #f5c84260;
-    }
-    #watchAdBtn:active:not(:disabled) {
-      transform: translateY(0);
-    }
-    #watchAdBtn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .step-body { flex: 1; }
+    .step-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .step.active .step-title { color: #fff; }
+    .step.done   .step-title { color: var(--success); }
+    .step-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-    /* === Timer bar === */
-    .timer-wrap {
-      display: none;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 16px;
+    #ad-wrapper {
+      min-height: 60px; border-radius: 14px;
+      border: 1px dashed rgba(162,89,255,.3); background: rgba(162,89,255,.04);
+      margin-bottom: 22px;
+      display: flex; align-items: center; justify-content: center; padding: 12px;
+      transition: border-color .3s;
     }
-    .timer-wrap.visible { display: flex; }
+    #ad-wrapper.loaded { border-style: solid; border-color: rgba(162,89,255,.2); }
+    .ad-placeholder { color: var(--muted); font-size: 12px; text-align: center; }
+    .spin {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #timer-block { text-align: center; margin-bottom: 22px; }
     .timer-label {
-      display: flex; justify-content: space-between;
-      font-size: 0.82rem; color: var(--muted);
+      font-size: 12px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
     }
-    .timer-bar-bg {
-      height: 6px; background: var(--border); border-radius: 99px; overflow: hidden;
+    .timer-ring-wrap {
+      display: inline-flex; align-items: center; justify-content: center; position: relative;
     }
-    .timer-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold), #e08c00);
-      border-radius: 99px;
-      width: 0%;
-      transition: width 1s linear;
+    .timer-svg { transform: rotate(-90deg); }
+    .timer-track { fill: none; stroke: var(--border); stroke-width: 3; }
+    .timer-prog  {
+      fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round;
+      stroke-dasharray: 125.6; stroke-dashoffset: 0; transition: stroke-dashoffset .9s linear;
     }
+    .timer-num {
+      position: absolute; font-family: 'Syne', sans-serif;
+      font-size: 22px; font-weight: 800; color: #fff;
+    }
+    .timer-unit { font-size: 10px; color: var(--muted); display: block; }
 
-    /* === Get course button === */
-    #getCourseBtn {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      color: #fff;
-      font-family: 'Cairo', sans-serif;
-      font-weight: 900;
-      font-size: 1.05rem;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 4px 20px #22c55e40;
-      transition: transform 0.15s, box-shadow 0.15s;
-      animation: greenPulse 1.5s ease-in-out infinite;
-      margin-bottom: 12px;
+    #go-btn {
+      width: 100%; padding: 16px 24px; border-radius: 14px; border: none;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      color: #fff; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 6px 24px rgba(162,89,255,.4);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    #getCourseBtn.visible { display: flex; }
-    #getCourseBtn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px #22c55e60;
+    #go-btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+    #go-btn:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(162,89,255,.55); }
+    #go-btn:not(:disabled):active { transform: scale(.98); }
+    #go-btn .btn-shine {
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.18) 50%, transparent 100%);
+      transform: translateX(-100%); transition: transform .6s ease;
     }
-    @keyframes greenPulse {
-      0%, 100% { box-shadow: 0 4px 20px #22c55e40; }
-      50%       { box-shadow: 0 4px 40px #22c55e80; }
-    }
+    #go-btn:not(:disabled):hover .btn-shine { transform: translateX(100%); }
 
-    /* === Status message === */
-    #statusMsg {
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--muted);
-      min-height: 20px;
-      transition: color 0.3s;
-    }
-    #statusMsg.success { color: var(--green); }
-    #statusMsg.error   { color: var(--red); }
+    .footer-note { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.6; margin-top: 14px; }
+    .footer-note a { color: var(--accent); text-decoration: none; }
 
-    /* === Note === */
-    .note {
-      margin-top: 20px;
-      padding: 12px 14px;
-      background: #1a1a26;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-size: 0.8rem;
-      color: var(--muted);
-      text-align: center;
-      line-height: 1.6;
+    #success-overlay {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: var(--bg);
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; padding: 24px; animation: fade-in .4s ease;
     }
-    .note strong { color: var(--gold); }
-
-    /* === Error State === */
-    #errorState {
-      display: none;
-      text-align: center;
-      padding: 20px;
+    #success-overlay.show { display: flex; }
+    .success-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(34,211,160,.15); border: 2px solid var(--success);
+      display: flex; align-items: center; justify-content: center; font-size: 34px;
+      animation: pop .4s cubic-bezier(.34,1.56,.64,1);
     }
-    #errorState .err-icon { font-size: 48px; margin-bottom: 12px; }
-    #errorState p { color: var(--red); font-weight: 700; margin-bottom: 8px; }
-    #errorState small { color: var(--muted); font-size: 0.82rem; }
+    .success-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--success); }
+    .success-sub   { color: var(--muted); font-size: 14px; text-align: center; }
+    .redirect-bar  { width: 200px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; margin-top: 8px; }
+    .redirect-fill { height: 100%; background: var(--success); width: 0%; transition: width 3s linear; }
 
+    @keyframes slide-down { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:none; } }
+    @keyframes slide-up   { from { opacity:0; transform:translateY(30px);  } to { opacity:1; transform:none; } }
+    @keyframes fade-in    { from { opacity:0; } to { opacity:1; } }
+    @keyframes pop        { from { transform:scale(.4); opacity:0; } to { transform:scale(1); opacity:1; } }
   </style>
 </head>
 <body>
 
-  <!-- Stars -->
-  <div class="stars" id="stars"></div>
+<div class="particles" id="particles"></div>
 
-  <div class="card">
+<div id="success-overlay">
+  <div class="success-icon">🎓</div>
+  <div class="success-title">You're In!</div>
+  <div class="success-sub">Redirecting to your free course…</div>
+  <div class="redirect-bar"><div class="redirect-fill" id="redirect-fill"></div></div>
+</div>
 
-    <!-- Error State (hidden by default) -->
-    <div id="errorState">
-      <div class="err-icon">⚠️</div>
-      <p>رابط غير صالح</p>
-      <small>يبدو أن الرابط غير مكتمل أو انتهت صلاحيته. تواصل مع القناة للحصول على رابط جديد.</small>
-    </div>
-
-    <!-- Main Content -->
-    <div id="mainContent">
-      <div class="icon-wrap">
-        <div class="icon-badge">🎓</div>
-      </div>
-
-      <h1>كورس مجاني 100% بانتظارك!</h1>
-      <p class="subtitle">
-        لمساعدتنا في الاستمرار بتوفير كورسات مجانية،<br>
-        الرجاء مشاهدة إعلان قصير أولاً 🙏
-      </p>
-
-      <!-- Steps -->
-      <div class="steps">
-        <div class="step active" id="step1">
-          <div class="step-num">1</div>
-          <div class="step-text">
-            <span class="step-label">شاهد الإعلان</span>
-            <span class="step-desc">اضغط الزر أدناه وانتظر انتهاء الإعلان</span>
-          </div>
-        </div>
-        <div class="step" id="step2">
-          <div class="step-num">2</div>
-          <div class="step-text">
-            <span class="step-label">انتهى الإعلان</span>
-            <span class="step-desc">سيُفتح لك زر الوصول للكورس تلقائياً</span>
-          </div>
-        </div>
-        <div class="step" id="step3">
-          <div class="step-num">3</div>
-          <div class="step-text">
-            <span class="step-label">احصل على الكورس 🎉</span>
-            <span class="step-desc">اضغط "الانتقال للكورس" وسجّل مجاناً</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Timer Bar (appears during ad) -->
-      <div class="timer-wrap" id="timerWrap">
-        <div class="timer-label">
-          <span>جاري تحميل الإعلان...</span>
-          <span id="timerCount">0s</span>
-        </div>
-        <div class="timer-bar-bg">
-          <div class="timer-bar-fill" id="timerFill"></div>
-        </div>
-      </div>
-
-      <!-- Watch Ad Button -->
-      <button id="watchAdBtn" onclick="startAd()">
-        ▶️ شاهد الإعلان للمتابعة
-      </button>
-
-      <!-- Get Course Button -->
-      <button id="getCourseBtn" onclick="goToCourse()">
-        🚀 الانتقال إلى الكورس المجاني
-      </button>
-
-      <div id="statusMsg"></div>
-
-      <div class="note">
-        <strong>ملاحظة:</strong> الكورسات مجانية بالكامل عبر كوبون خصم 100%.
-        مشاهدة الإعلان تساعد في استمرار هذه الخدمة المجانية للجميع. ❤️
-      </div>
-    </div>
-
+<div class="wrapper">
+  <div class="brand">
+    <div class="brand-icon">🎓</div>
+    <div class="brand-name">Udemy26</div>
   </div>
 
-  <script>
-    // =================== Stars ===================
-    const starsEl = document.getElementById('stars');
-    for (let i = 0; i < 80; i++) {
-      const s = document.createElement('div');
-      s.className = 'star';
-      s.style.cssText = `
-        left:${Math.random()*100}%;
-        top:${Math.random()*100}%;
-        --d:${2 + Math.random()*4}s;
-        --delay:${Math.random()*5}s;
-        --brightness:${0.3 + Math.random()*0.7};
-        width:${1+Math.random()*2}px;
-        height:${1+Math.random()*2}px;
-      `;
-      starsEl.appendChild(s);
-    }
+  <div class="card">
+    <div class="course-badge">✨ 100% Free Course</div>
 
-    // =================== Parse URL ===================
-    function getParam(name) {
-      const url = new URL(window.location.href);
-      // Telegram Mini App passes ?startapp=BASE64
-      const startapp = url.searchParams.get('startapp') ||
-                       url.searchParams.get('tgWebAppStartParam') ||
-                       url.searchParams.get('url');
-      if (startapp) {
-        try {
-          // Add padding back
-          const padded = startapp + '=='.slice(0, (4 - startapp.length % 4) % 4);
-          return atob(padded.replace(/-/g,'+').replace(/_/g,'/'));
-        } catch(e) {}
+    <h1>One Quick Step to<br><span>Unlock Your Course</span></h1>
+    <p class="sub">A short ad keeps this service completely free for everyone. Thank you for your support! 🙏</p>
+
+    <div class="steps">
+      <div class="step active" id="step1">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Watch the Ad</div>
+          <div class="step-desc">A short sponsored message will appear below.</div>
+        </div>
+      </div>
+      <div class="step" id="step2">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Wait for the Timer</div>
+          <div class="step-desc">Just a few seconds and the button unlocks.</div>
+        </div>
+      </div>
+      <div class="step" id="step3">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Enroll for Free 🔓</div>
+          <div class="step-desc">Click the button and get instant access.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ad-wrapper">
+      <div class="ad-placeholder" id="ad-ph">
+        <div class="spin"></div><br>Loading ad…
+      </div>
+    </div>
+
+    <div id="timer-block">
+      <div class="timer-label">Unlocking in</div>
+      <div class="timer-ring-wrap">
+        <svg class="timer-svg" width="70" height="70" viewBox="0 0 50 50">
+          <circle class="timer-track" cx="25" cy="25" r="20"/>
+          <circle class="timer-prog" id="timer-circle" cx="25" cy="25" r="20"/>
+        </svg>
+        <div class="timer-num">
+          <span id="timer-display">10</span>
+          <span class="timer-unit">sec</span>
+        </div>
+      </div>
+    </div>
+
+    <button id="go-btn" disabled>
+      <span class="btn-shine"></span>
+      <span id="btn-text">⏳ Please wait…</span>
+    </button>
+
+    <p class="footer-note">
+      Powered by <a href="https://t.me/Udemy26" target="_blank">@Udemy26</a> · Free Udemy Courses Daily
+    </p>
+  </div>
+</div>
+
+<script>
+  /* Particles */
+  const pc = document.getElementById('particles');
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = `left:${Math.random()*100}%;bottom:${Math.random()*20}%;--dur:${6+Math.random()*10}s;--delay:${Math.random()*8}s;background:${Math.random()>.5?'#a259ff':'#22d3a0'}`;
+    pc.appendChild(p);
+  }
+
+  /* Decode Udemy URL from startapp param */
+  function getUdemyUrl() {
+    try {
+      const tg = window.Telegram && window.Telegram.WebApp;
+      let raw = '';
+      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+        raw = tg.initDataUnsafe.start_param;
+      } else {
+        const sp = new URLSearchParams(window.location.search);
+        raw = sp.get('startapp') || sp.get('tgWebAppStartParam') || '';
       }
-      return null;
+      if (!raw) return null;
+      raw = raw.replace(/-/g, '+').replace(/_/g, '/');
+      while (raw.length % 4) raw += '=';
+      return atob(raw);
+    } catch(e) { console.error('decode error', e); return null; }
+  }
+
+  const courseUrl = getUdemyUrl();
+
+  /* Timer */
+  const WAIT = 10;
+  const circle  = document.getElementById('timer-circle');
+  const timerEl = document.getElementById('timer-display');
+  const btn     = document.getElementById('go-btn');
+  const DASH    = 125.6;
+  let rem = WAIT;
+
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const step3 = document.getElementById('step3');
+
+  step1.classList.remove('active'); step1.classList.add('done');
+  step2.classList.add('active');
+
+  const tick = setInterval(() => {
+    rem--;
+    timerEl.textContent = rem;
+    circle.style.strokeDashoffset = String(DASH * (WAIT - rem) / WAIT);
+    if (rem <= 0) {
+      clearInterval(tick);
+      timerEl.textContent = '✓';
+      circle.style.stroke = '#22d3a0';
+      step2.classList.remove('active'); step2.classList.add('done');
+      step3.classList.add('active');
+      btn.disabled = false;
+      document.getElementById('btn-text').textContent = courseUrl
+        ? "🔥 Enroll Now – It's Free!"
+        : "⚠️ No course link found";
     }
+  }, 1000);
 
-    const courseUrl = getParam('startapp');
+  /* Button */
+  btn.addEventListener('click', () => {
+    if (!courseUrl) { alert('Course link not found. Please return to the Telegram channel.'); return; }
+    step3.classList.remove('active'); step3.classList.add('done');
+    const ov = document.getElementById('success-overlay');
+    ov.classList.add('show');
+    requestAnimationFrame(() => { document.getElementById('redirect-fill').style.width = '100%'; });
+    setTimeout(() => { window.open(courseUrl, '_blank') || (window.location.href = courseUrl); }, 3000);
+  });
 
-    if (!courseUrl || !courseUrl.includes('udemy.com')) {
-      document.getElementById('mainContent').style.display = 'none';
-      document.getElementById('errorState').style.display  = 'block';
+  /* Ad init */
+  window.addEventListener('load', () => {
+    try {
+      window.TelegramAdsController = new TelegramAdsController();
+      window.TelegramAdsController.initialize({ pubId: "1006337", appId: "6751" });
+      const ph = document.getElementById('ad-ph');
+      if (ph) ph.remove();
+      document.getElementById('ad-wrapper').classList.add('loaded');
+    } catch(e) {
+      document.getElementById('ad-ph').innerHTML = '<span style="font-size:11px;color:#6b6b80">Ad unavailable</span>';
     }
+  });
 
-    // =================== Ad Flow ===================
-    let adCompleted  = false;
-    let adStarted    = false;
-    let timerInterval = null;
-
-    function setStatus(msg, cls = '') {
-      const el = document.getElementById('statusMsg');
-      el.textContent = msg;
-      el.className   = cls;
-    }
-
-    function markStepDone(n) {
-      const el = document.getElementById('step' + n);
-      if (el) { el.classList.remove('active'); el.classList.add('done'); }
-    }
-    function markStepActive(n) {
-      const el = document.getElementById('step' + n);
-      if (el) { el.classList.add('active'); }
-    }
-
-    function startTimer(durationSec) {
-      const wrap   = document.getElementById('timerWrap');
-      const fill   = document.getElementById('timerFill');
-      const count  = document.getElementById('timerCount');
-      wrap.classList.add('visible');
-
-      let elapsed = 0;
-      fill.style.width = '0%';
-      count.textContent = '0s';
-
-      timerInterval = setInterval(() => {
-        elapsed++;
-        const pct = Math.min((elapsed / durationSec) * 100, 100);
-        fill.style.width = pct + '%';
-        count.textContent = elapsed + 's';
-        if (elapsed >= durationSec) {
-          clearInterval(timerInterval);
-        }
-      }, 1000);
-    }
-
-    function onAdComplete() {
-      if (adCompleted) return;
-      adCompleted = true;
-      clearInterval(timerInterval);
-
-      // Update UI
-      document.getElementById('timerWrap').classList.remove('visible');
-      document.getElementById('watchAdBtn').style.display = 'none';
-
-      markStepDone(1);
-      markStepDone(2);
-      markStepActive(3);
-
-      document.getElementById('getCourseBtn').classList.add('visible');
-      setStatus('✅ رائع! يمكنك الآن الانتقال للكورس المجاني.', 'success');
-    }
-
-    function startAd() {
-      if (adStarted) return;
-      adStarted = true;
-
-      const btn = document.getElementById('watchAdBtn');
-      btn.disabled = true;
-      btn.innerHTML = '⏳ جاري تحميل الإعلان...';
-
-      setStatus('يرجى الانتظار حتى ينتهي الإعلان...');
-      startTimer(15);
-      markStepDone(1);
-      markStepActive(2);
-
-      // Show ad via TelegramAdsController
-      try {
-        if (window.TelegramAdsController) {
-          window.TelegramAdsController.showAd()
-            .then(() => {
-              onAdComplete();
-            })
-            .catch((err) => {
-              console.warn('Ad error or skipped:', err);
-              // Still unlock after a delay if ad fails
-              setTimeout(onAdComplete, 3000);
-            });
-        } else {
-          // Fallback: unlock after 15s if SDK not loaded
-          setTimeout(onAdComplete, 15000);
-        }
-      } catch(e) {
-        setTimeout(onAdComplete, 15000);
-      }
-    }
-
-    function goToCourse() {
-      if (!adCompleted) {
-        setStatus('⚠️ يرجى مشاهدة الإعلان أولاً!', 'error');
-        return;
-      }
-      if (!courseUrl) {
-        setStatus('⚠️ رابط الكورس غير متوفر.', 'error');
-        return;
-      }
-      setStatus('🔄 جاري فتح الكورس...', 'success');
-      setTimeout(() => {
-        window.location.href = courseUrl;
-      }, 400);
-    }
-
-    // =================== Init Ad SDK ===================
-    window.addEventListener('load', () => {
-      try {
-        window.TelegramAdsController = new TelegramAdsController();
-        window.TelegramAdsController.initialize({
-          pubId: "1006337",
-          appId: "6751",
-        });
-      } catch(e) {
-        console.warn('TelegramAdsController init error:', e);
-      }
-    });
-  </script>
+  /* Telegram WebApp */
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.expand();
+    window.Telegram.WebApp.ready();
+  }
+</script>
 </body>
 </html>
