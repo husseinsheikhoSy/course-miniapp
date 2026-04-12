@@ -3,454 +3,308 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Free Course Access</title>
+  <title>Premium Course Access</title>
+  
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- ── Ad Service SDK ── -->
-  <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"
-          onerror="window.__adSdkFailed=true"></script>
+  <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
     :root {
-      --bg:     var(--tg-theme-bg-color,          #0f0f1a);
-      --card:   var(--tg-theme-secondary-bg-color, #1a1a2e);
-      --text:   var(--tg-theme-text-color,         #ffffff);
-      --hint:   var(--tg-theme-hint-color,         #888888);
-      --accent: #6c63ff;
-      --green:  #16a34a;
-      --radius: 18px;
+      --bg: #030712;
+      --card-bg: rgba(17, 24, 39, 0.8);
+      --accent: #8b5cf6;
+      --accent-glow: rgba(139, 92, 246, 0.3);
+      --success: #10b981;
+      --text-main: #f9fafb;
+      --text-dim: #9ca3af;
+      --border: rgba(255, 255, 255, 0.1);
     }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
 
     body {
       background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-image: 
+        radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex; align-items: center; justify-content: center;
-      padding: 20px;
+      padding: 20px; overflow: hidden;
     }
 
-    .screen { display:none; width:100%; max-width:400px; flex-direction:column; align-items:center; gap:18px; text-align:center; animation:up .35s ease; }
-    .screen.active { display:flex; }
-    @keyframes up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-
-    .spinner { width:50px; height:50px; border:4px solid rgba(108,99,255,.2); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; }
-    @keyframes spin { to{transform:rotate(360deg)} }
-
-    .card {
-      width:100%; background:var(--card);
-      border:1px solid rgba(255,255,255,.07); border-radius:var(--radius);
-      padding:22px 18px; display:flex; flex-direction:column; align-items:center; gap:14px;
-    }
-    .course-icon { font-size:52px; }
-    .card h2 { font-size:19px; font-weight:800; line-height:1.3; }
-    .card p  { color:var(--hint); font-size:13px; line-height:1.6; max-width:300px; }
-    .divider { width:100%; height:1px; background:rgba(255,255,255,.07); }
-
-    .steps { display:flex; gap:8px; width:100%; }
-    .step { flex:1; border-radius:99px; height:5px; background:rgba(255,255,255,.1); transition:background .4s; }
-    .step.done   { background:var(--accent); }
-    .step.active { background:var(--accent); animation:pulse-bar 1.2s ease-in-out infinite; }
-    @keyframes pulse-bar { 0%,100%{opacity:1} 50%{opacity:.5} }
-
-    .btn-watch {
-      width:100%; padding:15px; border:none; border-radius:var(--radius);
-      background:linear-gradient(135deg,var(--accent),#9333ea);
-      color:#fff; font-size:15px; font-weight:700; cursor:pointer;
-      display:flex; align-items:center; justify-content:center; gap:10px;
-      box-shadow:0 4px 20px rgba(108,99,255,.4);
-      transition:transform .15s,opacity .2s;
-      position:relative; overflow:hidden;
-    }
-    .btn-watch:active { transform:scale(.97); }
-    .btn-watch:disabled {
-      opacity:.5; cursor:not-allowed;
-      background:rgba(255,255,255,.1); box-shadow:none;
-    }
-    .btn-watch.loading::after {
-      content:''; position:absolute; inset:0;
-      background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.15) 50%,transparent 100%);
-      animation:shimmer 1.2s infinite;
-    }
-    @keyframes shimmer { from{transform:translateX(-100%)} to{transform:translateX(100%)} }
-
-    .btn-enroll {
-      width:100%; padding:15px;
-      border:2px solid rgba(255,255,255,.12); border-radius:var(--radius);
-      background:rgba(255,255,255,.05);
-      color:var(--hint); font-size:15px; font-weight:700;
-      cursor:not-allowed;
-      display:flex; align-items:center; justify-content:center; gap:10px;
-      transition:all .4s ease;
-    }
-    .btn-enroll.unlocked {
-      background:linear-gradient(135deg,var(--green),#15803d);
-      border-color:transparent; color:#fff; cursor:pointer;
-      box-shadow:0 4px 24px rgba(22,163,74,.45);
-      animation:pop-in .4s ease;
-    }
-    .btn-enroll.unlocked:active { transform:scale(.97); }
-    @keyframes pop-in { 0%{transform:scale(.9)} 60%{transform:scale(1.04)} 100%{transform:scale(1)} }
-
-    .lock-icon { font-size:18px; transition:all .3s; }
-    .info-row { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--hint); }
-    .info-row strong { color:var(--text); }
-
-    .btn-ghost {
-      width:100%; padding:13px; border:1px solid rgba(255,255,255,.12); border-radius:var(--radius);
-      background:rgba(255,255,255,.05); color:var(--text); font-size:14px; font-weight:600; cursor:pointer;
+    /* ── Glass Card ── */
+    .container {
+      width: 100%; max-width: 400px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      padding: 32px 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      position: relative;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Debug overlay — visible only in dev */
-    #debug {
-      position:fixed; bottom:8px; left:8px; right:8px;
-      background:rgba(0,0,0,.7); color:#0f0; font-size:10px;
-      font-family:monospace; padding:6px 8px; border-radius:8px;
-      max-height:80px; overflow-y:auto;
-      display:none; /* set to 'block' to enable */
-      z-index:9999;
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Timer & Status ── */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 14px; border-radius: 99px;
+      font-size: 12px; font-weight: 600; color: var(--accent);
+      margin-bottom: 20px; border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+
+    .timer-circle {
+      position: relative; width: 100px; height: 100px; margin: 0 auto 24px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .timer-text {
+      font-size: 32px; font-weight: 800; color: var(--text-main);
+      text-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .icon-display {
+      font-size: 50px; display: none;
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+    /* ── Typography ── */
+    h1 { font-size: 24px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
+    p { color: var(--text-dim); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+
+    /* ── Buttons ── */
+    .btn {
+      width: 100%; padding: 18px; border-radius: 20px; border: none;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: all 0.3s ease; position: relative; overflow: hidden;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      color: white; box-shadow: 0 10px 20px -5px rgba(109, 40, 217, 0.5);
+    }
+
+    .btn-primary:disabled {
+      background: #374151; color: #9ca3af; box-shadow: none; cursor: not-allowed;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white; box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.5);
+      display: none;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    /* ── Progress Bar ── */
+    .progress-container {
+      width: 100%; height: 6px; background: rgba(255,255,255,0.05);
+      border-radius: 10px; margin-top: 20px; display: none;
+    }
+    .progress-fill {
+      height: 100%; width: 0%; background: var(--accent);
+      border-radius: 10px; transition: width 0.3s ease;
+    }
+
+    /* ── Footer ── */
+    .footer-note {
+      margin-top: 24px; font-size: 11px; color: var(--text-dim);
+      opacity: 0.6; display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+
+    /* ── Ripples for loading ── */
+    .pulse-ring {
+      position: absolute; width: 100%; height: 100%;
+      border: 2px solid var(--accent); border-radius: 50%;
+      animation: ripple 2s infinite; opacity: 0;
+    }
+    @keyframes ripple {
+      0% { transform: scale(0.8); opacity: 0.5; }
+      100% { transform: scale(1.5); opacity: 0; }
     }
   </style>
 </head>
 <body>
 
-<!-- Screen 1: Loading -->
-<div id="s-loading" class="screen active">
-  <div class="spinner"></div>
-  <p style="color:var(--hint);font-size:13px">Preparing your free course...</p>
-</div>
+  <div class="container" id="main-card">
+    <div class="status-badge" id="status-box">
+      <span id="status-dot" style="width:8px; height:8px; background:var(--accent); border-radius:50%"></span>
+      <span id="status-text">SYSTEM INITIALIZING</span>
+    </div>
 
-<!-- Screen 2: Main -->
-<div id="s-main" class="screen">
-  <div class="steps">
-    <div class="step done"></div>
-    <div class="step active" id="step2"></div>
-    <div class="step" id="step3"></div>
-  </div>
+    <div class="timer-circle">
+      <div class="pulse-ring" id="pulse-effect"></div>
+      <div class="timer-text" id="countdown">10</div>
+      <div class="icon-display" id="success-icon">🎓</div>
+      <div class="icon-display" id="ad-icon">🎬</div>
+    </div>
 
-  <div class="card">
-    <div class="course-icon">🎓</div>
-    <h2>Unlock Your Free Course</h2>
-    <p>Watch a short ad, then the <strong>Enroll</strong> button will activate so you can access your course for free.</p>
+    <h1 id="title">Verifying Connection</h1>
+    <p id="description">We are searching for the best available offers to unlock your course for free.</p>
 
-    <div class="divider"></div>
-
-    <div class="info-row">🏷 <span>Price: <strong style="color:#4ade80">FREE (100% off)</strong></span></div>
-    <div class="info-row">⏱ <span>Takes: <strong>~15 seconds</strong></span></div>
-    <div class="info-row">✅ <span>No payment · No signup</span></div>
-
-    <div class="divider"></div>
-
-    <button class="btn-watch" id="btn-watch">
-      <span>▶</span>
-      <span id="btn-watch-label">Watch Ad to Unlock</span>
+    <button class="btn btn-primary" id="btn-watch" onclick="handleWatchAd()" disabled>
+      <span id="btn-text">Checking Offers...</span>
     </button>
 
-    <button class="btn-enroll" id="btn-enroll" disabled>
-      <span class="lock-icon" id="lock-icon">🔒</span>
-      <span id="enroll-label">Enroll Course — Watch ad first</span>
+    <button class="btn btn-success" id="btn-enroll" onclick="goToCourse()">
+      <span>🚀</span> ENROLL NOW FOR FREE
     </button>
 
-    <p style="font-size:11px;color:var(--hint)">
-      The enroll button activates automatically after the ad ends.
-    </p>
+    <div class="progress-container" id="progress-wrap">
+      <div class="progress-fill" id="progress-bar"></div>
+    </div>
+
+    <div class="footer-note">
+      <span>🛡️</span> Secure Verification by RichPartners
+    </div>
   </div>
-</div>
-
-<!-- Screen 3: Error -->
-<div id="s-error" class="screen">
-  <div style="font-size:52px">⚠️</div>
-  <h2 style="font-size:19px;font-weight:800">Ad Unavailable</h2>
-  <p style="color:var(--hint);font-size:13px">No ads right now. You can still access your course directly.</p>
-  <button class="btn-enroll unlocked" onclick="goToCourse()" style="cursor:pointer">
-    <span>🚀</span><span>Access Course Directly</span>
-  </button>
-  <button class="btn-ghost" onclick="retryAd()">Try Again</button>
-</div>
-
-<!-- Debug log (hidden by default) -->
-<div id="debug"></div>
 
 <script>
-  /* ─────────────────────────────────────────────
-     DEBUG helper (safe in production — silent)
-  ───────────────────────────────────────────── */
-  function log(msg) {
-    console.log('[AdFlow]', msg);
-    const el = document.getElementById('debug');
-    if (el && el.style.display !== 'none') {
-      el.textContent += msg + '\n';
-      el.scrollTop = el.scrollHeight;
-    }
-  }
-
-  /* ─────────────────────────────────────────────
-     Telegram WebApp
-  ───────────────────────────────────────────── */
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
-  /* ─────────────────────────────────────────────
-     Decode course URL from Base64 startapp param
-  ───────────────────────────────────────────── */
-  function getCourseUrl() {
-    const code = tg?.initDataUnsafe?.start_param
-      || new URLSearchParams(window.location.search).get('startapp')
-      || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
-    if (!code) { log('No startapp param'); return null; }
-    try {
-      const padded = code + '=='.slice(0,(4 - code.length % 4) % 4);
-      const decoded = atob(padded.replace(/-/g,'+').replace(/_/g,'/'));
-      if (decoded.startsWith('http')) { log('Course URL: ' + decoded); return decoded; }
-    } catch(e) { log('Base64 error: ' + e); }
-    return null;
-  }
+  let adsCtrl = null;
+  let adUnlocked = false;
+  let checkAttempts = 0;
+  const MAX_ATTEMPTS = 20; // 10 seconds total (20 * 500ms)
+  let checkInterval = null;
 
+  // 1. Get Course URL
+  function getCourseUrl() {
+    const code = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('startapp');
+    if (!code) return 'https://www.udemy.com/';
+    try {
+      const decoded = atob(code.replace(/-/g, '+').replace(/_/g, '/'));
+      return decoded.startsWith('http') ? decoded : 'https://www.udemy.com/';
+    } catch(e) { return 'https://www.udemy.com/'; }
+  }
   const COURSE_URL = getCourseUrl();
 
-  /* ─────────────────────────────────────────────
-     State
-  ───────────────────────────────────────────── */
-  let adWatched    = false;
-  let adInProgress = false;
-  let hardTimeout  = null;
-
-  /* ─────────────────────────────────────────────
-     UI helpers
-  ───────────────────────────────────────────── */
-  function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id)?.classList.add('active');
-  }
-
-  function setWatchBtn(state) {
-    const btn   = document.getElementById('btn-watch');
-    const label = document.getElementById('btn-watch-label');
-    if (state === 'loading') {
-      btn.disabled = true; btn.classList.add('loading');
-      label.textContent = 'Loading Ad...';
-    } else {
-      btn.disabled = false; btn.classList.remove('loading');
-      label.textContent = 'Watch Ad to Unlock';
-    }
-  }
-
-  /* ─────────────────────────────────────────────
-     Unlock enroll button (called once)
-  ───────────────────────────────────────────── */
-  function unlockEnrollButton() {
-    if (adWatched) return;
-    adWatched    = true;
-    adInProgress = false;
-    clearTimeout(hardTimeout);
-    log('✅ Enroll button unlocked');
-
-    document.getElementById('step2')?.classList.replace('active','done');
-    document.getElementById('step3')?.classList.add('active');
-
-    const btn   = document.getElementById('btn-enroll');
-    const icon  = document.getElementById('lock-icon');
-    const label = document.getElementById('enroll-label');
-    if (btn)   { btn.disabled = false; btn.classList.add('unlocked'); btn.onclick = goToCourse; }
-    if (icon)  { icon.textContent = '🚀'; }
-    if (label) { label.textContent = 'Enroll Course — FREE'; }
-
-    const watchBtn = document.getElementById('btn-watch');
-    if (watchBtn)  { watchBtn.style.opacity = '0.4'; watchBtn.disabled = true; }
-  }
-
-  /* ─────────────────────────────────────────────
-     Navigate to course
-  ───────────────────────────────────────────── */
-  function goToCourse() {
-    const url = COURSE_URL || 'https://www.udemy.com/';
-    log('Opening: ' + url);
-    if (tg?.openLink) {
-      tg.openLink(url);
-      setTimeout(() => tg.close(), 600);
-    } else {
-      window.location.href = url;
-    }
-  }
-
-  /* ─────────────────────────────────────────────
-     Try to init TelegramAdsController safely
-     Returns: controller instance or null
-  ───────────────────────────────────────────── */
-  function initAdController() {
-    if (window.__adSdkFailed) { log('SDK script failed to load'); return null; }
-
-    // The class might be named differently — try both
-    const CtrlClass = window.TelegramAdsController
-      || window.TelegramAds
-      || window.RichInfoAds
-      || null;
-
-    if (!CtrlClass) { log('No ad controller class found'); return null; }
-
-    try {
-      // If it's already an instance (not a class), use it directly
-      if (typeof CtrlClass === 'object') {
-        log('Controller already instantiated');
-        return CtrlClass;
-      }
-      // Otherwise construct + initialize
-      const ctrl = new CtrlClass();
-      if (typeof ctrl.initialize === 'function') {
-        ctrl.initialize({ pubId: "1006337", appId: "6751" });
-        log('Controller initialized');
-      }
-      return ctrl;
-    } catch(e) {
-      log('Controller init error: ' + e.message);
-      return null;
-    }
-  }
-
-  /* ─────────────────────────────────────────────
-     Find the correct "show ad" method on controller
-     Returns: bound function or null
-  ───────────────────────────────────────────── */
-  function findShowMethod(ctrl) {
-    // Log all available methods for debugging
-    const keys = Object.getOwnPropertyNames(
-      Object.getPrototypeOf(ctrl) || ctrl
-    ).filter(k => typeof ctrl[k] === 'function');
-    log('Controller methods: ' + (keys.length ? keys.join(', ') : '(none on prototype)'));
-
-    // Also check own properties
-    const ownKeys = Object.keys(ctrl).filter(k => typeof ctrl[k] === 'function');
-    if (ownKeys.length) log('Own fn keys: ' + ownKeys.join(', '));
-
-    // Try known method names in priority order
-    const candidates = [
-      'showAd', 'show', 'showInterstitial', 'showFullscreen',
-      'showRewardedAd', 'showRewarded', 'showBanner',
-      'openAd', 'playAd', 'play', 'loadAd', 'request'
-    ];
-    for (const m of candidates) {
-      if (typeof ctrl[m] === 'function') {
-        log('Using method: ' + m);
-        return ctrl[m].bind(ctrl);
-      }
-    }
-
-    // Last resort: any function on the object
-    const any = [...keys, ...ownKeys].find(k => !['initialize','init','constructor'].includes(k));
-    if (any) { log('Fallback method: ' + any); return ctrl[any].bind(ctrl); }
-
-    log('❌ No ad method found');
-    return null;
-  }
-
-  /* ─────────────────────────────────────────────
-     Main ad flow
-  ───────────────────────────────────────────── */
-  let adController = null;
-
-  function startAd() {
-    if (adInProgress || adWatched) return;
-    adInProgress = true;
-    setWatchBtn('loading');
-
-    // ── Hard safety timeout: 25s max ──
-    // (real rewarded ads are ~15s + load time)
-    hardTimeout = setTimeout(() => {
-      log('⏱ Hard timeout — forcing unlock');
-      unlockEnrollButton();
-    }, 25000);
-
-    // ── Lazy-init controller on first click ──
-    if (!adController) {
-      adController = initAdController();
-    }
-
-    if (!adController) {
-      log('No controller — unlocking directly');
-      unlockEnrollButton();
-      return;
-    }
-
-    const showAd = findShowMethod(adController);
-
-    if (!showAd) {
-      log('No show method — unlocking directly');
-      unlockEnrollButton();
-      return;
-    }
-
-    // ── Call the ad method ──
-    try {
-      log('Calling showAd...');
-      const result = showAd();
-
-      // Case 1: returns a Promise
-      if (result && typeof result.then === 'function') {
-        log('Promise-based SDK detected');
-        result
-          .then(res => { log('Ad resolved: ' + JSON.stringify(res)); unlockEnrollButton(); })
-          .catch(err => { log('Ad rejected: ' + JSON.stringify(err)); unlockEnrollButton(); });
-        return;
-      }
-
-      // Case 2: returns nothing (callback or event-based)
-      // Listen for any global event the SDK might fire
-      log('Non-promise call — listening for SDK events...');
-      const eventNames = [
-        'adComplete', 'adFinished', 'adClosed', 'adDismissed',
-        'adRewarded', 'rewardGranted', 'adEnd', 'ad_complete',
-        'TelegramAdComplete', 'onShowReward'
-      ];
-      const cleanup = () => eventNames.forEach(n => window.removeEventListener(n, onAdEvent));
-      function onAdEvent(e) { log('SDK event: ' + e.type); cleanup(); unlockEnrollButton(); }
-      eventNames.forEach(n => window.addEventListener(n, onAdEvent, { once:true }));
-
-      // The hardTimeout above will catch it if no event fires
-
-    } catch(e) {
-      log('showAd threw: ' + e.message);
-      unlockEnrollButton();
-    }
-  }
-
-  function retryAd() {
-    adInProgress = false;
-    clearTimeout(hardTimeout);
-    showScreen('s-main');
-    setTimeout(startAd, 300);
-  }
-
-  /* ─────────────────────────────────────────────
-     Boot: wait for SDK script, then show UI
-  ───────────────────────────────────────────── */
+  // 2. Initialization
   window.addEventListener('load', () => {
-    showScreen('s-loading');
-    log('Page loaded — waiting for SDK...');
-
-    let tries = 0;
-    const iv = setInterval(() => {
-      tries++;
-      const sdkReady = !window.__adSdkFailed && (
-        typeof window.TelegramAdsController !== 'undefined' ||
-        typeof window.TelegramAds          !== 'undefined' ||
-        typeof window.RichInfoAds          !== 'undefined'
-      );
-
-      if (sdkReady) {
-        clearInterval(iv);
-        log('SDK ready after ' + (tries * 200) + 'ms');
-        document.getElementById('btn-watch').addEventListener('click', startAd);
-        showScreen('s-main');
-      } else if (tries > 25) { // 5s max wait
-        clearInterval(iv);
-        log('SDK timeout — showing UI without SDK');
-        document.getElementById('btn-watch').addEventListener('click', startAd);
-        showScreen('s-main');
-      }
-    }, 200);
+    if (typeof TelegramAdsController !== 'undefined') {
+      try {
+        adsCtrl = new TelegramAdsController();
+        // Updated initialization with the new appId (6751)
+        adsCtrl.initialize({ pubId: "1006337", appId: "6751" });
+      } catch(e) { console.warn("Ads Init Fail"); }
+    }
+    
+    checkInterval = setInterval(updateLogic, 500);
   });
+
+  function updateLogic() {
+    checkAttempts++;
+    
+    // Update Countdown UI
+    const secondsLeft = Math.ceil((MAX_ATTEMPTS - checkAttempts) / 2);
+    if (secondsLeft >= 0 && !adUnlocked) {
+      document.getElementById('countdown').innerText = secondsLeft;
+    }
+
+    // Check for Ad
+    let isAvailable = false;
+    if (adsCtrl) {
+      const checkFn = adsCtrl.isAdAvailable ?? adsCtrl.isReady ?? null;
+      try { isAvailable = checkFn.call(adsCtrl); } catch(e) {}
+    }
+
+    if (isAvailable) {
+      clearInterval(checkInterval);
+      showAdReadyState();
+      return;
+    }
+
+    // Timeout: Unlock Directly
+    if (checkAttempts >= MAX_ATTEMPTS) {
+      clearInterval(checkInterval);
+      unlockDirectly();
+    }
+  }
+
+  function showAdReadyState() {
+    document.getElementById('countdown').style.display = 'none';
+    document.getElementById('ad-icon').style.display = 'block';
+    document.getElementById('pulse-effect').style.borderColor = 'var(--accent)';
+    
+    document.getElementById('status-text').innerText = "OFFER FOUND";
+    document.getElementById('title').innerText = "Unlock Access";
+    document.getElementById('description').innerText = "Watch a short sponsored video to unlock your premium enrollment for free.";
+    
+    const btn = document.getElementById('btn-watch');
+    btn.disabled = false;
+    document.getElementById('btn-text').innerText = "▶ WATCH AD TO UNLOCK";
+  }
+
+  async function handleWatchAd() {
+    const btn = document.getElementById('btn-watch');
+    btn.disabled = true;
+    document.getElementById('btn-text').innerText = "Loading Video...";
+    
+    // Show progress bar purely for aesthetics
+    document.getElementById('progress-wrap').style.display = 'block';
+    let p = 0;
+    const pIv = setInterval(() => { p += 2; if(p<=95) document.getElementById('progress-bar').style.width = p+'%'; }, 200);
+
+    try {
+      await adsCtrl.show();
+      clearInterval(pIv);
+      unlockDirectly();
+    } catch (err) {
+      clearInterval(pIv);
+      const msg = String(err).toLowerCase();
+      if (msg.includes('skip') || msg.includes('close')) {
+        btn.disabled = false;
+        document.getElementById('btn-text').innerText = "▶ WATCH AD TO UNLOCK";
+        document.getElementById('progress-wrap').style.display = 'none';
+        alert("Please watch the full ad to get your reward.");
+      } else {
+        unlockDirectly(); // Error case: bypass
+      }
+    }
+  }
+
+  function unlockDirectly() {
+    adUnlocked = true;
+    
+    // UI Transitions
+    document.getElementById('countdown').style.display = 'none';
+    document.getElementById('ad-icon').style.display = 'none';
+    document.getElementById('success-icon').style.display = 'block';
+    document.getElementById('pulse-effect').style.display = 'none';
+    
+    document.getElementById('status-text').innerText = "ACCESS GRANTED";
+    document.getElementById('status-dot').style.background = "var(--success)";
+    document.getElementById('status-box').style.borderColor = "var(--success)";
+    document.getElementById('status-box').style.color = "var(--success)";
+    
+    document.getElementById('title').innerText = "Ready to Begin!";
+    document.getElementById('description').innerText = "The verification is complete. You now have full access to your course.";
+    
+    document.getElementById('btn-watch').style.display = 'none';
+    document.getElementById('progress-wrap').style.display = 'none';
+    document.getElementById('btn-enroll').style.display = 'flex';
+  }
+
+  function goToCourse() {
+    if (tg?.openLink) {
+      tg.openLink(COURSE_URL);
+      setTimeout(() => tg.close(), 1000);
+    } else {
+      window.location.href = COURSE_URL;
+    }
+  }
 </script>
 </body>
 </html>
