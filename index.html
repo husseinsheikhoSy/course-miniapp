@@ -297,8 +297,8 @@
 
   /* ── Config ── */
   const AD_URL     = 'https://massive-hall.com/GQtbhS';
-  const VERIFY_KEY = 'htads_verified_' + getStartParam();
-  let   returnTimer = null;
+  /* ── Go to course ── */
+  let returnTimer = null;
   let   returnSecs  = 15;
 
   function getStartParam() {
@@ -433,7 +433,6 @@
   }
 
   function grantAccess() {
-    try { localStorage.setItem(VERIFY_KEY, '1'); } catch(e) {}
     show('screen-done');
   }
 
@@ -444,10 +443,7 @@
     else window.location.href = url;
   }
 
-  /* ── Auto-unlock if already verified ── */
-  try {
-    if (localStorage.getItem(VERIFY_KEY) === '1') grantAccess();
-  } catch(e) {}
+
 </script>
 </body>
 </html>
