@@ -47,11 +47,9 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── Screens ── */
     .screen { display: none; }
     .screen.active { display: block; }
 
-    /* ── Status Badge ── */
     .status-badge {
       display: inline-flex; align-items: center; gap: 8px;
       background: rgba(255,255,255,0.05);
@@ -60,7 +58,6 @@
       margin-bottom: 20px; border: 1px solid rgba(139,92,246,0.2);
     }
 
-    /* ── Icon ── */
     .icon-wrap {
       width: 100px; height: 100px; margin: 0 auto 24px;
       display: flex; align-items: center; justify-content: center;
@@ -80,7 +77,6 @@
     h1 { font-size: 24px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
     p  { color: var(--text-dim); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
 
-    /* ── Loader dots ── */
     .dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
     .dot {
       width: 10px; height: 10px; border-radius: 50%;
@@ -91,7 +87,6 @@
     .dot:nth-child(3) { animation-delay: 0.4s; }
     @keyframes blink { 0%,100%{opacity:.3; transform:scale(.8)} 50%{opacity:1; transform:scale(1.2)} }
 
-    /* ── Progress bar ── */
     .progress-wrap {
       width: 100%; height: 6px; background: rgba(255,255,255,0.05);
       border-radius: 10px; margin-bottom: 24px;
@@ -101,7 +96,6 @@
       border-radius: 10px; transition: width 0.4s ease;
     }
 
-    /* ── Steps list ── */
     .steps { text-align: left; margin-bottom: 24px; }
     .step-item {
       display: flex; align-items: center; gap: 12px;
@@ -120,7 +114,6 @@
     .step-item.done .step-dot   { background: var(--success); }
     .step-item.active .step-dot { background: var(--accent); }
 
-    /* ── Buttons ── */
     .btn {
       width: 100%; padding: 18px; border-radius: 20px; border: none;
       font-size: 16px; font-weight: 700; cursor: pointer;
@@ -145,7 +138,6 @@
       opacity: 0.6; display: flex; align-items: center; justify-content: center; gap: 4px;
     }
 
-    /* ── Warning box ── */
     .warning-box {
       background: rgba(251,191,36,0.08);
       border: 1px solid rgba(251,191,36,0.2);
@@ -154,7 +146,6 @@
       margin-bottom: 20px; line-height: 1.6; text-align: left;
     }
 
-    /* countdown badge */
     .countdown-badge {
       display: inline-block;
       background: rgba(139,92,246,0.15);
@@ -168,9 +159,7 @@
 <body>
 <div class="container">
 
-  <!-- ══════════════════════════════
-       SCREEN 1 — Pre-landing
-  ══════════════════════════════ -->
+  <!-- SCREEN 1 — Pre-landing -->
   <div class="screen active" id="screen-pre">
     <div class="status-badge">
       <span style="width:8px;height:8px;background:var(--accent);border-radius:50%"></span>
@@ -194,9 +183,7 @@
     <div class="footer-note">🛡️ Spam-protected verification</div>
   </div>
 
-  <!-- ══════════════════════════════
-       SCREEN 2 — Loading / verifying
-  ══════════════════════════════ -->
+  <!-- SCREEN 2 — Loading -->
   <div class="screen" id="screen-loading">
     <div class="status-badge">
       <span style="width:8px;height:8px;background:var(--accent);border-radius:50%"></span>
@@ -226,9 +213,7 @@
     <div class="footer-note">🛡️ Spam-protected verification</div>
   </div>
 
-  <!-- ══════════════════════════════
-       SCREEN 3 — Return & Verify
-  ══════════════════════════════ -->
+  <!-- SCREEN 3 — Return & Verify -->
   <div class="screen" id="screen-return">
     <div class="status-badge" style="color:#fbbf24;border-color:rgba(251,191,36,0.3)">
       <span style="width:8px;height:8px;background:#fbbf24;border-radius:50%"></span>
@@ -252,9 +237,7 @@
     <div class="footer-note">🛡️ Spam-protected verification</div>
   </div>
 
-  <!-- ══════════════════════════════
-       SCREEN 4 — Verifying return
-  ══════════════════════════════ -->
+  <!-- SCREEN 4 — Verifying -->
   <div class="screen" id="screen-verifying">
     <div class="status-badge" style="color:#10b981;border-color:rgba(16,185,129,0.3)">
       <span style="width:8px;height:8px;background:#10b981;border-radius:50%"></span>
@@ -270,9 +253,7 @@
     <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
   </div>
 
-  <!-- ══════════════════════════════
-       SCREEN 5 — Access Granted
-  ══════════════════════════════ -->
+  <!-- SCREEN 5 — Access Granted -->
   <div class="screen" id="screen-done">
     <div class="status-badge" style="color:var(--success);border-color:rgba(16,185,129,0.3)">
       <span style="width:8px;height:8px;background:var(--success);border-radius:50%"></span>
@@ -289,18 +270,62 @@
     <div class="footer-note">🛡️ Spam-protected verification</div>
   </div>
 
-</div><!-- .container -->
+</div>
 
 <script>
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
-  /* ── Config ── */
-  const AD_URL     = 'https://fluffy-machine.com/hy0AJ8';
-  /* ── Go to course ── */
-  let returnTimer = null;
-  let   returnSecs  = 15;
+  /* ── Ad URLs by Tier ── */
+  const AD_TIER1 = 'https://fluffy-machine.com/Kp60r2'; // High-CPM countries
+  const AD_TIER2 = 'https://fluffy-machine.com/hy0AJ8'; // All others
 
+  /*
+   * Tier 1 — Top CPM countries (US, UK, CA, AU + Western Europe + key Asia-Pacific)
+   * Sources: HilltopAds Tier classification & industry CPM benchmarks
+   */
+  const TIER1_COUNTRIES = new Set([
+    // North America
+    'US','CA',
+    // Western Europe
+    'GB','DE','FR','NL','SE','NO','DK','FI','CH','AT','BE','IE','LU',
+    // Southern Europe
+    'IT','ES','PT',
+    // Eastern Europe (high CPM)
+    'PL','CZ','SK','HU','RO',
+    // Oceania
+    'AU','NZ',
+    // Asia-Pacific (premium)
+    'JP','SG','HK','KR','TW',
+    // Middle East (high CPM)
+    'AE','SA','QA','KW','BH',
+    // Other developed
+    'IL','ZA','BR','MX'
+  ]);
+
+  let resolvedAdUrl = null; // cached after geo detection
+  let returnTimer   = null;
+  let returnSecs    = 15;
+
+  /* ── Detect country via free IP API ── */
+  async function detectCountry() {
+    try {
+      const res  = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
+      const data = await res.json();
+      return data.country_code || 'XX';
+    } catch (e) {
+      return 'XX'; // fallback → Tier 2
+    }
+  }
+
+  async function resolveAdUrl() {
+    if (resolvedAdUrl) return resolvedAdUrl;
+    const country = await detectCountry();
+    resolvedAdUrl = TIER1_COUNTRIES.has(country) ? AD_TIER1 : AD_TIER2;
+    return resolvedAdUrl;
+  }
+
+  /* ── Course URL from start param ── */
   function getStartParam() {
     return tg?.initDataUnsafe?.start_param
       || new URLSearchParams(window.location.search).get('startapp')
@@ -338,7 +363,6 @@
       bar.style.width = p + '%';
     }, 80);
 
-    // Animate step items
     function nextStep() {
       if (si < steps.length) {
         if (si > 0) {
@@ -352,44 +376,42 @@
     }
     nextStep();
 
-    // After ~3s open the ad and show return screen
-    setTimeout(() => {
+    // Resolve geo in background while steps animate, then open ad
+    setTimeout(async () => {
       clearInterval(pIv);
       bar.style.width = '100%';
-
-      // Mark last step done
       if (steps[si-1]) {
         document.getElementById(steps[si-1]).classList.remove('active');
         document.getElementById(steps[si-1]).classList.add('done');
       }
-
-      openAd();
+      await openAd();
     }, 3000);
   }
 
-  /* ── Open HilltopAds direct link ── */
-  function openAd() {
+  /* ── Open ad (geo-targeted) ── */
+  async function openAd() {
+    const url = await resolveAdUrl();
     try {
-      if (tg?.openLink) tg.openLink(AD_URL);
-      else window.open(AD_URL, '_blank');
-    } catch(e) { window.location.href = AD_URL; }
+      if (tg?.openLink) tg.openLink(url);
+      else window.open(url, '_blank');
+    } catch(e) { window.location.href = url; }
 
-    // Show return screen
     setTimeout(() => {
       show('screen-return');
       startReturnCountdown();
     }, 400);
   }
 
-  function retryAd() {
+  async function retryAd() {
+    const url = await resolveAdUrl();
     try {
-      if (tg?.openLink) tg.openLink(AD_URL);
-      else window.open(AD_URL, '_blank');
-    } catch(e) { window.location.href = AD_URL; }
+      if (tg?.openLink) tg.openLink(url);
+      else window.open(url, '_blank');
+    } catch(e) { window.location.href = url; }
     resetReturnCountdown();
   }
 
-  /* ── Countdown on return screen ── */
+  /* ── Countdown ── */
   function startReturnCountdown() {
     returnSecs = 15;
     updateCountdownLabel();
@@ -419,7 +441,7 @@
       : 'Verifying…';
   }
 
-  /* ── STEP 2: User taps "I Completed the Ad" ── */
+  /* ── STEP 2: Verify return ── */
   function verifyReturn() {
     if (returnTimer) clearInterval(returnTimer);
     show('screen-verifying');
@@ -443,7 +465,8 @@
     else window.location.href = url;
   }
 
-
+  /* ── Pre-fetch geo in background on page load ── */
+  resolveAdUrl();
 </script>
 </body>
 </html>
