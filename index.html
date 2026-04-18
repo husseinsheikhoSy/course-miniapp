@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Premium Course Access</title>
+  
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://w.tads.me/widget.js"></script>
+
   <style>
     :root {
       --bg: #030712;
@@ -16,457 +19,519 @@
       --text-dim: #9ca3af;
       --border: rgba(255, 255, 255, 0.1);
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
-
     body {
       background: var(--bg);
-      background-image:
+      background-image: 
         radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
       color: var(--text-main);
       min-height: 100vh;
       display: flex; align-items: center; justify-content: center;
-      padding: 20px;
+      padding: 20px; overflow: hidden;
     }
-
     .container {
       width: 100%; max-width: 400px;
       background: var(--card-bg);
-      backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--border);
       border-radius: 32px;
       padding: 32px 24px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
       text-align: center;
+      position: relative;
       animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
-
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .screen { display: none; }
-    .screen.active { display: block; }
-
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     .status-badge {
       display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
       padding: 6px 14px; border-radius: 99px;
       font-size: 12px; font-weight: 600; color: var(--accent);
-      margin-bottom: 20px; border: 1px solid rgba(139,92,246,0.2);
+      margin-bottom: 20px; border: 1px solid rgba(139, 92, 246, 0.2);
     }
-
-    .icon-wrap {
-      width: 100px; height: 100px; margin: 0 auto 24px;
+    .timer-circle {
+      position: relative; width: 100px; height: 100px; margin: 0 auto 24px;
       display: flex; align-items: center; justify-content: center;
-      position: relative;
     }
-    .icon-main { font-size: 52px; }
-    .pulse-ring {
-      position: absolute; width: 100%; height: 100%;
-      border: 2px solid var(--accent); border-radius: 50%;
-      animation: ripple 2s infinite; opacity: 0;
+    .timer-text {
+      font-size: 32px; font-weight: 800; color: var(--text-main);
+      text-shadow: 0 0 20px var(--accent-glow);
     }
-    @keyframes ripple {
-      0%   { transform: scale(0.8); opacity: 0.5; }
-      100% { transform: scale(1.5); opacity: 0; }
+    .icon-display {
+      font-size: 50px; display: none;
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-
+    @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
     h1 { font-size: 24px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
     p  { color: var(--text-dim); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
-
-    .dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
-    .dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--accent); opacity: 0.3;
-      animation: blink 1.2s ease-in-out infinite;
-    }
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes blink { 0%,100%{opacity:.3; transform:scale(.8)} 50%{opacity:1; transform:scale(1.2)} }
-
-    .progress-wrap {
-      width: 100%; height: 6px; background: rgba(255,255,255,0.05);
-      border-radius: 10px; margin-bottom: 24px;
-    }
-    .progress-fill {
-      height: 100%; width: 0%; background: var(--accent);
-      border-radius: 10px; transition: width 0.4s ease;
-    }
-
-    .steps { text-align: left; margin-bottom: 24px; }
-    .step-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 14px; border-radius: 14px;
-      background: rgba(255,255,255,0.04); margin-bottom: 8px;
-      font-size: 13px; color: var(--text-dim);
-      transition: all 0.4s ease;
-    }
-    .step-item.done { background: rgba(16,185,129,0.1); color: #6ee7b7; }
-    .step-item.active { background: rgba(139,92,246,0.1); color: #c4b5fd; }
-    .step-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--text-dim); flex-shrink: 0;
-      transition: background 0.4s;
-    }
-    .step-item.done .step-dot   { background: var(--success); }
-    .step-item.active .step-dot { background: var(--accent); }
-
     .btn {
       width: 100%; padding: 18px; border-radius: 20px; border: none;
       font-size: 16px; font-weight: 700; cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 10px;
-      transition: all 0.3s ease;
+      transition: all 0.3s ease; position: relative; overflow: hidden;
     }
-    .btn:active { transform: scale(0.97); }
     .btn-primary {
       background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-      color: white; box-shadow: 0 10px 20px -5px rgba(109,40,217,0.5);
+      color: white; box-shadow: 0 10px 20px -5px rgba(109, 40, 217, 0.5);
     }
     .btn-primary:disabled {
       background: #374151; color: #9ca3af; box-shadow: none; cursor: not-allowed;
     }
     .btn-success {
       background: linear-gradient(135deg, #10b981, #059669);
-      color: white; box-shadow: 0 10px 20px -5px rgba(16,185,129,0.5);
+      color: white; box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.5);
+      display: none;
     }
-
+    .btn-secondary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: white; box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.5);
+      display: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .progress-container {
+      width: 100%; height: 6px; background: rgba(255,255,255,0.05);
+      border-radius: 10px; margin-top: 20px; display: none;
+    }
+    .progress-fill {
+      height: 100%; width: 0%; background: var(--accent);
+      border-radius: 10px; transition: width 0.3s ease;
+    }
     .footer-note {
       margin-top: 24px; font-size: 11px; color: var(--text-dim);
       opacity: 0.6; display: flex; align-items: center; justify-content: center; gap: 4px;
     }
-
-    .warning-box {
-      background: rgba(251,191,36,0.08);
-      border: 1px solid rgba(251,191,36,0.2);
-      border-radius: 16px; padding: 14px 16px;
-      font-size: 12px; color: #fde68a;
-      margin-bottom: 20px; line-height: 1.6; text-align: left;
+    .pulse-ring {
+      position: absolute; width: 100%; height: 100%;
+      border: 2px solid var(--accent); border-radius: 50%;
+      animation: ripple 2s infinite; opacity: 0;
     }
-
-    .countdown-badge {
-      display: inline-block;
-      background: rgba(139,92,246,0.15);
-      border: 1px solid rgba(139,92,246,0.3);
-      border-radius: 12px; padding: 4px 14px;
-      font-size: 13px; font-weight: 700; color: #c4b5fd;
-      margin-bottom: 16px; font-variant-numeric: tabular-nums;
-    }
+    @keyframes ripple { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.5); opacity: 0; } }
+    @keyframes fadeInOverlay { from{opacity:0} to{opacity:1} }
+    @keyframes bounceHand { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    @keyframes pulseCard  { 0%,100%{box-shadow:0 0 60px rgba(139,92,246,.2)} 50%{box-shadow:0 0 80px rgba(139,92,246,.4)} }
+    @keyframes dot1 { 0%,100%{opacity:.3;transform:scale(.8)} 20%{opacity:1;transform:scale(1.2)} }
+    @keyframes dot2 { 0%,100%{opacity:.3;transform:scale(.8)} 40%{opacity:1;transform:scale(1.2)} }
+    @keyframes dot3 { 0%,100%{opacity:.3;transform:scale(.8)} 60%{opacity:1;transform:scale(1.2)} }
   </style>
 </head>
 <body>
-<div class="container">
 
-  <!-- SCREEN 1 — Pre-landing -->
-  <div class="screen active" id="screen-pre">
-    <div class="status-badge">
-      <span style="width:8px;height:8px;background:var(--accent);border-radius:50%"></span>
-      FREE ACCESS
+<div id="tap-overlay" style="
+  position:fixed; inset:0; z-index:9999;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:rgba(3,7,18,0.92);
+  backdrop-filter:blur(6px);
+  cursor:pointer;
+  animation:fadeInOverlay .4s ease;
+" onclick="onFirstTap()">
+  <div style="
+    background:rgba(17,24,39,0.9);
+    border:1px solid rgba(139,92,246,0.35);
+    border-radius:28px;
+    padding:36px 32px;
+    text-align:center;
+    max-width:320px;
+    animation:pulseCard 2s ease-in-out infinite;
+  ">
+    <div style="font-size:52px; margin-bottom:16px; animation:bounceHand 1.4s ease-in-out infinite;">👆</div>
+    <h2 style="font-size:20px; font-weight:800; color:#f9fafb; margin-bottom:10px; letter-spacing:-0.4px;">Tap to Continue</h2>
+    <p style="font-size:13px; color:#9ca3af; line-height:1.6; margin:0;">Tap anywhere to unlock your<br>free course access</p>
+    <div style="margin-top:20px; display:flex; align-items:center; justify-content:center; gap:6px;">
+      <span style="width:6px;height:6px;border-radius:50%;background:#8b5cf6;animation:dot1 1.2s ease-in-out infinite;display:block;"></span>
+      <span style="width:6px;height:6px;border-radius:50%;background:#8b5cf6;animation:dot2 1.2s ease-in-out infinite;display:block;"></span>
+      <span style="width:6px;height:6px;border-radius:50%;background:#8b5cf6;animation:dot3 1.2s ease-in-out infinite;display:block;"></span>
     </div>
-    <div class="icon-wrap">
-      <div class="pulse-ring"></div>
-      <div class="icon-main">🎓</div>
-    </div>
-    <h1>Unlock Your Free Course</h1>
-    <p>To prevent spam and bots, we verify access through a short sponsored ad.<br>It only takes a few seconds!</p>
+  </div>
+</div>
 
-    <div class="warning-box">
-      ⚠️ <strong>How it works:</strong><br>
-      You will be redirected to a brief ad page. After completing it, return here to access your free course instantly.
-    </div>
-
-    <button class="btn btn-primary" onclick="startVerification()">
-      🎬 &nbsp;Watch Ad &amp; Unlock Access
-    </button>
-    <div class="footer-note">🛡️ Spam-protected verification</div>
+<div class="container" id="main-card">
+  <div class="status-badge" id="status-box">
+    <span id="status-dot" style="width:8px; height:8px; background:var(--accent); border-radius:50%"></span>
+    <span id="status-text">SYSTEM INITIALIZING</span>
   </div>
 
-  <!-- SCREEN 2 — Loading -->
-  <div class="screen" id="screen-loading">
-    <div class="status-badge">
-      <span style="width:8px;height:8px;background:var(--accent);border-radius:50%"></span>
-      <span id="loading-status-text">PREPARING AD</span>
-    </div>
-    <div class="icon-wrap">
-      <div class="pulse-ring"></div>
-      <div class="icon-main">⚙️</div>
-    </div>
-    <h1 id="loading-title">Preparing Your Access…</h1>
-    <p id="loading-desc">We're loading the sponsored content. Please wait a moment.</p>
-
-    <div class="steps" id="steps-list">
-      <div class="step-item active" id="step-1">
-        <span class="step-dot"></span> Connecting to ad network
-      </div>
-      <div class="step-item" id="step-2">
-        <span class="step-dot"></span> Loading sponsored content
-      </div>
-      <div class="step-item" id="step-3">
-        <span class="step-dot"></span> Verifying your access
-      </div>
-    </div>
-
-    <div class="progress-wrap"><div class="progress-fill" id="load-progress"></div></div>
-    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <div class="footer-note">🛡️ Spam-protected verification</div>
+  <div class="timer-circle">
+    <div class="pulse-ring" id="pulse-effect"></div>
+    <div class="timer-text" id="countdown">3</div>
+    <div class="icon-display" id="success-icon">🎓</div>
+    <div class="icon-display" id="ad-icon">🎬</div>
   </div>
 
-  <!-- SCREEN 3 — Return & Verify -->
-  <div class="screen" id="screen-return">
-    <div class="status-badge" style="color:#fbbf24;border-color:rgba(251,191,36,0.3)">
-      <span style="width:8px;height:8px;background:#fbbf24;border-radius:50%"></span>
-      WAITING FOR YOU
-    </div>
-    <div class="icon-wrap">
-      <div class="icon-main">⏳</div>
-    </div>
-    <h1>Almost There!</h1>
-    <p>Please <strong style="color:var(--text-main)">complete the ad page</strong> that opened in your browser, then tap the button below to verify and unlock your course.</p>
+  <h1 id="title">Verifying Connection</h1>
+  <p id="description">Checking for available offers...</p>
 
-    <div class="countdown-badge" id="return-countdown">Auto-verify in 15s</div>
+  <button class="btn btn-primary" id="btn-watch" onclick="handleWatchAd()" disabled style="display:none;">
+    <span id="btn-text">Watch Ad to Unlock</span>
+  </button>
 
-    <button class="btn btn-primary" onclick="verifyReturn()" id="btn-verify">
-      ✅ &nbsp;I Completed the Ad — Verify Now
-    </button>
-    <br>
-    <button class="btn" style="background:rgba(255,255,255,0.06);color:var(--text-dim);font-size:14px;" onclick="retryAd()">
-      🔄 &nbsp;Re-open Ad Page
-    </button>
-    <div class="footer-note">🛡️ Spam-protected verification</div>
+  <button class="btn btn-secondary" id="btn-next-phase" onclick="startPhase2()">
+    <span>🔄</span> Go to Final Step
+  </button>
+
+  <button class="btn btn-success" id="btn-enroll" onclick="goToCourse()">
+    <span>🚀</span> ENROLL NOW FOR FREE
+  </button>
+
+  <div class="progress-container" id="progress-wrap">
+    <div class="progress-fill" id="progress-bar"></div>
   </div>
 
-  <!-- SCREEN 4 — Verifying -->
-  <div class="screen" id="screen-verifying">
-    <div class="status-badge" style="color:#10b981;border-color:rgba(16,185,129,0.3)">
-      <span style="width:8px;height:8px;background:#10b981;border-radius:50%"></span>
-      VERIFYING
-    </div>
-    <div class="icon-wrap">
-      <div class="pulse-ring" style="border-color:var(--success)"></div>
-      <div class="icon-main">🔍</div>
-    </div>
-    <h1>Verifying Access…</h1>
-    <p>Please wait while we confirm your verification and unlock the course.</p>
-    <div class="progress-wrap"><div class="progress-fill" id="verify-progress"></div></div>
-    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+  <div class="footer-note">
+    <span>🛡️</span> Secure Verification by TADS
   </div>
-
-  <!-- SCREEN 5 — Access Granted -->
-  <div class="screen" id="screen-done">
-    <div class="status-badge" style="color:var(--success);border-color:rgba(16,185,129,0.3)">
-      <span style="width:8px;height:8px;background:var(--success);border-radius:50%"></span>
-      ACCESS GRANTED
-    </div>
-    <div class="icon-wrap">
-      <div class="icon-main">🎓</div>
-    </div>
-    <h1>Ready to Begin!</h1>
-    <p>Verification complete. You now have full free access to your course. Enjoy!</p>
-    <button class="btn btn-success" onclick="goToCourse()">
-      🚀 &nbsp;ENROLL NOW FOR FREE
-    </button>
-    <div class="footer-note">🛡️ Spam-protected verification</div>
-  </div>
-
 </div>
 
 <script>
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
-  /* ── Ad URLs by Tier ── */
-  const AD_TIER1 = 'https://fluffy-machine.com/Kp60r2'; // High-CPM countries
-  const AD_TIER2 = 'https://fluffy-machine.com/hy0AJ8'; // All others
+  // ⚙️ TADS Configuration (تحديث Widget ID حسب طلبك)
+  const WIDGET_ID = "9579";
+  const AD_TYPE = "fullscreen";
+  const IS_DEBUG = false;
 
-  /*
-   * Tier 1 — Top CPM countries (US, UK, CA, AU + Western Europe + key Asia-Pacific)
-   * Sources: HilltopAds Tier classification & industry CPM benchmarks
-   */
-  const TIER1_COUNTRIES = new Set([
-    // North America
-    'US','CA',
-    // Western Europe
-    'GB','DE','FR','NL','SE','NO','DK','FI','CH','AT','BE','IE','LU',
-    // Southern Europe
-    'IT','ES','PT',
-    // Eastern Europe (high CPM)
-    'PL','CZ','SK','HU','RO',
-    // Oceania
-    'AU','NZ',
-    // Asia-Pacific (premium)
-    'JP','SG','HK','KR','TW',
-    // Middle East (high CPM)
-    'AE','SA','QA','KW','BH',
-    // Other developed
-    'IL','ZA','BR','MX'
-  ]);
+  // ⏱️ Timer Settings - 3 seconds max wait
+  const MAX_WAIT_SECONDS = 3;
+  const CHECK_INTERVAL_MS = 300;
 
-  let resolvedAdUrl = null; // cached after geo detection
-  let returnTimer   = null;
-  let returnSecs    = 15;
+  let adController = null;
+  let adUnlocked = false;
+  let adReady = false;
+  let adLoading = false;
+  let gestureDone = false;
+  let checkAttempts = 0;
+  let checkInterval = null;
+  let preloadPromise = null;
 
-  /* ── Detect country via free IP API ── */
-  async function detectCountry() {
-    try {
-      const res  = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
-      const data = await res.json();
-      return data.country_code || 'XX';
-    } catch (e) {
-      return 'XX'; // fallback → Tier 2
-    }
-  }
+  // Multi-Ad System
+  const REQUIRED_ADS = 2;
+  let adsWatched = 0;
+  let currentPhase = 1;
+  let phaseStartTime = null;
 
-  async function resolveAdUrl() {
-    if (resolvedAdUrl) return resolvedAdUrl;
-    const country = await detectCountry();
-    resolvedAdUrl = TIER1_COUNTRIES.has(country) ? AD_TIER1 : AD_TIER2;
-    return resolvedAdUrl;
-  }
+  // 🎯 TADS Callbacks
+  const onShowRewardCallback = (result) => {
+    console.log('✅ Ad completed:', result);
+    onAdCompleted();
+  };
 
-  /* ── Course URL from start param ── */
-  function getStartParam() {
-    return tg?.initDataUnsafe?.start_param
-      || new URLSearchParams(window.location.search).get('startapp')
-      || 'default';
-  }
+  const onAdsNotFound = () => {
+    console.log('⚠️ No ads found');
+    handleNoAdAvailable();
+  };
+
+  const onAdError = (error) => {
+    console.log('❌ Ad error:', error);
+    handleNoAdAvailable();
+  };
 
   function getCourseUrl() {
-    const code = getStartParam();
-    if (!code || code === 'default') return 'https://www.udemy.com/';
+    const code = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('startapp');
+    if (!code) return 'https://www.udemy.com/';
     try {
-      const decoded = atob(code.replace(/-/g,'+').replace(/_/g,'/'));
+      const decoded = atob(code.replace(/-/g, '+').replace(/_/g, '/'));
       return decoded.startsWith('http') ? decoded : 'https://www.udemy.com/';
     } catch(e) { return 'https://www.udemy.com/'; }
   }
+  const COURSE_URL = getCourseUrl();
 
-  /* ── Screen switching ── */
-  function show(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
-
-  /* ── STEP 1: User taps "Watch Ad" ── */
-  function startVerification() {
-    show('screen-loading');
-    animateLoadingSteps();
-  }
-
-  function animateLoadingSteps() {
-    const bar   = document.getElementById('load-progress');
-    const steps = ['step-1','step-2','step-3'];
-    let p = 0, si = 0;
-
-    const pIv = setInterval(() => {
-      p = Math.min(p + 3, 95);
-      bar.style.width = p + '%';
-    }, 80);
-
-    function nextStep() {
-      if (si < steps.length) {
-        if (si > 0) {
-          document.getElementById(steps[si-1]).classList.remove('active');
-          document.getElementById(steps[si-1]).classList.add('done');
-        }
-        document.getElementById(steps[si]).classList.add('active');
-        si++;
-        if (si < steps.length) setTimeout(nextStep, 900);
-      }
+  function onFirstTap() {
+    if (gestureDone) return;
+    gestureDone = true;
+    const overlay = document.getElementById('tap-overlay');
+    if (overlay) {
+      overlay.style.transition = 'opacity .3s ease';
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 320);
     }
-    nextStep();
+    if (adReady && !adLoading) launchAd();
+  }
 
-    // Resolve geo in background while steps animate, then open ad
-    setTimeout(async () => {
-      clearInterval(pIv);
-      bar.style.width = '100%';
-      if (steps[si-1]) {
-        document.getElementById(steps[si-1]).classList.remove('active');
-        document.getElementById(steps[si-1]).classList.add('done');
+  window.addEventListener('load', () => {
+    phaseStartTime = Date.now();
+    initializeTads();
+  });
+
+  function initializeTads() {
+    if (window.tads && typeof window.tads.init === 'function') {
+      initAdController();
+    } else {
+      const tadsInterval = setInterval(() => {
+        if (window.tads && typeof window.tads.init === 'function') {
+          clearInterval(tadsInterval);
+          initAdController();
+        }
+      }, 100);
+      setTimeout(() => {
+        clearInterval(tadsInterval);
+        if (!adController) {
+          console.warn('⚠️ TADS fallback mode');
+          startAdCheckLoop();
+        }
+      }, 2000);
+    }
+  }
+
+  function initAdController() {
+    try {
+      adController = window.tads.init({
+        widgetId: WIDGET_ID,
+        type: AD_TYPE,
+        debug: IS_DEBUG,
+        onShowReward: onShowRewardCallback,
+        onAdsNotFound: onAdsNotFound,
+        onError: onAdError
+      });
+      console.log('✅ TADS initialized');
+      startAdCheckLoop();
+    } catch(e) {
+      console.warn('❌ TADS init failed:', e);
+      startAdCheckLoop();
+    }
+  }
+
+  // 🔄 Smart Ad Check Loop - Check every 300ms, max 3 seconds
+  function startAdCheckLoop() {
+    checkAttempts = 0;
+    checkInterval = setInterval(() => {
+      checkAttempts++;
+      const elapsed = Math.floor((Date.now() - phaseStartTime) / 1000);
+      const secondsLeft = Math.max(0, MAX_WAIT_SECONDS - elapsed);
+      
+      // Update countdown UI
+      if (!adReady && !adLoading) {
+        document.getElementById('countdown').innerText = secondsLeft;
+        document.getElementById('status-text').innerText = `PHASE ${currentPhase}/${REQUIRED_ADS} - CHECKING`;
       }
-      await openAd();
-    }, 3000);
+
+      // If time expired OR ad is ready, proceed
+      if (secondsLeft === 0 || adReady) {
+        clearInterval(checkInterval);
+        if (!adReady && !adLoading) {
+          // Try preload one last time
+          tryPreloadAd();
+        }
+        return;
+      }
+
+      // Try to preload ad if not already loading
+      if (!adLoading && !preloadPromise) {
+        tryPreloadAd();
+      }
+    }, CHECK_INTERVAL_MS);
   }
 
-  /* ── Open ad (geo-targeted) ── */
-  async function openAd() {
-    const url = await resolveAdUrl();
-    try {
-      if (tg?.openLink) tg.openLink(url);
-      else window.open(url, '_blank');
-    } catch(e) { window.location.href = url; }
-
-    setTimeout(() => {
-      show('screen-return');
-      startReturnCountdown();
-    }, 400);
+  // 🎯 Try to preload ad - if succeeds, mark as ready immediately
+  function tryPreloadAd() {
+    if (!adController || adLoading) return;
+    
+    adLoading = true;
+    preloadPromise = adController.loadAd()
+      .then(() => {
+        adReady = true;
+        adLoading = false;
+        preloadPromise = null;
+        console.log('✅ Ad preloaded - showing immediately');
+        
+        // Update UI to show ad is ready
+        document.getElementById('status-text').innerText = `PHASE ${currentPhase}/${REQUIRED_ADS} - AD READY`;
+        document.getElementById('countdown').style.display = 'none';
+        document.getElementById('ad-icon').style.display = 'block';
+        
+        // If user already tapped, show ad immediately
+        if (gestureDone) {
+          launchAd();
+        }
+      })
+      .catch((err) => {
+        adLoading = false;
+        preloadPromise = null;
+        console.log('⚠️ Preload failed, waiting...', err);
+      });
   }
 
-  async function retryAd() {
-    const url = await resolveAdUrl();
-    try {
-      if (tg?.openLink) tg.openLink(url);
-      else window.open(url, '_blank');
-    } catch(e) { window.location.href = url; }
-    resetReturnCountdown();
+  function handleNoAdAvailable() {
+    clearInterval(checkInterval);
+    adReady = true;
+    
+    // Remove overlay if still present
+    const overlay = document.getElementById('tap-overlay');
+    if (overlay && !gestureDone) {
+      overlay.style.transition = 'opacity .3s ease';
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 320);
+    }
+    
+    // Proceed to next step or fallback
+    if (currentPhase === 1) {
+      showPhaseTransitionUI();
+    } else {
+      unlockDirectly();
+    }
   }
 
-  /* ── Countdown ── */
-  function startReturnCountdown() {
-    returnSecs = 15;
-    updateCountdownLabel();
-    if (returnTimer) clearInterval(returnTimer);
-    returnTimer = setInterval(() => {
-      returnSecs--;
-      updateCountdownLabel();
-      if (returnSecs <= 0) { clearInterval(returnTimer); verifyReturn(); }
-    }, 1000);
+  function resetPhase() {
+    adReady = false;
+    adUnlocked = false;
+    adLoading = false;
+    preloadPromise = null;
+    checkAttempts = 0;
+    phaseStartTime = Date.now();
+    
+    // Reset UI
+    document.getElementById('countdown').style.display = 'block';
+    document.getElementById('countdown').innerText = MAX_WAIT_SECONDS;
+    document.getElementById('ad-icon').style.display = 'none';
+    document.getElementById('success-icon').style.display = 'none';
+    document.getElementById('progress-wrap').style.display = 'none';
+    document.getElementById('btn-watch').style.display = 'none';
+    document.getElementById('btn-next-phase').style.display = 'none';
+    document.getElementById('btn-enroll').style.display = 'none';
+    
+    document.getElementById('status-text').innerText = `PHASE ${currentPhase}/${REQUIRED_ADS} - CHECKING`;
+    document.getElementById('title').innerText = `Preparing Phase ${currentPhase}...`;
+    document.getElementById('description').innerText = `Checking for ad ${currentPhase} of ${REQUIRED_ADS}...`;
+    
+    // Restart check loop
+    clearInterval(checkInterval);
+    startAdCheckLoop();
   }
 
-  function resetReturnCountdown() {
-    returnSecs = 15;
-    updateCountdownLabel();
-    if (returnTimer) clearInterval(returnTimer);
-    returnTimer = setInterval(() => {
-      returnSecs--;
-      updateCountdownLabel();
-      if (returnSecs <= 0) { clearInterval(returnTimer); verifyReturn(); }
-    }, 1000);
-  }
+  function launchAd() {
+    if (adLoading) return;
+    
+    document.getElementById('countdown').style.display = 'none';
+    document.getElementById('ad-icon').style.display = 'block';
+    document.getElementById('status-text').innerText = `PHASE ${currentPhase}/${REQUIRED_ADS} - SHOWING`;
+    document.getElementById('title').innerText = `Watch Ad ${currentPhase} of ${REQUIRED_ADS}`;
+    document.getElementById('description').innerText = 'Loading your sponsored video...';
+    document.getElementById('progress-wrap').style.display = 'block';
 
-  function updateCountdownLabel() {
-    const el = document.getElementById('return-countdown');
-    if (el) el.textContent = returnSecs > 0
-      ? 'Auto-verify in ' + returnSecs + 's'
-      : 'Verifying…';
-  }
-
-  /* ── STEP 2: Verify return ── */
-  function verifyReturn() {
-    if (returnTimer) clearInterval(returnTimer);
-    show('screen-verifying');
-    const bar = document.getElementById('verify-progress');
+    // Progress animation
     let p = 0;
-    const iv = setInterval(() => {
-      p = Math.min(p + 4, 100);
-      bar.style.width = p + '%';
-      if (p >= 100) { clearInterval(iv); grantAccess(); }
-    }, 60);
+    const pIv = setInterval(() => { 
+      p += 3; 
+      if (p <= 95) document.getElementById('progress-bar').style.width = p + '%'; 
+    }, 150);
+
+    if (adController && typeof adController.showAd === 'function') {
+      adController.showAd()
+        .then(() => {
+          clearInterval(pIv);
+          document.getElementById('progress-bar').style.width = '100%';
+          // onShowReward callback will handle completion
+        })
+        .catch(err => {
+          clearInterval(pIv);
+          handleAdError(err);
+        });
+    } else {
+      clearInterval(pIv);
+      onAdCompleted(); // Fallback
+    }
   }
 
-  function grantAccess() {
-    show('screen-done');
+  function handleAdError(err) {
+    const msg = String(err).toLowerCase();
+    if (msg.includes('skip') || msg.includes('close') || msg.includes('cancel')) {
+      document.getElementById('ad-icon').style.display = 'none';
+      document.getElementById('countdown').style.display = 'block';
+      document.getElementById('countdown').innerText = '!';
+      document.getElementById('status-text').innerText = 'AD SKIPPED';
+      document.getElementById('title').innerText = 'Action Required!';
+      document.getElementById('description').innerText = `Please watch ad ${currentPhase} to proceed.`;
+      document.getElementById('progress-wrap').style.display = 'none';
+      
+      const btn = document.getElementById('btn-watch');
+      btn.style.display = 'flex';
+      btn.disabled = false;
+      document.getElementById('btn-text').innerText = `▶ Watch Ad ${currentPhase}`;
+      btn.onclick = () => handleWatchAd(currentPhase);
+    } else {
+      onAdCompleted(); // Fallback for other errors
+    }
   }
 
-  /* ── STEP 3: Go to course ── */
+  function onAdCompleted() {
+    adsWatched++;
+    if (adsWatched < REQUIRED_ADS) {
+      showPhaseTransitionUI();
+    } else {
+      unlockDirectly();
+    }
+  }
+
+  function showPhaseTransitionUI() {
+    document.getElementById('countdown').style.display = 'none';
+    document.getElementById('ad-icon').style.display = 'none';
+    document.getElementById('progress-wrap').style.display = 'none';
+    document.getElementById('btn-watch').style.display = 'none';
+    document.getElementById('btn-enroll').style.display = 'none';
+    
+    const nextBtn = document.getElementById('btn-next-phase');
+    nextBtn.style.display = 'flex';
+    nextBtn.disabled = false;
+    
+    document.getElementById('status-text').innerText = `PHASE ${currentPhase}/${REQUIRED_ADS} - COMPLETE`;
+    document.getElementById('title').innerText = `✅ Phase ${currentPhase} Complete!`;
+    document.getElementById('description').innerText = `Click below to proceed to the final step.`;
+  }
+
+  function startPhase2() {
+    document.getElementById('btn-next-phase').style.display = 'none';
+    currentPhase = 2;
+    resetPhase();
+  }
+
+  async function handleWatchAd(phase = currentPhase) {
+    const btn = document.getElementById('btn-watch');
+    btn.disabled = true;
+    document.getElementById('btn-text').innerText = `Loading...`;
+    document.getElementById('progress-wrap').style.display = 'block';
+
+    let p = 0;
+    const pIv = setInterval(() => { p += 3; if (p <= 95) document.getElementById('progress-bar').style.width = p + '%'; }, 150);
+
+    try {
+      if (adController) {
+        await adController.loadAd();
+        await adController.showAd();
+      } else {
+        clearInterval(pIv);
+        onAdCompleted();
+      }
+    } catch (err) {
+      clearInterval(pIv);
+      handleAdError(err);
+    }
+  }
+
+  function unlockDirectly() {
+    adUnlocked = true;
+    document.getElementById('countdown').style.display = 'none';
+    document.getElementById('ad-icon').style.display = 'none';
+    document.getElementById('success-icon').style.display = 'block';
+    document.getElementById('pulse-effect').style.display = 'none';
+
+    document.getElementById('status-text').innerText = 'ACCESS GRANTED';
+    document.getElementById('status-dot').style.background = 'var(--success)';
+    document.getElementById('status-box').style.borderColor = 'var(--success)';
+    document.getElementById('status-box').style.color = 'var(--success)';
+
+    document.getElementById('title').innerText = 'Ready to Begin!';
+    document.getElementById('description').innerText = 'Verification complete. You now have full access.';
+
+    document.getElementById('btn-watch').style.display = 'none';
+    document.getElementById('btn-next-phase').style.display = 'none';
+    document.getElementById('progress-wrap').style.display = 'none';
+    document.getElementById('btn-enroll').style.display = 'flex';
+  }
+
   function goToCourse() {
-    const url = getCourseUrl();
-    if (tg?.openLink) { tg.openLink(url); setTimeout(() => tg.close(), 1000); }
-    else window.location.href = url;
+    if (tg?.openLink) { tg.openLink(COURSE_URL); setTimeout(() => tg.close(), 1000); }
+    else window.location.href = COURSE_URL;
   }
-
-  /* ── Pre-fetch geo in background on page load ── */
-  resolveAdUrl();
 </script>
 </body>
-  </html>
+</html>
