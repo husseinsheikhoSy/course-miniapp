@@ -1,537 +1,404 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Premium Course Access</title>
-  
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://w.tads.me/widget.js"></script>
 
-  <style>
-    :root {
-      --bg: #030712;
-      --card-bg: rgba(17, 24, 39, 0.8);
-      --accent: #8b5cf6;
-      --accent-glow: rgba(139, 92, 246, 0.3);
-      --success: #10b981;
-      --text-main: #f9fafb;
-      --text-dim: #9ca3af;
-      --border: rgba(255, 255, 255, 0.1);
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
-    body {
-      background: var(--bg);
-      background-image: 
-        radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      padding: 20px; overflow: hidden;
-    }
-    .container {
-      width: 100%; max-width: 400px;
-      background: var(--card-bg);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-      border-radius: 32px;
-      padding: 32px 24px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      text-align: center;
-      position: relative;
-      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    .status-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 6px 14px; border-radius: 99px;
-      font-size: 12px; font-weight: 600; color: var(--accent);
-      margin-bottom: 20px; border: 1px solid rgba(139, 92, 246, 0.2);
-    }
-    .timer-circle {
-      position: relative; width: 100px; height: 100px; margin: 0 auto 24px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .timer-text {
-      font-size: 32px; font-weight: 800; color: var(--text-main);
-      text-shadow: 0 0 20px var(--accent-glow);
-    }
-    .icon-display {
-      font-size: 50px; display: none;
-      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
-    h1 { font-size: 24px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
-    p  { color: var(--text-dim); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
-    .btn {
-      width: 100%; padding: 18px; border-radius: 20px; border: none;
-      font-size: 16px; font-weight: 700; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      transition: all 0.3s ease; position: relative; overflow: hidden;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-      color: white; box-shadow: 0 10px 20px -5px rgba(109, 40, 217, 0.5);
-    }
-    .btn-primary:disabled {
-      background: #374151; color: #9ca3af; box-shadow: none; cursor: not-allowed;
-    }
-    .btn-success {
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: white; box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.5);
-      display: none;
-    }
-    .btn-secondary {
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      color: white; box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.5);
-      display: none;
-    }
-    .btn:active { transform: scale(0.97); }
-    .progress-container {
-      width: 100%; height: 6px; background: rgba(255,255,255,0.05);
-      border-radius: 10px; margin-top: 20px; display: none;
-    }
-    .progress-fill {
-      height: 100%; width: 0%; background: var(--accent);
-      border-radius: 10px; transition: width 0.3s ease;
-    }
-    .footer-note {
-      margin-top: 24px; font-size: 11px; color: var(--text-dim);
-      opacity: 0.6; display: flex; align-items: center; justify-content: center; gap: 4px;
-    }
-    .pulse-ring {
-      position: absolute; width: 100%; height: 100%;
-      border: 2px solid var(--accent); border-radius: 50%;
-      animation: ripple 2s infinite; opacity: 0;
-    }
-    @keyframes ripple { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.5); opacity: 0; } }
-    @keyframes fadeInOverlay { from{opacity:0} to{opacity:1} }
-    @keyframes bounceHand { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-    @keyframes pulseCard  { 0%,100%{box-shadow:0 0 60px rgba(139,92,246,.2)} 50%{box-shadow:0 0 80px rgba(139,92,246,.4)} }
-    @keyframes dot1 { 0%,100%{opacity:.3;transform:scale(.8)} 20%{opacity:1;transform:scale(1.2)} }
-    @keyframes dot2 { 0%,100%{opacity:.3;transform:scale(.8)} 40%{opacity:1;transform:scale(1.2)} }
-    @keyframes dot3 { 0%,100%{opacity:.3;transform:scale(.8)} 60%{opacity:1;transform:scale(1.2)} }
-  </style>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Premium Course Access</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://w.tads.me/widget.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+
+        :root {
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --btn-bg: #e5e7eb;
+            --btn-text: #374151;
+            --item-bg: #f9fafb;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            position: relative;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .progress-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        /* Task List Styles */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--item-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+        }
+
+        .task-item.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .task-item.completed {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .task-info-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e0e7ff;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .task-item.completed .task-icon {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .task-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .task-reward {
+            font-size: 12px;
+            font-weight: 500;
+            color: #f59e0b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Buttons */
+        .task-btn {
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: none;
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .task-btn:not(:disabled):hover {
+            background: #d1d5db;
+        }
+
+        .task-btn.done {
+            background: transparent;
+            color: var(--success);
+            font-size: 15px;
+            pointer-events: none;
+        }
+
+        .main-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .main-btn.disabled {
+            background: var(--btn-bg);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .main-btn.active {
+            background: var(--success);
+            color: white;
+            box-shadow: 0 8px 20px -6px rgba(16, 185, 129, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<div id="tap-overlay" style="
-  position:fixed; inset:0; z-index:9999;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  background:rgba(3,7,18,0.92);
-  backdrop-filter:blur(6px);
-  cursor:pointer;
-  animation:fadeInOverlay .4s ease;
-" onclick="onFirstTap()">
-  <div style="
-    background:rgba(17,24,39,0.9);
-    border:1px solid rgba(139,92,246,0.35);
-    border-radius:28px;
-    padding:36px 32px;
-    text-align:center;
-    max-width:320px;
-    animation:pulseCard 2s ease-in-out infinite;
-  ">
-    <div style="font-size:52px; margin-bottom:16px; animation:bounceHand 1.4s ease-in-out infinite;">👆</div>
-    <h2 style="font-size:20px; font-weight:800; color:#f9fafb; margin-bottom:10px; letter-spacing:-0.4px;">Tap to Continue</h2>
-    <p style="font-size:13px; color:#9ca3af; line-height:1.6; margin:0;">Tap anywhere to unlock your<br>free course access</p>
-    <div style="margin-top:20px; display:flex; align-items:center; justify-content:center; gap:6px;">
-      <span style="width:6px;height:6px;border-radius:50%;background:#8b5cf6;animation:dot1 1.2s ease-in-out infinite;display:block;"></span>
-      <span style="width:6px;height:6px;border-radius:50%;background:#8b5cf6;animation:dot2 1.2s ease-in-out infinite;display:block;"></span>
-      <span style="width:6px;height:6px;border-radius:50%;background:#8b5cf6;animation:dot3 1.2s ease-in-out infinite;display:block;"></span>
+    <div class="container">
+        <div class="header-top">
+            <h1>Getting Started</h1>
+            <span class="progress-text" id="progress-text">0/2</span>
+        </div>
+        <p class="subtitle">Complete the tasks below to get your free course link.</p>
+
+        <div class="task-list">
+            <div class="task-item" id="task1">
+                <div class="task-info-wrapper">
+                    <div class="task-icon" id="icon1">🎬</div>
+                    <div>
+                        <div class="task-title">Watch First Ad</div>
+                        <div class="task-reward">⭐ Required step</div>
+                    </div>
+                </div>
+                <button class="task-btn" id="btn-ad1" onclick="watchAd(1)">Start</button>
+            </div>
+
+            <div class="task-item disabled" id="task2">
+                <div class="task-info-wrapper">
+                    <div class="task-icon" id="icon2">🎬</div>
+                    <div>
+                        <div class="task-title">Watch Second Ad</div>
+                        <div class="task-reward">⭐ Required step</div>
+                    </div>
+                </div>
+                <button class="task-btn" id="btn-ad2" onclick="watchAd(2)" disabled>Start</button>
+            </div>
+        </div>
+
+        <button class="main-btn disabled" id="btn-final" onclick="goToCourse()" disabled>
+            🔒 Complete tasks to unlock
+        </button>
     </div>
-  </div>
-</div>
 
-<div class="container" id="main-card">
-  <div class="status-badge" id="status-box">
-    <span id="status-dot" style="width:8px; height:8px; background:var(--accent); border-radius:50%"></span>
-    <span id="status-text">SYSTEM INITIALIZING</span>
-  </div>
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram?.WebApp || null;
+        if (tg) { tg.ready(); tg.expand(); }
 
-  <div class="timer-circle">
-    <div class="pulse-ring" id="pulse-effect"></div>
-    <div class="timer-text" id="countdown">3</div>
-    <div class="icon-display" id="success-icon">🎓</div>
-    <div class="icon-display" id="ad-icon">🎬</div>
-  </div>
+        // TADS Configuration
+        const WIDGET_ID = "9579";
+        const AD_TYPE = "fullscreen";
+        let adController = null;
 
-  <h1 id="title">Verifying Connection</h1>
-  <p id="description">Checking for available offers...</p>
+        // Task State
+        let currentStep = 1;
+        let isAdPlaying = false;
 
-  <button class="btn btn-primary" id="btn-watch" onclick="handleWatchAd()" disabled style="display:none;">
-    <span id="btn-text">Watch Ad to Unlock</span>
-  </button>
-
-  <button class="btn btn-secondary" id="btn-next-phase" onclick="startPhase2()">
-    <span>🔄</span> Go to Final Step
-  </button>
-
-  <button class="btn btn-success" id="btn-enroll" onclick="goToCourse()">
-    <span>🚀</span> ENROLL NOW FOR FREE
-  </button>
-
-  <div class="progress-container" id="progress-wrap">
-    <div class="progress-fill" id="progress-bar"></div>
-  </div>
-
-  <div class="footer-note">
-    <span>🛡️</span> Secure Verification by TADS
-  </div>
-</div>
-
-<script>
-  const tg = window.Telegram?.WebApp || null;
-  if (tg) { tg.ready(); tg.expand(); }
-
-  // ⚙️ TADS Configuration (تحديث Widget ID حسب طلبك)
-  const WIDGET_ID = "9579";
-  const AD_TYPE = "fullscreen";
-  const IS_DEBUG = false;
-
-  // ⏱️ Timer Settings - 3 seconds max wait
-  const MAX_WAIT_SECONDS = 3;
-  const CHECK_INTERVAL_MS = 300;
-
-  let adController = null;
-  let adUnlocked = false;
-  let adReady = false;
-  let adLoading = false;
-  let gestureDone = false;
-  let checkAttempts = 0;
-  let checkInterval = null;
-  let preloadPromise = null;
-
-  // Multi-Ad System
-  const REQUIRED_ADS = 2;
-  let adsWatched = 0;
-  let currentPhase = 1;
-  let phaseStartTime = null;
-
-  // 🎯 TADS Callbacks
-  const onShowRewardCallback = (result) => {
-    console.log('✅ Ad completed:', result);
-    onAdCompleted();
-  };
-
-  const onAdsNotFound = () => {
-    console.log('⚠️ No ads found');
-    handleNoAdAvailable();
-  };
-
-  const onAdError = (error) => {
-    console.log('❌ Ad error:', error);
-    handleNoAdAvailable();
-  };
-
-  function getCourseUrl() {
-    const code = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('startapp');
-    if (!code) return 'https://www.udemy.com/';
-    try {
-      const decoded = atob(code.replace(/-/g, '+').replace(/_/g, '/'));
-      return decoded.startsWith('http') ? decoded : 'https://www.udemy.com/';
-    } catch(e) { return 'https://www.udemy.com/'; }
-  }
-  const COURSE_URL = getCourseUrl();
-
-  function onFirstTap() {
-    if (gestureDone) return;
-    gestureDone = true;
-    const overlay = document.getElementById('tap-overlay');
-    if (overlay) {
-      overlay.style.transition = 'opacity .3s ease';
-      overlay.style.opacity = '0';
-      setTimeout(() => overlay.remove(), 320);
-    }
-    if (adReady && !adLoading) launchAd();
-  }
-
-  window.addEventListener('load', () => {
-    phaseStartTime = Date.now();
-    initializeTads();
-  });
-
-  function initializeTads() {
-    if (window.tads && typeof window.tads.init === 'function') {
-      initAdController();
-    } else {
-      const tadsInterval = setInterval(() => {
-        if (window.tads && typeof window.tads.init === 'function') {
-          clearInterval(tadsInterval);
-          initAdController();
+        // Retrieve Course URL
+        function getCourseUrl() {
+            const code = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('startapp');
+            if (!code) return 'https://www.udemy.com/';
+            try {
+                const decoded = atob(code.replace(/-/g, '+').replace(/_/g, '/'));
+                return decoded.startsWith('http') ? decoded : 'https://www.udemy.com/';
+            } catch (e) { return 'https://www.udemy.com/'; }
         }
-      }, 100);
-      setTimeout(() => {
-        clearInterval(tadsInterval);
-        if (!adController) {
-          console.warn('⚠️ TADS fallback mode');
-          startAdCheckLoop();
-        }
-      }, 2000);
-    }
-  }
+        const COURSE_URL = getCourseUrl();
 
-  function initAdController() {
-    try {
-      adController = window.tads.init({
-        widgetId: WIDGET_ID,
-        type: AD_TYPE,
-        debug: IS_DEBUG,
-        onShowReward: onShowRewardCallback,
-        onAdsNotFound: onAdsNotFound,
-        onError: onAdError
-      });
-      console.log('✅ TADS initialized');
-      startAdCheckLoop();
-    } catch(e) {
-      console.warn('❌ TADS init failed:', e);
-      startAdCheckLoop();
-    }
-  }
-
-  // 🔄 Smart Ad Check Loop - Check every 300ms, max 3 seconds
-  function startAdCheckLoop() {
-    checkAttempts = 0;
-    checkInterval = setInterval(() => {
-      checkAttempts++;
-      const elapsed = Math.floor((Date.now() - phaseStartTime) / 1000);
-      const secondsLeft = Math.max(0, MAX_WAIT_SECONDS - elapsed);
-      
-      // Update countdown UI
-      if (!adReady && !adLoading) {
-        document.getElementById('countdown').innerText = secondsLeft;
-        document.getElementById('status-text').innerText = `PHASE ${currentPhase}/${REQUIRED_ADS} - CHECKING`;
-      }
-
-      // If time expired OR ad is ready, proceed
-      if (secondsLeft === 0 || adReady) {
-        clearInterval(checkInterval);
-        if (!adReady && !adLoading) {
-          // Try preload one last time
-          tryPreloadAd();
-        }
-        return;
-      }
-
-      // Try to preload ad if not already loading
-      if (!adLoading && !preloadPromise) {
-        tryPreloadAd();
-      }
-    }, CHECK_INTERVAL_MS);
-  }
-
-  // 🎯 Try to preload ad - if succeeds, mark as ready immediately
-  function tryPreloadAd() {
-    if (!adController || adLoading) return;
-    
-    adLoading = true;
-    preloadPromise = adController.loadAd()
-      .then(() => {
-        adReady = true;
-        adLoading = false;
-        preloadPromise = null;
-        console.log('✅ Ad preloaded - showing immediately');
-        
-        // Update UI to show ad is ready
-        document.getElementById('status-text').innerText = `PHASE ${currentPhase}/${REQUIRED_ADS} - AD READY`;
-        document.getElementById('countdown').style.display = 'none';
-        document.getElementById('ad-icon').style.display = 'block';
-        
-        // If user already tapped, show ad immediately
-        if (gestureDone) {
-          launchAd();
-        }
-      })
-      .catch((err) => {
-        adLoading = false;
-        preloadPromise = null;
-        console.log('⚠️ Preload failed, waiting...', err);
-      });
-  }
-
-  function handleNoAdAvailable() {
-    clearInterval(checkInterval);
-    adReady = true;
-    
-    // Remove overlay if still present
-    const overlay = document.getElementById('tap-overlay');
-    if (overlay && !gestureDone) {
-      overlay.style.transition = 'opacity .3s ease';
-      overlay.style.opacity = '0';
-      setTimeout(() => overlay.remove(), 320);
-    }
-    
-    // Proceed to next step or fallback
-    if (currentPhase === 1) {
-      showPhaseTransitionUI();
-    } else {
-      unlockDirectly();
-    }
-  }
-
-  function resetPhase() {
-    adReady = false;
-    adUnlocked = false;
-    adLoading = false;
-    preloadPromise = null;
-    checkAttempts = 0;
-    phaseStartTime = Date.now();
-    
-    // Reset UI
-    document.getElementById('countdown').style.display = 'block';
-    document.getElementById('countdown').innerText = MAX_WAIT_SECONDS;
-    document.getElementById('ad-icon').style.display = 'none';
-    document.getElementById('success-icon').style.display = 'none';
-    document.getElementById('progress-wrap').style.display = 'none';
-    document.getElementById('btn-watch').style.display = 'none';
-    document.getElementById('btn-next-phase').style.display = 'none';
-    document.getElementById('btn-enroll').style.display = 'none';
-    
-    document.getElementById('status-text').innerText = `PHASE ${currentPhase}/${REQUIRED_ADS} - CHECKING`;
-    document.getElementById('title').innerText = `Preparing Phase ${currentPhase}...`;
-    document.getElementById('description').innerText = `Checking for ad ${currentPhase} of ${REQUIRED_ADS}...`;
-    
-    // Restart check loop
-    clearInterval(checkInterval);
-    startAdCheckLoop();
-  }
-
-  function launchAd() {
-    if (adLoading) return;
-    
-    document.getElementById('countdown').style.display = 'none';
-    document.getElementById('ad-icon').style.display = 'block';
-    document.getElementById('status-text').innerText = `PHASE ${currentPhase}/${REQUIRED_ADS} - SHOWING`;
-    document.getElementById('title').innerText = `Watch Ad ${currentPhase} of ${REQUIRED_ADS}`;
-    document.getElementById('description').innerText = 'Loading your sponsored video...';
-    document.getElementById('progress-wrap').style.display = 'block';
-
-    // Progress animation
-    let p = 0;
-    const pIv = setInterval(() => { 
-      p += 3; 
-      if (p <= 95) document.getElementById('progress-bar').style.width = p + '%'; 
-    }, 150);
-
-    if (adController && typeof adController.showAd === 'function') {
-      adController.showAd()
-        .then(() => {
-          clearInterval(pIv);
-          document.getElementById('progress-bar').style.width = '100%';
-          // onShowReward callback will handle completion
-        })
-        .catch(err => {
-          clearInterval(pIv);
-          handleAdError(err);
+        // Initialize Ads on Page Load
+        window.addEventListener('load', () => {
+            initTads();
         });
-    } else {
-      clearInterval(pIv);
-      onAdCompleted(); // Fallback
-    }
-  }
 
-  function handleAdError(err) {
-    const msg = String(err).toLowerCase();
-    if (msg.includes('skip') || msg.includes('close') || msg.includes('cancel')) {
-      document.getElementById('ad-icon').style.display = 'none';
-      document.getElementById('countdown').style.display = 'block';
-      document.getElementById('countdown').innerText = '!';
-      document.getElementById('status-text').innerText = 'AD SKIPPED';
-      document.getElementById('title').innerText = 'Action Required!';
-      document.getElementById('description').innerText = `Please watch ad ${currentPhase} to proceed.`;
-      document.getElementById('progress-wrap').style.display = 'none';
-      
-      const btn = document.getElementById('btn-watch');
-      btn.style.display = 'flex';
-      btn.disabled = false;
-      document.getElementById('btn-text').innerText = `▶ Watch Ad ${currentPhase}`;
-      btn.onclick = () => handleWatchAd(currentPhase);
-    } else {
-      onAdCompleted(); // Fallback for other errors
-    }
-  }
+        function initTads() {
+            let checkTads = setInterval(() => {
+                if (window.tads && typeof window.tads.init === 'function') {
+                    clearInterval(checkTads);
+                    adController = window.tads.init({
+                        widgetId: WIDGET_ID,
+                        type: AD_TYPE,
+                        debug: false,
+                        onShowReward: () => handleAdSuccess(),
+                        onAdsNotFound: () => handleAdFallback(),
+                        onError: (err) => {
+                            console.error("Ad Error:", err);
+                            resetButtonState();
+                        }
+                    });
+                }
+            }, 100);
+        }
 
-  function onAdCompleted() {
-    adsWatched++;
-    if (adsWatched < REQUIRED_ADS) {
-      showPhaseTransitionUI();
-    } else {
-      unlockDirectly();
-    }
-  }
+        // Trigger Ad tied to the button
+        function watchAd(stepNumber) {
+            if (stepNumber !== currentStep || isAdPlaying) return;
 
-  function showPhaseTransitionUI() {
-    document.getElementById('countdown').style.display = 'none';
-    document.getElementById('ad-icon').style.display = 'none';
-    document.getElementById('progress-wrap').style.display = 'none';
-    document.getElementById('btn-watch').style.display = 'none';
-    document.getElementById('btn-enroll').style.display = 'none';
-    
-    const nextBtn = document.getElementById('btn-next-phase');
-    nextBtn.style.display = 'flex';
-    nextBtn.disabled = false;
-    
-    document.getElementById('status-text').innerText = `PHASE ${currentPhase}/${REQUIRED_ADS} - COMPLETE`;
-    document.getElementById('title').innerText = `✅ Phase ${currentPhase} Complete!`;
-    document.getElementById('description').innerText = `Click below to proceed to the final step.`;
-  }
+            isAdPlaying = true;
+            let btn = document.getElementById(`btn-ad${stepNumber}`);
 
-  function startPhase2() {
-    document.getElementById('btn-next-phase').style.display = 'none';
-    currentPhase = 2;
-    resetPhase();
-  }
+            // Change button state to loading
+            btn.innerText = "⏳ Wait";
+            btn.disabled = true;
 
-  async function handleWatchAd(phase = currentPhase) {
-    const btn = document.getElementById('btn-watch');
-    btn.disabled = true;
-    document.getElementById('btn-text').innerText = `Loading...`;
-    document.getElementById('progress-wrap').style.display = 'block';
+            if (adController) {
+                adController.showAd().catch((err) => {
+                    console.error("Failed to display ad:", err);
+                    handleAdFallback(); // Proceed if ad display completely fails so user isn't stuck
+                });
+            } else {
+                // Fallback if TADS fails to initialize
+                handleAdFallback();
+            }
+        }
 
-    let p = 0;
-    const pIv = setInterval(() => { p += 3; if (p <= 95) document.getElementById('progress-bar').style.width = p + '%'; }, 150);
+        // Success Handler (When ad finishes)
+        function handleAdSuccess() {
+            isAdPlaying = false;
 
-    try {
-      if (adController) {
-        await adController.loadAd();
-        await adController.showAd();
-      } else {
-        clearInterval(pIv);
-        onAdCompleted();
-      }
-    } catch (err) {
-      clearInterval(pIv);
-      handleAdError(err);
-    }
-  }
+            // Update button and completed step visual states
+            let currentBtn = document.getElementById(`btn-ad${currentStep}`);
+            let currentItem = document.getElementById(`task${currentStep}`);
+            let currentIcon = document.getElementById(`icon${currentStep}`);
 
-  function unlockDirectly() {
-    adUnlocked = true;
-    document.getElementById('countdown').style.display = 'none';
-    document.getElementById('ad-icon').style.display = 'none';
-    document.getElementById('success-icon').style.display = 'block';
-    document.getElementById('pulse-effect').style.display = 'none';
+            currentBtn.innerText = "✅";
+            currentBtn.classList.add('done');
+            currentItem.classList.add('completed');
+            currentIcon.innerText = "✓";
 
-    document.getElementById('status-text').innerText = 'ACCESS GRANTED';
-    document.getElementById('status-dot').style.background = 'var(--success)';
-    document.getElementById('status-box').style.borderColor = 'var(--success)';
-    document.getElementById('status-box').style.color = 'var(--success)';
+            // Update progress indicator
+            document.getElementById('progress-text').innerText = `${currentStep}/2`;
 
-    document.getElementById('title').innerText = 'Ready to Begin!';
-    document.getElementById('description').innerText = 'Verification complete. You now have full access.';
+            currentStep++; // Move to the next step
 
-    document.getElementById('btn-watch').style.display = 'none';
-    document.getElementById('btn-next-phase').style.display = 'none';
-    document.getElementById('progress-wrap').style.display = 'none';
-    document.getElementById('btn-enroll').style.display = 'flex';
-  }
+            if (currentStep === 2) {
+                // Enable Task 2
+                let nextBtn = document.getElementById('btn-ad2');
+                let nextItem = document.getElementById('task2');
+                nextItem.classList.remove('disabled');
+                nextBtn.disabled = false;
+            } else if (currentStep > 2) {
+                // Enable the final button
+                let finalBtn = document.getElementById('btn-final');
+                finalBtn.classList.remove('disabled');
+                finalBtn.classList.add('active');
+                finalBtn.disabled = false;
+                finalBtn.innerHTML = "🚀 Enter Course Now";
+            }
+        }
 
-  function goToCourse() {
-    if (tg?.openLink) { tg.openLink(COURSE_URL); setTimeout(() => tg.close(), 1000); }
-    else window.location.href = COURSE_URL;
-  }
-</script>
+        // Fallback skip if ads are unavailable to prevent soft-locks
+        function handleAdFallback() {
+            console.warn("Using fallback skip due to unavailable ad");
+            setTimeout(() => {
+                handleAdSuccess();
+            }, 1000); // Slight delay to simulate processing
+        }
+
+        // Reset button state if ad is closed prematurely
+        function resetButtonState() {
+            isAdPlaying = false;
+            let btn = document.getElementById(`btn-ad${currentStep}`);
+            btn.innerText = "Start";
+            btn.disabled = false;
+        }
+
+        // Open final course link
+        function goToCourse() {
+            if (tg?.openLink) {
+                tg.openLink(COURSE_URL);
+                setTimeout(() => tg.close(), 1000);
+            } else {
+                window.location.href = COURSE_URL;
+            }
+        }
+    </script>
 </body>
+
 </html>
