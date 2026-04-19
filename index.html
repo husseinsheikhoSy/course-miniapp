@@ -6,8 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Premium Course Access</title>
 
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Ad Services Scripts -->
     <script src="https://w.tads.me/widget.js"></script>
+    <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
@@ -239,9 +243,20 @@
             align-items: center;
         }
 
-        /* Prevent layout shift while ad loads */
         #tads-container-9636:empty {
             display: none;
+        }
+        
+        /* Loading indicator */
+        .loading-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 4px;
+            display: none;
+        }
+        .loading-text.show {
+            display: block;
         }
     </style>
 </head>
@@ -265,6 +280,7 @@
                     </div>
                 </div>
                 <button class="task-btn" id="btn-ad1" onclick="watchAd(1)">Start</button>
+                <div class="loading-text" id="loading1"></div>
             </div>
 
             <div class="task-item disabled" id="task2">
@@ -276,6 +292,7 @@
                     </div>
                 </div>
                 <button class="task-btn" id="btn-ad2" onclick="watchAd(2)" disabled>Start</button>
+                <div class="loading-text" id="loading2"></div>
             </div>
         </div>
 
@@ -291,24 +308,34 @@
     </div>
 
     <script>
-        // Initialize Telegram WebApp
+        // === إعدادات الخدمات الإعلانية ===
+        const ADS_CONFIG = {
+            TADS: {
+                fullscreenWidgetId: "9579",
+                tgbWidgetId: "9636",
+                type: "fullscreen"
+            },
+            RICHINFO: {
+                pubId: "1006337",
+                appId: "6751"
+            }
+        };
+
+        // === متغيرات التحكم ===
         const tg = window.Telegram?.WebApp || null;
         if (tg) { tg.ready(); tg.expand(); }
 
-        // TADS Configuration
-        const FULLSCREEN_WIDGET_ID = "9579";
-        const TGB_WIDGET_ID = "9636";
-        const AD_TYPE_FULLSCREEN = "fullscreen";
-        const AD_TYPE_TGB = "static";
-        
-        let fullscreenAdController = null;
-        let tgbAdController = null;
+        let tadsFullscreenController = null;
+        let richinfoController = null;
+        let richinfoInitialized = false;
+        let tadsReady = false;
 
-        // Task State
+        // حالة المهام
         let currentStep = 1;
         let isAdPlaying = false;
+        const taskProgress = { 1: false, 2: false };
 
-        // Retrieve Course URL
+        // === استخلاص رابط الدورة ===
         function getCourseUrl() {
             const code = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('startapp');
             if (!code) return 'https://www.udemy.com/';
@@ -319,144 +346,276 @@
         }
         const COURSE_URL = getCourseUrl();
 
-        // Initialize Ads on Page Load
+        // === تهيئة الخدمات عند تحميل الصفحة ===
         window.addEventListener('load', () => {
-            initFullscreenAd();
-            initTGBAd();
+            initTadsFullscreen();
+            initRichinfoFallback();
+            initTGBStaticAd();
         });
 
-        // Initialize Fullscreen Ad (Existing)
-        function initFullscreenAd() {
-            let checkTads = setInterval(() => {
+        // تهيئة خدمة TADS Fullscreen (الأساسية)
+        function initTadsFullscreen() {
+            const checkInterval = setInterval(() => {
                 if (window.tads && typeof window.tads.init === 'function') {
-                    clearInterval(checkTads);
-                    fullscreenAdController = window.tads.init({
-                        widgetId: FULLSCREEN_WIDGET_ID,
-                        type: AD_TYPE_FULLSCREEN,
+                    clearInterval(checkInterval);
+                    tadsReady = true;
+                    tadsFullscreenController = window.tads.init({
+                        widgetId: ADS_CONFIG.TADS.fullscreenWidgetId,
+                        type: ADS_CONFIG.TADS.type,
                         debug: false,
-                        onShowReward: () => handleAdSuccess(),
-                        onAdsNotFound: () => handleAdFallback(),
-                        onError: (err) => {
-                            console.error("Fullscreen Ad Error:", err);
-                            resetButtonState();
-                        }
+                        onShowReward: () => handleAdSuccess('tads'),
+                        onAdsNotFound: () => console.log('TADS: No ads available'),
+                        onError: (err) => console.error('TADS Error:', err)
                     });
                 }
             }, 100);
         }
 
-        // Initialize TGB Ad (New - Static Type)
-        function initTGBAd() {
+        // تهيئة خدمة Richinfo (البديلة)
+        function initRichinfoFallback() {
+            const tryInit = () => {
+                if (window.TelegramAdsController && typeof window.TelegramAdsController === 'function') {
+                    try {
+                        richinfoController = new window.TelegramAdsController();
+                        richinfoController.initialize({
+                            pubId: ADS_CONFIG.RICHINFO.pubId,
+                            appId: ADS_CONFIG.RICHINFO.appId,
+                            onAdCompleted: () => handleAdSuccess('richinfo'),
+                            onAdFailed: () => console.log('Richinfo: Ad failed or not available'),
+                            onAdNotAvailable: () => console.log('Richinfo: No ad available')
+                        });
+                        richinfoInitialized = true;
+                        console.log('Richinfo initialized successfully');
+                    } catch (e) {
+                        console.error('Richinfo init error:', e);
+                    }
+                }
+            };
+
+            if (window.TelegramAdsController) {
+                tryInit();
+            } else {
+                const checkRich = setInterval(() => {
+                    if (window.TelegramAdsController) {
+                        clearInterval(checkRich);
+                        tryInit();
+                    }
+                }, 100);
+                setTimeout(() => clearInterval(checkRich), 5000);
+            }
+        }
+
+        // تهيئة إعلان TGB الثابت (للعرض الجانبي)
+        function initTGBStaticAd() {
             const adsNotFoundCallback = () => {
-                console.log('TGB: No ads found to show');
-                // إخفاء الحاوية إذا لم يكن هناك إعلان
-                const container = document.getElementById(`tads-container-${TGB_WIDGET_ID}`);
+                console.log('TGB Static: No ads found');
+                const container = document.getElementById(`tads-container-${ADS_CONFIG.TADS.tgbWidgetId}`);
                 if (container) container.style.display = 'none';
             };
 
-            function initTGBController() {
+            const initController = () => {
                 if (!window.tads || typeof window.tads.init !== 'function') return;
                 
-                tgbAdController = window.tads.init({
-                    widgetId: TGB_WIDGET_ID,
-                    type: AD_TYPE_TGB, // 'static' for TGB format
+                const tgbController = window.tads.init({
+                    widgetId: ADS_CONFIG.TADS.tgbWidgetId,
+                    type: 'static',
                     debug: false,
                     onAdsNotFound: adsNotFoundCallback
                 });
 
-                // Load and show the TGB ad
-                if (tgbAdController && typeof tgbAdController.loadAd === 'function') {
-                    tgbAdController.loadAd()
-                        .then(() => tgbAdController.showAd())
+                if (tgbController && typeof tgbController.loadAd === 'function') {
+                    tgbController.loadAd()
+                        .then(() => tgbController.showAd())
                         .catch((err) => {
-                            console.log("TGB Ad load error:", err);
+                            console.log("TGB Static load error:", err);
                             adsNotFoundCallback();
                         });
                 }
-            }
+            };
 
-            // Check if tads is ready, otherwise wait
             if (window.tads && window.tads.init) {
-                initTGBController();
+                initController();
             } else {
                 let tadsInterval = setInterval(() => {
                     if (window.tads && window.tads.init) {
                         clearInterval(tadsInterval);
-                        initTGBController();
+                        initController();
                     }
                 }, 100);
             }
         }
 
-        // Trigger Fullscreen Ad tied to the button
+        // === دالة عرض الإعلان مع آلية Fallback متعددة المستويات ===
+        function showAdWithFallback(stepNumber) {
+            return new Promise((resolve) => {
+                let resolved = false;
+                const safeResolve = (value) => {
+                    if (!resolved) {
+                        resolved = true;
+                        resolve(value);
+                    }
+                };
+
+                const updateLoading = (msg) => {
+                    const el = document.getElementById(`loading${stepNumber}`);
+                    if (el) {
+                        el.textContent = msg;
+                        el.classList.add('show');
+                    }
+                };
+
+                // المستوى 1: محاولة TADS أولاً
+                if (tadsReady && tadsFullscreenController && typeof tadsFullscreenController.showAd === 'function') {
+                    updateLoading('🔄 Loading ad...');
+                    
+                    tadsFullscreenController.showAd()
+                        .then(() => safeResolve('tads'))
+                        .catch((err) => {
+                            console.log('TADS showAd failed:', err);
+                            tryRichinfo();
+                        });
+                    
+                    // مهلة 8 ثوانٍ لـ TADS
+                    setTimeout(() => {
+                        if (!resolved) {
+                            console.log('TADS timeout, switching to fallback');
+                            updateLoading('🔄 Trying alternative...');
+                            tryRichinfo();
+                        }
+                    }, 8000);
+                } else {
+                    console.log('TADS not ready, trying Richinfo directly');
+                    tryRichinfo();
+                }
+
+                // المستوى 2: محاولة Richinfo
+                function tryRichinfo() {
+                    if (richinfoInitialized && richinfoController) {
+                        try {
+                            updateLoading('🔄 Loading alternative ad...');
+                            
+                            // محاولة استدعاء العرض بطرق مختلفة حسب توفرها
+                            if (typeof richinfoController.showAd === 'function') {
+                                richinfoController.showAd();
+                            } else if (typeof richinfoController.loadAndShow === 'function') {
+                                richinfoController.loadAndShow();
+                            } else if (typeof richinfoController.displayAd === 'function') {
+                                richinfoController.displayAd();
+                            } else {
+                                // إذا لم توجد طريقة عرض واضحة، نعتبره ناجحاً بعد تأخير
+                                console.log('Richinfo: No explicit show method, using fallback');
+                                setTimeout(() => {
+                                    if (!resolved) {
+                                        safeResolve('richinfo-fallback');
+                                        handleAdSuccess('richinfo-fallback');
+                                    }
+                                }, 1500);
+                            }
+                        } catch (e) {
+                            console.error('Richinfo show error:', e);
+                            tryManualSkip();
+                        }
+                    } else {
+                        console.log('Richinfo not initialized, trying manual skip');
+                        tryManualSkip();
+                    }
+                }
+
+                // المستوى 3: تجاوز يدوي كحل أخير
+                function tryManualSkip() {
+                    updateLoading('⏭️ Skipping...');
+                    console.log('All ad services unavailable, using manual skip');
+                    setTimeout(() => {
+                        if (!resolved) {
+                            safeResolve('manual-skip');
+                            handleAdSuccess('manual-skip');
+                        }
+                    }, 1000);
+                }
+            });
+        }
+
+        // === دالة بدء مشاهدة الإعلان (مرتبطة بالأزرار) ===
         function watchAd(stepNumber) {
             if (stepNumber !== currentStep || isAdPlaying) return;
+            if (taskProgress[stepNumber]) return;
 
             isAdPlaying = true;
-            let btn = document.getElementById(`btn-ad${stepNumber}`);
-
-            // Change button state to loading
-            btn.innerText = "⏳ Wait";
+            const btn = document.getElementById(`btn-ad${stepNumber}`);
+            const originalText = btn.innerText;
+            
+            btn.innerText = "⏳";
             btn.disabled = true;
 
-            if (fullscreenAdController) {
-                fullscreenAdController.showAd().catch((err) => {
-                    console.error("Failed to display fullscreen ad:", err);
+            showAdWithFallback(stepNumber)
+                .then((source) => {
+                    console.log(`✅ Ad completed via: ${source}`);
+                })
+                .catch((err) => {
+                    console.error('❌ Ad flow error:', err);
                     handleAdFallback();
+                })
+                .finally(() => {
+                    if (!taskProgress[stepNumber]) {
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                        isAdPlaying = false;
+                        const loadingEl = document.getElementById(`loading${stepNumber}`);
+                        if (loadingEl) loadingEl.classList.remove('show');
+                    }
                 });
-            } else {
-                handleAdFallback();
-            }
         }
 
-        // Success Handler (When fullscreen ad finishes)
-        function handleAdSuccess() {
+        // === معالجة نجاح الإعلان (من أي مصدر) ===
+        function handleAdSuccess(source) {
+            console.log(`🎉 Ad success from: ${source}`);
+            
+            if (!taskProgress[currentStep]) {
+                taskProgress[currentStep] = true;
+                
+                const currentBtn = document.getElementById(`btn-ad${currentStep}`);
+                const currentItem = document.getElementById(`task${currentStep}`);
+                const currentIcon = document.getElementById(`icon${currentStep}`);
+                const loadingEl = document.getElementById(`loading${currentStep}`);
+
+                // تحديث الواجهة
+                currentBtn.innerText = "✅";
+                currentBtn.classList.add('done');
+                currentItem.classList.add('completed');
+                currentIcon.innerText = "✓";
+                if (loadingEl) loadingEl.classList.remove('show');
+                
+                const completedCount = Object.values(taskProgress).filter(v => v).length;
+                document.getElementById('progress-text').innerText = `${completedCount}/2`;
+
+                // الانتقال للخطوة التالية
+                if (currentStep === 1) {
+                    const nextItem = document.getElementById('task2');
+                    const nextBtn = document.getElementById('btn-ad2');
+                    nextItem.classList.remove('disabled');
+                    nextBtn.disabled = false;
+                    currentStep = 2;
+                } else if (currentStep === 2) {
+                    const finalBtn = document.getElementById('btn-final');
+                    finalBtn.classList.remove('disabled');
+                    finalBtn.classList.add('active');
+                    finalBtn.disabled = false;
+                    finalBtn.innerHTML = "🚀 Enter Course Now";
+                }
+            }
+            
             isAdPlaying = false;
-
-            let currentBtn = document.getElementById(`btn-ad${currentStep}`);
-            let currentItem = document.getElementById(`task${currentStep}`);
-            let currentIcon = document.getElementById(`icon${currentStep}`);
-
-            currentBtn.innerText = "✅";
-            currentBtn.classList.add('done');
-            currentItem.classList.add('completed');
-            currentIcon.innerText = "✓";
-
-            document.getElementById('progress-text').innerText = `${currentStep}/2`;
-
-            currentStep++;
-
-            if (currentStep === 2) {
-                let nextBtn = document.getElementById('btn-ad2');
-                let nextItem = document.getElementById('task2');
-                nextItem.classList.remove('disabled');
-                nextBtn.disabled = false;
-            } else if (currentStep > 2) {
-                let finalBtn = document.getElementById('btn-final');
-                finalBtn.classList.remove('disabled');
-                finalBtn.classList.add('active');
-                finalBtn.disabled = false;
-                finalBtn.innerHTML = "🚀 Enter Course Now";
-            }
         }
 
-        // Fallback skip if ads are unavailable
+        // === معالجة الفشل النهائي ===
         function handleAdFallback() {
-            console.warn("Using fallback skip due to unavailable ad");
+            console.warn('⚠️ All ad services failed, using final fallback');
             setTimeout(() => {
-                handleAdSuccess();
-            }, 1000);
+                handleAdSuccess('final-fallback');
+            }, 500);
         }
 
-        // Reset button state if ad is closed prematurely
-        function resetButtonState() {
-            isAdPlaying = false;
-            let btn = document.getElementById(`btn-ad${currentStep}`);
-            btn.innerText = "Start";
-            btn.disabled = false;
-        }
-
-        // Open final course link
+        // === فتح رابط الدورة ===
         function goToCourse() {
             if (tg?.openLink) {
                 tg.openLink(COURSE_URL);
