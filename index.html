@@ -1,116 +1,253 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Premium Course Access - Python Edition</title>
+    <meta name="description" content="Get free Udemy courses with verified coupons" />
+    <title>Udemy Free Course Access</title>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- ✅ RichAds Script (للزر الأول) -->
-    <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
-    <script>
-        // تهيئة RichAds عند تحميل الصفحة
-        window.TelegramAdsController = new TelegramAdsController();
-        window.TelegramAdsController.initialize({
-            pubId: "1006337",
-            appId: "6751",  // ✅ تم التحديث حسب معلوماتك
-        });
-    </script>
-    
-    <!-- ✅ tads.me Script (للزر الثاني + الإعلان السفلي) -->
     <script src="https://w.tads.me/widget.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
-
         :root {
-            --bg-body: #f3f4f6;
-            --bg-card: #ffffff;
-            --text-main: #111827;
-            --text-muted: #6b7280;
-            --primary: #3776ab;      /* ✅ لون بايثون الأزرق */
-            --accent: #ffd43b;        /* ✅ لون بايثون الأصفر */
-            --success: #10b981;
-            --btn-bg: #e5e7eb;
-            --btn-text: #374151;
-            --item-bg: #f9fafb;
-            --border-color: #e5e7eb;
+            --udemy-purple: #5624d0;
+            --udemy-dark: #1e1e1e;
+            --udemy-gray: #6a6f73;
+            --udemy-light-gray: #f7f9fa;
+            --udemy-border: #d1d7dc;
+            --udemy-accent: #a435f0;
+            --udemy-success: #19a463;
+            --udemy-warning: #f69c12;
+            --white: #ffffff;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: var(--bg-body);
-            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--udemy-light-gray);
+            color: var(--udemy-dark);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        .container {
+        .app-container {
             width: 100%;
-            max-width: 400px;
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-            position: relative;
-            animation: slideUp 0.5s ease-out;
-            border-top: 5px solid var(--primary); /* ✅ شريط علوي ملون */
+            max-width: 420px;
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            animation: fadeInUp 0.5s ease-out;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* Course Header Image */
+        .course-header {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--udemy-purple), var(--udemy-accent));
+            overflow: hidden;
+        }
+
+        .course-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.9;
+            transition: opacity 0.3s;
+        }
+
+        .course-header-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+        }
+
+        .course-badge {
+            display: inline-block;
+            background: var(--udemy-success);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-bottom: 8px;
         }
 
-        h1 {
+        .course-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.3;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        /* Course Info */
+        .course-info {
+            padding: 20px;
+            border-bottom: 1px solid var(--udemy-border);
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: var(--udemy-gray);
+        }
+
+        .info-row:last-child { margin-bottom: 0; }
+
+        .info-row .icon { font-size: 16px; width: 20px; text-align: center; }
+
+        .info-row .value {
+            color: var(--udemy-dark);
+            font-weight: 600;
+        }
+
+        .rating-stars {
+            color: #f69c12;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .price-tag {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--udemy-border);
+        }
+
+        .price-original {
+            font-size: 16px;
+            color: var(--udemy-gray);
+            text-decoration: line-through;
+        }
+
+        .price-free {
             font-size: 22px;
             font-weight: 800;
-            color: var(--primary); /* ✅ عنوان بلون بايثون */
-            letter-spacing: -0.5px;
+            color: var(--udemy-success);
         }
 
-        .progress-text {
+        .coupon-box {
+            margin-top: 12px;
+            background: #f0f9ff;
+            border: 1px dashed var(--udemy-purple);
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .coupon-label {
+            font-size: 12px;
+            color: var(--udemy-gray);
+            font-weight: 500;
+        }
+
+        .coupon-code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--udemy-purple);
+            background: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--udemy-border);
+            word-break: break-all;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            padding: 20px;
+            background: var(--udemy-light-gray);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .progress-title {
             font-size: 16px;
             font-weight: 700;
-            color: var(--text-muted);
+            color: var(--udemy-dark);
         }
 
-        p.subtitle {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-bottom: 24px;
+        .progress-badge {
+            background: var(--udemy-purple);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .progress-subtitle {
+            font-size: 13px;
+            color: var(--udemy-gray);
+            margin-bottom: 20px;
             line-height: 1.5;
         }
 
+        /* Task Items */
         .task-list {
             display: flex;
             flex-direction: column;
             gap: 12px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .task-item {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            background: var(--item-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 12px 16px;
+            gap: 14px;
+            background: var(--white);
+            border: 2px solid var(--udemy-border);
+            border-radius: 14px;
+            padding: 14px 16px;
             transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .task-item.active {
+            border-color: var(--udemy-purple);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .task-item.completed {
+            border-color: var(--udemy-success);
+            background: #f0fdf4;
         }
 
         .task-item.disabled {
@@ -118,78 +255,108 @@
             pointer-events: none;
         }
 
-        .task-item.completed {
-            border-color: var(--primary);
-            background: rgba(55, 118, 171, 0.05);
-        }
-
-        .task-info-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .task-icon {
-            width: 40px;
-            height: 40px;
+        .task-number {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: #e0e7ff;
-            color: var(--primary);
+            background: var(--udemy-light-gray);
+            color: var(--udemy-gray);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .task-item.completed .task-icon {
-            background: var(--accent);
-            color: var(--primary);
-        }
-
-        .task-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 4px;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
         }
 
-        .task-reward {
+        .task-item.active .task-number {
+            background: var(--udemy-purple);
+            color: white;
+        }
+
+        .task-item.completed .task-number {
+            background: var(--udemy-success);
+            color: white;
+        }
+
+        .task-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--udemy-dark);
+            margin-bottom: 2px;
+        }
+
+        .task-desc {
             font-size: 12px;
-            font-weight: 500;
-            color: #b58900;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            color: var(--udemy-gray);
         }
 
         .task-btn {
-            background: var(--primary);
+            background: var(--udemy-purple);
             color: white;
             border: none;
             border-radius: 10px;
-            padding: 8px 16px;
-            font-size: 14px;
+            padding: 10px 18px;
+            font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
+            flex-shrink: 0;
+            white-space: nowrap;
+            min-width: 80px;
         }
 
-        .task-btn:not(:disabled):hover {
-            filter: brightness(1.1);
+        .task-btn:hover:not(:disabled) {
+            background: var(--udemy-accent);
+            transform: translateY(-1px);
+        }
+
+        .task-btn:disabled {
+            background: var(--udemy-border);
+            color: var(--udemy-gray);
+            cursor: not-allowed;
+            transform: none;
         }
 
         .task-btn.done {
             background: transparent;
-            color: var(--primary);
-            font-size: 15px;
-            pointer-events: none;
+            color: var(--udemy-success);
+            font-size: 20px;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
         }
 
-        .main-btn {
+        /* Timer for ads */
+        .timer-display {
+            font-size: 12px;
+            color: var(--udemy-warning);
+            font-weight: 600;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .timer-display.active { display: block; }
+
+        /* Final Button */
+        .final-action {
+            padding: 0 20px 20px;
+        }
+
+        .btn-enroll {
             width: 100%;
             padding: 16px;
-            border-radius: 16px;
+            border-radius: 14px;
             border: none;
             font-size: 16px;
             font-weight: 700;
@@ -197,314 +364,601 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             transition: all 0.3s ease;
+            letter-spacing: 0.3px;
         }
 
-        .main-btn.disabled {
-            background: var(--btn-bg);
-            color: var(--text-muted);
+        .btn-enroll.locked {
+            background: #e8e8e8;
+            color: var(--udemy-gray);
             cursor: not-allowed;
         }
 
-        .main-btn.active {
-            background: var(--accent);
-            color: var(--primary);
-            box-shadow: 0 8px 20px -6px rgba(255, 212, 59, 0.6);
-            animation: pulse 2s infinite;
+        .btn-enroll.unlocked {
+            background: linear-gradient(135deg, var(--udemy-purple), var(--udemy-accent));
+            color: white;
+            box-shadow: 0 8px 24px rgba(86, 36, 208, 0.35);
+            animation: pulse-glow 2.5s infinite;
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 212, 59, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 212, 59, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 212, 59, 0); }
+        .btn-enroll.unlocked:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(86, 36, 208, 0.45);
         }
 
-        .tgb-ad-wrapper {
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px dashed var(--border-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(86, 36, 208, 0.4); }
+            70% { box-shadow: 0 0 0 12px rgba(86, 36, 208, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(86, 36, 208, 0); }
         }
 
-        .tgb-ad-label {
+        /* TGB Banner */
+        .banner-section {
+            padding: 16px 20px 20px;
+            border-top: 1px solid var(--udemy-border);
+            background: var(--udemy-light-gray);
+        }
+
+        .banner-label {
             font-size: 10px;
-            color: var(--text-muted);
+            color: var(--udemy-gray);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            opacity: 0.7;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 600;
         }
 
-        #tads-container-9638 {
+        #tads-container-9637 {
             width: 100%;
             min-height: 90px;
             display: flex;
             justify-content: center;
             align-items: center;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--udemy-border);
+            overflow: hidden;
         }
 
-        #tads-container-9638:empty {
+        #tads-container-9637:empty {
             display: none;
         }
-    </style>
-</head>
 
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.4s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--udemy-border);
+            border-top-color: var(--udemy-purple);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-text {
+            font-size: 14px;
+            color: var(--udemy-gray);
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            body { padding: 0; }
+            .app-container {
+                max-width: 100%;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            .course-header { height: 180px; }
+        }
+
+        @media (min-width: 481px) and (max-width: 768px) {
+            body { padding: 12px; }
+            .app-container { border-radius: 16px; }
+        }
+
+        @media (min-width: 769px) {
+            body { padding: 24px; }
+        }
+
+        /* Ad watching animation */
+        .watching-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot-flashing {
+            position: relative;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: white;
+            animation: dot-flash 1s infinite linear alternate;
+        }
+
+        @keyframes dot-flash {
+            0% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
+
+        /* Error state */
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .error-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .error-state h2 {
+            font-size: 18px;
+            color: var(--udemy-dark);
+            margin-bottom: 8px;
+        }
+
+        .error-state p {
+            font-size: 14px;
+            color: var(--udemy-gray);
+        }
+    </style>
+<base target="_blank">
+</head>
 <body>
 
-    <div class="container">
-        <div class="header-top">
-            <h1>Getting Started</h1>
-            <span class="progress-text" id="progress-text">0/2</span>
-        </div>
-        <p class="subtitle">Complete the tasks below to get your free course link.</p>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading course...</div>
+    </div>
 
-        <div class="task-list">
-            <!-- ✅ الزر الأول: يستخدم RichAds -->
-            <div class="task-item" id="task1">
-                <div class="task-info-wrapper">
-                    <div class="task-icon" id="icon1">🎬</div>
-                    <div>
-                        <div class="task-title">Watch First Ad (RichAds)</div>
-                        <div class="task-reward">⭐ Required step</div>
-                    </div>
-                </div>
-                <button class="task-btn" id="btn-ad1" onclick="watchAd(1)">Start</button>
-            </div>
-
-            <!-- ✅ الزر الثاني: يستخدم tads.me -->
-            <div class="task-item disabled" id="task2">
-                <div class="task-info-wrapper">
-                    <div class="task-icon" id="icon2">🎬</div>
-                    <div>
-                        <div class="task-title">Watch Second Ad (Tads)</div>
-                        <div class="task-reward">⭐ Required step</div>
-                    </div>
-                </div>
-                <button class="task-btn" id="btn-ad2" onclick="watchAd(2)" disabled>Start</button>
+    <div class="app-container">
+        <!-- Course Header -->
+        <div class="course-header">
+            <img id="course-image" src="" alt="Course Cover" style="display:none;" />
+            <div class="course-header-overlay">
+                <div class="course-badge">Free Coupon</div>
+                <div class="course-title" id="course-title">Loading...</div>
             </div>
         </div>
 
-        <button class="main-btn disabled" id="btn-final" onclick="goToCourse()" disabled>
-            🔒 Complete tasks to unlock
-        </button>
+        <!-- Course Info -->
+        <div class="course-info">
+            <div class="info-row">
+                <span class="icon">🏷</span>
+                <span>Category:</span>
+                <span class="value" id="course-category">—</span>
+            </div>
+            <div class="info-row">
+                <span class="icon">🌍</span>
+                <span>Language:</span>
+                <span class="value" id="course-language">—</span>
+            </div>
+            <div class="info-row">
+                <span class="icon">👥</span>
+                <span>Students:</span>
+                <span class="value" id="course-students">—</span>
+            </div>
+            <div class="info-row">
+                <span class="icon">⭐</span>
+                <span>Rating:</span>
+                <span class="value">
+                    <span class="rating-stars" id="course-stars">★★★★★</span>
+                    <span id="course-rating">—</span>
+                    <span style="color:var(--udemy-gray); font-weight:400;">(<span id="course-reviews">—</span>)</span>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="icon">⏳</span>
+                <span>Expires:</span>
+                <span class="value" id="course-expires">—</span>
+            </div>
+            <div class="info-row">
+                <span class="icon">🏃</span>
+                <span>Spots Left:</span>
+                <span class="value" id="course-spots">—</span>
+            </div>
 
-        <!-- ✅ إعلان TGB السفلي -->
-        <div class="tgb-ad-wrapper">
-            <span class="tgb-ad-label">Sponsored</span>
-            <div id="tads-container-9638"></div>
+            <div class="price-tag">
+                <span class="price-original" id="price-original">$89.99</span>
+                <span class="price-free">FREE</span>
+            </div>
+
+            <div class="coupon-box">
+                <span class="coupon-label">Coupon Code</span>
+                <span class="coupon-code" id="coupon-code">—</span>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <span class="progress-title">Unlock Course</span>
+                <span class="progress-badge" id="progress-badge">0/2</span>
+            </div>
+            <p class="progress-subtitle">Complete both steps below to unlock your free course enrollment link.</p>
+
+            <div class="task-list">
+                <!-- Task 1 -->
+                <div class="task-item active" id="task1">
+                    <div class="task-number" id="num1">1</div>
+                    <div class="task-content">
+                        <div class="task-name">Watch Ad 1</div>
+                        <div class="task-desc">Support us by watching an ad (~10 sec)</div>
+                        <div class="timer-display" id="timer1"></div>
+                    </div>
+                    <button class="task-btn" id="btn-ad1" onclick="watchAd(1)">Watch</button>
+                </div>
+
+                <!-- Task 2 -->
+                <div class="task-item disabled" id="task2">
+                    <div class="task-number" id="num2">2</div>
+                    <div class="task-content">
+                        <div class="task-name">Watch Ad 2</div>
+                        <div class="task-desc">Watch second ad to proceed</div>
+                        <div class="timer-display" id="timer2"></div>
+                    </div>
+                    <button class="task-btn" id="btn-ad2" onclick="watchAd(2)" disabled>Watch</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Action -->
+        <div class="final-action">
+            <button class="btn-enroll locked" id="btn-final" onclick="goToCourse()" disabled>
+                <span>🔒</span> Complete steps to unlock course
+            </button>
+        </div>
+
+        <!-- TGB Banner -->
+        <div class="banner-section">
+            <div class="banner-label">Sponsored</div>
+            <div id="tads-container-9637"></div>
         </div>
     </div>
 
     <script>
+        // ===== Telegram WebApp Setup =====
         const tg = window.Telegram?.WebApp || null;
-        if (tg) { tg.ready(); tg.expand(); }
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.setHeaderColor('#5624d0');
+            tg.setBackgroundColor('#f7f9fa');
+        }
 
-        // ⚙️ إعدادات Tads (للزر الثاني والإعلان السفلي)
-        const FULLSCREEN_WIDGET_ID = "9579";   // ✅ Widget ID للزر الثاني
-        const TGB_WIDGET_ID = "9636";           // ✅ Widget ID للإعلان السفلي
+        // ===== Widget Config =====
+        const FULLSCREEN_WIDGET_ID = "9579";
+        const TGB_WIDGET_ID = "9637";
         const AD_TYPE_FULLSCREEN = "fullscreen";
         const AD_TYPE_TGB = "static";
-        
-        let fullscreenAdController = null;
-        let tgbAdController = null;
+        const AD_DURATION = 10000; // ~10 seconds per ad
+        const AD2_DELAY = 2000;    // 2s delay before showing ad 2
+
+        let ad1Controller = null;
+        let ad2Controller = null;
+        let tgbController = null;
         let currentStep = 1;
         let isAdPlaying = false;
+        let courseData = null;
 
-        function getCourseUrl() {
-            const code = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('startapp');
-            if (!code) return 'https://www.udemy.com/';
-            try {
-                const decoded = atob(code.replace(/-/g, '+').replace(/_/g, '/'));
-                return decoded.startsWith('http') ? decoded : 'https://www.udemy.com/';
-            } catch (e) { return 'https://www.udemy.com/'; }
+        // ===== Parse Course Data from start_param =====
+        function getCourseData() {
+            // Try start_param from Telegram WebApp
+            const startParam = tg?.initDataUnsafe?.start_param;
+            if (startParam) {
+                try {
+                    const jsonStr = atob(startParam.replace(/-/g, '+').replace(/_/g, '/'));
+                    return JSON.parse(jsonStr);
+                } catch (e) {
+                    console.error("Failed to parse start_param:", e);
+                }
+            }
+
+            // Fallback: try URL query param
+            const params = new URLSearchParams(window.location.search);
+            const dataParam = params.get('startapp') || params.get('data');
+            if (dataParam) {
+                try {
+                    const jsonStr = atob(dataParam.replace(/-/g, '+').replace(/_/g, '/'));
+                    return JSON.parse(jsonStr);
+                } catch (e) {
+                    console.error("Failed to parse URL param:", e);
+                }
+            }
+            return null;
         }
-        const COURSE_URL = getCourseUrl();
 
-        window.addEventListener('load', () => {
-            initTadsFullscreen(); // تهيئة Tads للزر الثاني
-            initTGBAd();          // تهيئة إعلان TGB السفلي
-        });
+        // ===== Populate UI with course data =====
+        function populateCourse(data) {
+            if (!data) {
+                showError();
+                return;
+            }
 
-        // ✅ تهيئة Tads Fullscreen (للزر الثاني فقط)
-        function initTadsFullscreen() {
-            let checkTads = setInterval(() => {
+            courseData = data;
+            document.getElementById('course-title').textContent = data.title || 'Free Udemy Course';
+            document.getElementById('course-category').textContent = data.category || 'Development';
+            document.getElementById('course-language').textContent = data.language || 'English';
+            document.getElementById('course-students').textContent = data.students || 'N/A';
+            document.getElementById('course-rating').textContent = (data.rating || '4.5') + '/5.0';
+            document.getElementById('course-reviews').textContent = (data.rating_count || '0') + ' reviews';
+            document.getElementById('course-expires').textContent = data.time_left || 'Limited time';
+            document.getElementById('course-spots').textContent = data.enrollments_left || 'N/A';
+            document.getElementById('coupon-code').textContent = data.coupon || 'N/A';
+            document.getElementById('price-original').textContent = data.price_str || '$89.99';
+
+            // Stars
+            const rating = parseFloat(data.rating) || 4.5;
+            const fullStars = Math.floor(rating);
+            const halfStar = rating % 1 >= 0.5 ? 1 : 0;
+            const emptyStars = 5 - fullStars - halfStar;
+            let stars = '★'.repeat(fullStars);
+            if (halfStar) stars += '½';
+            stars += '☆'.repeat(emptyStars);
+            document.getElementById('course-stars').textContent = stars;
+
+            // Course image
+            if (data.image_url) {
+                const img = document.getElementById('course-image');
+                img.src = data.image_url;
+                img.style.display = 'block';
+                img.onload = () => { img.style.opacity = '1'; };
+                img.onerror = () => { img.style.display = 'none'; };
+            }
+
+            // Hide loading
+            setTimeout(() => {
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }, 500);
+        }
+
+        function showError() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.querySelector('.app-container').innerHTML = `
+                <div class="error-state">
+                    <div class="icon">⚠️</div>
+                    <h2>Course Not Found</h2>
+                    <p>Unable to load course information. Please try opening this link from Telegram.</p>
+                </div>
+            `;
+        }
+
+        // ===== Initialize Tads Fullscreen Controllers =====
+        function initAdControllers() {
+            let checkInterval = setInterval(() => {
                 if (window.tads && typeof window.tads.init === 'function') {
-                    clearInterval(checkTads);
-                    fullscreenAdController = window.tads.init({
+                    clearInterval(checkInterval);
+
+                    // Ad 1 Controller
+                    ad1Controller = window.tads.init({
                         widgetId: FULLSCREEN_WIDGET_ID,
                         type: AD_TYPE_FULLSCREEN,
                         debug: false,
-                        onShowReward: () => handleAdSuccess(),
-                        onAdsNotFound: () => handleAdFallback(),
+                        onShowReward: () => handleAdSuccess(1),
+                        onAdsNotFound: () => handleAdFallback(1),
                         onError: (err) => {
-                            console.error("Tads Fullscreen Error:", err);
-                            resetButtonState();
+                            console.error("Tads Ad1 Error:", err);
+                            handleAdFallback(1);
+                        }
+                    });
+
+                    // Ad 2 Controller (separate instance)
+                    ad2Controller = window.tads.init({
+                        widgetId: FULLSCREEN_WIDGET_ID,
+                        type: AD_TYPE_FULLSCREEN,
+                        debug: false,
+                        onShowReward: () => handleAdSuccess(2),
+                        onAdsNotFound: () => handleAdFallback(2),
+                        onError: (err) => {
+                            console.error("Tads Ad2 Error:", err);
+                            handleAdFallback(2);
                         }
                     });
                 }
             }, 100);
+
+            // Timeout fallback after 10s if tads never loads
+            setTimeout(() => {
+                if (!ad1Controller) {
+                    clearInterval(checkInterval);
+                    console.warn("Tads library not loaded, enabling fallback mode");
+                }
+            }, 10000);
         }
 
-        // ✅ تهيئة TGB Ad (للقسم السفلي)
-        function initTGBAd() {
+        // ===== Initialize TGB Banner =====
+        function initTGBBanner() {
             const adsNotFoundCallback = () => {
-                console.log('TGB: No ads found to show');
+                console.log('TGB: No ads found');
                 const container = document.getElementById(`tads-container-${TGB_WIDGET_ID}`);
                 if (container) container.style.display = 'none';
             };
 
-            function initTGBController() {
+            function initController() {
                 if (!window.tads || typeof window.tads.init !== 'function') return;
-                
-                tgbAdController = window.tads.init({
+                tgbController = window.tads.init({
                     widgetId: TGB_WIDGET_ID,
                     type: AD_TYPE_TGB,
                     debug: false,
                     onAdsNotFound: adsNotFoundCallback
                 });
 
-                if (tgbAdController && typeof tgbAdController.loadAd === 'function') {
-                    tgbAdController.loadAd()
-                        .then(() => tgbAdController.showAd())
+                if (tgbController && typeof tgbController.loadAd === 'function') {
+                    tgbController.loadAd()
+                        .then(() => tgbController.showAd())
                         .catch((err) => {
-                            console.log("TGB Ad load error:", err);
+                            console.log("TGB load error:", err);
                             adsNotFoundCallback();
                         });
                 }
             }
 
             if (window.tads && window.tads.init) {
-                initTGBController();
+                initController();
             } else {
-                let tadsInterval = setInterval(() => {
+                let interval = setInterval(() => {
                     if (window.tads && window.tads.init) {
-                        clearInterval(tadsInterval);
-                        initTGBController();
+                        clearInterval(interval);
+                        initController();
                     }
                 }, 100);
+                setTimeout(() => clearInterval(interval), 10000);
             }
         }
 
-        // 🎯 الدالة الرئيسية لمشاهدة الإعلان
+        // ===== Watch Ad Handler =====
         function watchAd(stepNumber) {
             if (stepNumber !== currentStep || isAdPlaying) return;
             isAdPlaying = true;
-            let btn = document.getElementById(`btn-ad${stepNumber}`);
-            btn.innerText = "⏳ Wait";
+
+            const btn = document.getElementById(`btn-ad${stepNumber}`);
+            btn.innerHTML = '<span class="watching-indicator"><span class="dot-flashing"></span> Wait</span>';
             btn.disabled = true;
 
+            // Start timer display
+            const timerEl = document.getElementById(`timer${stepNumber}`);
+            timerEl.classList.add('active');
+            let remaining = Math.ceil(AD_DURATION / 1000);
+            timerEl.textContent = `Ad playing... ${remaining}s`;
+            const timerInterval = setInterval(() => {
+                remaining--;
+                if (remaining > 0) {
+                    timerEl.textContent = `Ad playing... ${remaining}s`;
+                } else {
+                    clearInterval(timerInterval);
+                    timerEl.textContent = 'Finalizing...';
+                }
+            }, 1000);
+
+            // Safety timeout - force success after 15s max
+            const safetyTimeout = setTimeout(() => {
+                if (isAdPlaying) {
+                    console.warn(`Safety timeout for ad ${stepNumber}`);
+                    clearInterval(timerInterval);
+                    handleAdSuccess(stepNumber);
+                }
+            }, 15000);
+
+            window._adSafetyTimeout = safetyTimeout;
+
             if (stepNumber === 1) {
-                // ✅ الزر الأول: استخدام RichAds
-                showRichAds();
-            } else if (stepNumber === 2) {
-                // ✅ الزر الثاني: استخدام Tads.me
-                if (fullscreenAdController) {
-                    fullscreenAdController.showAd().catch((err) => {
-                        console.error("Failed to display fullscreen ad:", err);
-                        handleAdFallback();
+                if (ad1Controller) {
+                    ad1Controller.showAd().catch((err) => {
+                        console.error("Ad1 show failed:", err);
+                        handleAdFallback(1);
                     });
                 } else {
-                    handleAdFallback();
+                    handleAdFallback(1);
                 }
+            } else if (stepNumber === 2) {
+                setTimeout(() => {
+                    if (ad2Controller) {
+                        ad2Controller.showAd().catch((err) => {
+                            console.error("Ad2 show failed:", err);
+                            handleAdFallback(2);
+                        });
+                    } else {
+                        handleAdFallback(2);
+                    }
+                }, AD2_DELAY);
             }
         }
 
-        // ✅ دالة عرض إعلان RichAds (للزر الأول)
-        function showRichAds() {
-            if (window.TelegramAdsController && typeof window.TelegramAdsController.showAd === 'function') {
-                try {
-                    window.TelegramAdsController.showAd({
-                        onAdWatched: function() {
-                            console.log("RichAds: Ad watched successfully");
-                            handleAdSuccess();
-                        },
-                        onReward: function() {
-                            console.log("RichAds: Reward granted");
-                            handleAdSuccess();
-                        },
-                        onError: function(err) {
-                            console.error("RichAds Error:", err);
-                            handleAdFallback(); 
-                        },
-                        onClose: function() {
-                            setTimeout(() => {
-                                if (isAdPlaying) {
-                                    console.warn("RichAds: Ad closed without reward callback");
-                                    resetButtonState();
-                                }
-                            }, 1000);
-                        }
-                    });
-                } catch (e) {
-                    console.error("RichAds initialization error:", e);
-                    handleAdFallback();
-                }
-            } else {
-                console.warn("RichAds controller not ready, using fallback");
-                handleAdFallback();
-            }
-        }
+        // ===== Handle Ad Success =====
+        function handleAdSuccess(stepNumber) {
+            if (!isAdPlaying && stepNumber < currentStep) return;
 
-        // ✅ معالجة نجاح الإعلان (مشتركة)
-        function handleAdSuccess() {
-            if (!isAdPlaying) return;
+            if (window._adSafetyTimeout) {
+                clearTimeout(window._adSafetyTimeout);
+                window._adSafetyTimeout = null;
+            }
+
             isAdPlaying = false;
-            
-            let currentBtn = document.getElementById(`btn-ad${currentStep}`);
-            let currentItem = document.getElementById(`task${currentStep}`);
-            let currentIcon = document.getElementById(`icon${currentStep}`);
 
-            currentBtn.innerText = "✅";
-            currentBtn.classList.add('done');
-            currentItem.classList.add('completed');
-            currentIcon.innerText = "✓";
+            const btn = document.getElementById(`btn-ad${stepNumber}`);
+            const item = document.getElementById(`task${stepNumber}`);
+            const num = document.getElementById(`num${stepNumber}`);
+            const timer = document.getElementById(`timer${stepNumber}`);
 
-            document.getElementById('progress-text').innerText = `${currentStep}/2`;
+            btn.innerHTML = '✓';
+            btn.classList.add('done');
+            item.classList.remove('active');
+            item.classList.add('completed');
+            num.textContent = '✓';
+            timer.classList.remove('active');
+
+            document.getElementById('progress-badge').textContent = `${stepNumber}/2`;
             currentStep++;
 
-            if (currentStep === 2) {
-                let nextBtn = document.getElementById('btn-ad2');
-                let nextItem = document.getElementById('task2');
+            if (stepNumber === 1) {
+                const nextItem = document.getElementById('task2');
+                const nextBtn = document.getElementById('btn-ad2');
                 nextItem.classList.remove('disabled');
+                nextItem.classList.add('active');
                 nextBtn.disabled = false;
-            } else if (currentStep > 2) {
-                let finalBtn = document.getElementById('btn-final');
-                finalBtn.classList.remove('disabled');
-                finalBtn.classList.add('active');
+            } else if (stepNumber === 2) {
+                const finalBtn = document.getElementById('btn-final');
+                finalBtn.classList.remove('locked');
+                finalBtn.classList.add('unlocked');
                 finalBtn.disabled = false;
-                finalBtn.innerHTML = "🚀 Enter Course Now";
+                finalBtn.innerHTML = '<span>🚀</span> Enroll in Course Now';
             }
         }
 
-        // ⚠️ آلية احتياطية في حال فشل الإعلان
-        function handleAdFallback() {
-            console.warn("Using fallback skip due to unavailable ad or error");
+        // ===== Fallback Handler =====
+        function handleAdFallback(stepNumber) {
+            console.warn(`Ad ${stepNumber} fallback triggered`);
             setTimeout(() => {
-                handleAdSuccess();
-            }, 1500);
+                handleAdSuccess(stepNumber);
+            }, 2000);
         }
 
-        // 🔁 إعادة زر الإعلان لحالته عند الخطأ
-        function resetButtonState() {
-            isAdPlaying = false;
-            let btn = document.getElementById(`btn-ad${currentStep}`);
-            if (btn) {
-                btn.innerText = "Start";
-                btn.disabled = false;
-            }
-        }
-
+        // ===== Go to Course =====
         function goToCourse() {
+            const url = courseData?.url;
+            if (!url) {
+                alert('Course link not found. Please try again.');
+                return;
+            }
+
             if (tg?.openLink) {
-                tg.openLink(COURSE_URL);
-                setTimeout(() => tg.close(), 1000);
+                tg.openLink(url);
+                setTimeout(() => tg.close(), 1500);
             } else {
-                window.location.href = COURSE_URL;
+                window.open(url, '_blank');
             }
         }
+
+        // ===== Init =====
+        window.addEventListener('load', () => {
+            initAdControllers();
+            initTGBBanner();
+            populateCourse(getCourseData());
+        });
     </script>
 </body>
 </html>
