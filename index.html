@@ -403,7 +403,7 @@
   const FULLSCREEN_ID_1 = "9579";
   const FULLSCREEN_ID_2 = "9966";
   const TGB_ID          = "9636";
-  const AD_DURATION_SEC = 12;   // عدد ثواني الكاونت داون
+  const AD_DURATION_SEC = 10;   // عدد ثواني الكاونت داون
 
   // ── Course URL decode ────────────────────────────────────────
   function getCourseUrl() {
@@ -440,7 +440,7 @@
 
   // ── localStorage progress cache (30 min) ────────────────────
   const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
-  const CACHE_TTL = 30 * 60 * 1000;
+  const CACHE_TTL = 5 * 60 * 1000;
 
   function loadProgress() {
     try {
