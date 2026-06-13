@@ -1,862 +1,595 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Udemy Free Courses - Mini App</title>
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://w.tads.me/widget.js"></script>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-        :root {
-            --udemy-purple: #5624d0;
-            --udemy-dark: #1e1e1e;
-            --udemy-gray: #6a6f73;
-            --udemy-light: #f7f9fa;
-            --udemy-border: #d1d7dc;
-            --udemy-success: #19a463;
-            --udemy-warning: #f69c08;
-            --udemy-danger: #b32d0f;
-            --bg-body: #f7f9fa;
-            --bg-card: #ffffff;
-            --text-main: #1e1e1e;
-            --text-muted: #6a6f73;
-            --primary: #5624d0;
-            --accent: #19a463;
-            --btn-bg: #f0f0f0;
-            --btn-text: #1e1e1e;
-            --item-bg: #f7f9fa;
-            --border-color: #d1d7dc;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.08);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
-            --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 24px;
-        }
-
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background: var(--bg-body);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            line-height: 1.5;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 420px;
-            background: var(--bg-card);
-            border-radius: var(--radius-xl);
-            padding: 28px;
-            box-shadow: var(--shadow-lg);
-            position: relative;
-            animation: slideUp 0.5s ease-out;
-            border: 1px solid var(--border-color);
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(24px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .brand-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--primary);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 800;
-            font-size: 18px;
-        }
-
-        h1 {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--text-main);
-            letter-spacing: -0.3px;
-        }
-
-        .progress-badge {
-            background: var(--primary);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        p.subtitle {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-bottom: 24px;
-            line-height: 1.6;
-        }
-
-        .course-preview {
-            background: var(--item-bg);
-            border-radius: var(--radius-lg);
-            padding: 16px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-            display: none;
-        }
-
-        .course-preview.active {
-            display: block;
-            animation: fadeIn 0.4s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .course-image {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-            border-radius: var(--radius-md);
-            margin-bottom: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .course-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 6px;
-            line-height: 1.4;
-        }
-
-        .course-meta {
-            display: flex;
-            gap: 12px;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .course-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .course-price {
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .course-price .original {
-            text-decoration: line-through;
-            color: var(--text-muted);
-            margin-right: 8px;
-        }
-
-        .course-price .free {
-            color: var(--accent);
-            font-size: 16px;
-        }
-
-        .task-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .task-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--item-bg);
-            border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 14px 16px;
-            transition: all 0.3s ease;
-        }
-
-        .task-item.disabled {
-            opacity: 0.45;
-            pointer-events: none;
-            filter: grayscale(0.6);
-        }
-
-        .task-item.completed {
-            border-color: var(--accent);
-            background: rgba(25, 164, 99, 0.06);
-        }
-
-        .task-item.active-waiting {
-            border-color: var(--udemy-warning);
-            background: rgba(246, 156, 8, 0.06);
-            animation: pulse-border 2s infinite;
-        }
-
-        @keyframes pulse-border {
-            0%, 100% { border-color: var(--udemy-warning); }
-            50% { border-color: var(--border-color); }
-        }
-
-        .task-info-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .task-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-
-        .task-item.completed .task-icon {
-            background: linear-gradient(135deg, var(--accent) 0%, #16a34a 100%);
-            color: white;
-        }
-
-        .task-item.active-waiting .task-icon {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            color: var(--udemy-warning);
-        }
-
-        .task-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 3px;
-        }
-
-        .task-reward {
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .task-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: var(--radius-sm);
-            padding: 9px 18px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            min-width: 80px;
-            text-align: center;
-        }
-
-        .task-btn:not(:disabled):hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-            filter: brightness(1.15);
-        }
-
-        .task-btn:not(:disabled):active {
-            transform: translateY(0);
-        }
-
-        .task-btn.done {
-            background: transparent;
-            color: var(--accent);
-            font-size: 22px;
-            pointer-events: none;
-            padding: 4px;
-        }
-
-        .task-btn.waiting {
-            background: var(--udemy-warning);
-            color: var(--text-main);
-            cursor: wait;
-        }
-
-        .main-btn {
-            width: 100%;
-            padding: 16px;
-            border-radius: var(--radius-md);
-            border: none;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-            letter-spacing: 0.3px;
-        }
-
-        .main-btn.disabled {
-            background: var(--btn-bg);
-            color: var(--text-muted);
-            cursor: not-allowed;
-        }
-
-        .main-btn.active {
-            background: linear-gradient(135deg, var(--accent) 0%, #16a34a 100%);
-            color: white;
-            box-shadow: 0 6px 20px rgba(25, 164, 99, 0.35);
-            animation: pulse-glow 2s infinite;
-        }
-
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 0 0 rgba(25, 164, 99, 0.4); }
-            70% { box-shadow: 0 0 0 12px rgba(25, 164, 99, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(25, 164, 99, 0); }
-        }
-
-        .main-btn.active:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(25, 164, 99, 0.45);
-        }
-
-        .tgb-ad-wrapper {
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px dashed var(--border-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .tgb-ad-label {
-            font-size: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.7;
-            font-weight: 600;
-        }
-
-        #tads-container-9637 {
-            width: 100%;
-            min-height: 90px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: var(--radius-md);
-            overflow: hidden;
-        }
-
-        #tads-container-9637:empty {
-            display: none;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .timer-display {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--udemy-warning);
-            background: rgba(246, 156, 8, 0.1);
-            padding: 2px 8px;
-            border-radius: 12px;
-            margin-top: 4px;
-            display: none;
-        }
-
-        .timer-display.active {
-            display: inline-block;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 480px) {
-            .container {
-                padding: 20px;
-                border-radius: var(--radius-lg);
-            }
-
-            h1 {
-                font-size: 18px;
-            }
-
-            .task-title {
-                font-size: 13px;
-            }
-
-            .task-btn {
-                padding: 8px 14px;
-                font-size: 12px;
-                min-width: 70px;
-            }
-
-            .main-btn {
-                padding: 14px;
-                font-size: 14px;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .container {
-                padding: 16px;
-            }
-
-            .task-icon {
-                width: 38px;
-                height: 38px;
-                font-size: 16px;
-            }
-
-            .task-info-wrapper {
-                gap: 8px;
-            }
-        }
-
-        /* Dark mode support for Telegram */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-body: #0f0f0f;
-                --bg-card: #1a1a1a;
-                --text-main: #f0f0f0;
-                --text-muted: #888;
-                --item-bg: #242424;
-                --border-color: #333;
-                --btn-bg: #2a2a2a;
-                --btn-text: #e0e0e0;
-            }
-
-            .task-item {
-                background: var(--item-bg);
-            }
-
-            .course-preview {
-                background: var(--item-bg);
-            }
-        }
-    </style>
-<base target="_blank">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Udemy Free Course Access</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://w.tads.me/widget.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --udemy-purple:   #5624d0;
+      --udemy-purple-2: #401b9c;
+      --udemy-yellow:   #f4c150;
+      --udemy-yellow-dk:#e59819;
+      --bg:             #f7f9fc;
+      --card:           #ffffff;
+      --text:           #1c1d1f;
+      --text-muted:     #6a6f73;
+      --border:         #e8ecef;
+      --step-done-bg:   #e6f4ea;
+      --step-done-text: #1e7e34;
+      --radius-card:    20px;
+      --radius-btn:     10px;
+      --shadow-card:    0 4px 24px rgba(86, 36, 208, 0.10);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Mulish', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 0 32px;
+    }
+
+    /* ── Top banner ── */
+    .top-bar {
+      width: 100%;
+      background: var(--udemy-purple);
+      padding: 14px 20px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .top-bar .logo-u {
+      width: 32px; height: 32px;
+      background: var(--udemy-yellow);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 900; color: var(--udemy-purple);
+      flex-shrink: 0;
+    }
+    .top-bar .logo-text {
+      font-size: 15px; font-weight: 800; color: #fff; letter-spacing: 0.2px;
+    }
+    .top-bar .badge-free {
+      margin-left: auto;
+      background: var(--udemy-yellow);
+      color: var(--udemy-purple);
+      font-size: 11px; font-weight: 800;
+      padding: 4px 10px; border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Main card ── */
+    .card {
+      width: calc(100% - 28px);
+      max-width: 440px;
+      margin: 20px auto 0;
+      background: var(--card);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      padding: 22px 20px 20px;
+      animation: slideUp .45s cubic-bezier(.22,.61,.36,1) both;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Course info row ── */
+    .course-info {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .course-thumb {
+      width: 64px; height: 64px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--udemy-purple) 0%, #8b5cf6 100%);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      overflow: hidden;
+    }
+    .course-thumb img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: 10px;
+    }
+    .course-meta { flex: 1; min-width: 0; }
+    .course-meta .course-title {
+      font-size: 14px; font-weight: 800; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 5px;
+    }
+    .course-tags {
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .tag {
+      font-size: 11px; font-weight: 700;
+      padding: 3px 8px; border-radius: 5px;
+      background: #ede9f9; color: var(--udemy-purple);
+    }
+    .tag.free-tag {
+      background: var(--udemy-yellow);
+      color: #5a3a00;
+    }
+    .course-price {
+      font-size: 12px; font-weight: 800;
+      margin-top: 6px; color: var(--text-muted);
+    }
+    .course-price s { color: #9aa0a6; font-weight: 600; }
+    .course-price .free { color: #1e7e34; font-size: 14px; margin-left: 4px; }
+
+    /* ── Headline ── */
+    .unlock-headline {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .unlock-headline h2 {
+      font-size: 17px; font-weight: 900; color: var(--text);
+      line-height: 1.3;
+    }
+    .unlock-headline p {
+      font-size: 12px; color: var(--text-muted);
+      margin-top: 4px; line-height: 1.5;
+    }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      margin: 14px 0;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .progress-bar-bg {
+      flex: 1; height: 7px; background: var(--border); border-radius: 10px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--udemy-purple), #8b5cf6);
+      border-radius: 10px;
+      width: 0%;
+      transition: width .5s ease;
+    }
+    .progress-label {
+      font-size: 12px; font-weight: 800; color: var(--udemy-purple);
+      min-width: 30px; text-align: right;
+    }
+
+    /* ── Steps ── */
+    .steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+
+    .step {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      transition: border-color .3s, background .3s;
+    }
+    .step.locked { opacity: .5; pointer-events: none; }
+    .step.done {
+      border-color: #c3e6cb;
+      background: var(--step-done-bg);
+    }
+
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #ede9f9; color: var(--udemy-purple);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 900; flex-shrink: 0;
+      transition: background .3s, color .3s;
+    }
+    .step.done .step-num {
+      background: var(--step-done-text); color: #fff; font-size: 18px;
+    }
+
+    .step-body { flex: 1; min-width: 0; }
+    .step-title { font-size: 14px; font-weight: 800; color: var(--text); }
+    .step.done .step-title { color: var(--step-done-text); }
+    .step-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .step-btn {
+      background: var(--udemy-purple);
+      color: #fff; border: none;
+      border-radius: var(--radius-btn);
+      padding: 8px 16px;
+      font-size: 13px; font-weight: 800;
+      cursor: pointer; flex-shrink: 0;
+      transition: background .2s, transform .1s;
+    }
+    .step-btn:active { transform: scale(.96); }
+    .step-btn:disabled { background: #c8bfe7; cursor: not-allowed; }
+    .step-btn.counting {
+      background: #f59e0b;
+      pointer-events: none;
+      min-width: 64px;
+    }
+    .step-btn.done-mark {
+      background: transparent;
+      color: var(--step-done-text);
+      font-size: 20px;
+      pointer-events: none;
+      padding: 0 12px;
+    }
+
+    /* ── Main CTA ── */
+    .cta-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      font-size: 16px; font-weight: 900;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all .3s;
+      letter-spacing: 0.2px;
+    }
+    .cta-btn.locked {
+      background: var(--border);
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+    .cta-btn.unlocked {
+      background: linear-gradient(135deg, var(--udemy-yellow) 0%, var(--udemy-yellow-dk) 100%);
+      color: #3d2c00;
+      box-shadow: 0 6px 18px -4px rgba(244, 193, 80, .7);
+      animation: pulseYellow 2.2s infinite;
+    }
+    @keyframes pulseYellow {
+      0%  { box-shadow: 0 0 0 0 rgba(244,193,80,.45); }
+      60% { box-shadow: 0 0 0 12px rgba(244,193,80,0); }
+      100%{ box-shadow: 0 0 0 0 rgba(244,193,80,0); }
+    }
+
+    /* ── Sponsored banner block ── */
+    .ad-section {
+      width: calc(100% - 28px);
+      max-width: 440px;
+      margin: 16px auto 0;
+    }
+    .ad-label {
+      font-size: 10px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .8px;
+      text-align: center; margin-bottom: 8px;
+    }
+    .ad-slot {
+      width: 100%; min-height: 80px;
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--card);
+      box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    }
+    .ad-slot:empty { display: none; }
+
+    /* ── Timer overlay on step ── */
+    .timer-ring {
+      font-size: 12px; font-weight: 800;
+      color: #f59e0b;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 380px) {
+      .card { padding: 16px 14px; }
+      .step-btn { padding: 7px 12px; font-size: 12px; }
+      .cta-btn { font-size: 15px; }
+    }
+  </style>
 </head>
-
 <body>
-    <div class="container">
-        <div class="header-top">
-            <div class="brand">
-                <div class="brand-icon">U</div>
-                <h1>Free Course Access</h1>
-            </div>
-            <span class="progress-badge" id="progress-text">0/2</span>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="logo-u">u</div>
+    <span class="logo-text">UdemySY Free Courses</span>
+    <span class="badge-free">FREE</span>
+  </div>
+
+  <!-- Main card -->
+  <div class="card">
+
+    <!-- Course info -->
+    <div class="course-info">
+      <div class="course-thumb" id="course-thumb">🎓</div>
+      <div class="course-meta">
+        <div class="course-title" id="course-title">Loading course…</div>
+        <div class="course-tags">
+          <span class="tag free-tag">100% FREE</span>
+          <span class="tag" id="course-cat">Udemy</span>
         </div>
-        <p class="subtitle">Complete the tasks below to unlock your free Udemy course enrollment link.</p>
-
-        <!-- Course Preview -->
-        <div class="course-preview" id="course-preview">
-            <img class="course-image" id="course-image" src="" alt="Course" style="display:none;">
-            <div class="course-title" id="course-title">Loading course...</div>
-            <div class="course-meta" id="course-meta">
-                <span>👥 <span id="course-students">--</span></span>
-                <span>⭐ <span id="course-rating">--</span></span>
-                <span>🌍 <span id="course-lang">--</span></span>
-            </div>
-            <div class="course-price">
-                <span class="original" id="course-original">$99.99</span>
-                <span class="free">FREE</span>
-            </div>
+        <div class="course-price">
+          <s id="course-price-original"></s>
+          <span class="free">→ FREE with coupon</span>
         </div>
-
-        <div class="task-list">
-            <!-- Task 1: First Ad (Tads Fullscreen) -->
-            <div class="task-item" id="task1">
-                <div class="task-info-wrapper">
-                    <div class="task-icon" id="icon1">1</div>
-                    <div>
-                        <div class="task-title">Watch First Ad</div>
-                        <div class="task-reward">⭐ Required step</div>
-                        <div class="timer-display" id="timer1"></div>
-                    </div>
-                </div>
-                <button class="task-btn" id="btn-ad1" onclick="watchAd(1)">Start</button>
-            </div>
-
-            <!-- Task 2: Second Ad (Tads Fullscreen with delay) -->
-            <div class="task-item disabled" id="task2">
-                <div class="task-info-wrapper">
-                    <div class="task-icon" id="icon2">2</div>
-                    <div>
-                        <div class="task-title">Watch Second Ad</div>
-                        <div class="task-reward">⭐ Required step</div>
-                        <div class="timer-display" id="timer2"></div>
-                    </div>
-                </div>
-                <button class="task-btn" id="btn-ad2" onclick="watchAd(2)" disabled>Start</button>
-            </div>
-        </div>
-
-        <button class="main-btn disabled" id="btn-final" onclick="goToCourse()" disabled>
-            🔒 Complete tasks to unlock
-        </button>
-
-        <!-- TGB Banner Ad -->
-        <div class="tgb-ad-wrapper">
-            <span class="tgb-ad-label">Sponsored</span>
-            <div id="tads-container-9637"></div>
-        </div>
+      </div>
     </div>
 
-    <script>
-        const tg = window.Telegram?.WebApp || null;
-        if (tg) { 
-            tg.ready(); 
-            tg.expand();
-            tg.setHeaderColor('#5624d0');
-            tg.setBackgroundColor('#f7f9fa');
+    <!-- Headline -->
+    <div class="unlock-headline">
+      <h2>Unlock Your Free Course</h2>
+      <p>Watch 2 short ads to activate your free enrollment link.</p>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <span class="progress-label" id="progress-label">0/2</span>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps">
+
+      <!-- Step 1 -->
+      <div class="step" id="step-1">
+        <div class="step-num" id="num-1">1</div>
+        <div class="step-body">
+          <div class="step-title">Watch Ad #1</div>
+          <div class="step-sub">~10 seconds • tads.me</div>
+        </div>
+        <button class="step-btn" id="btn-1" onclick="startStep(1)">Watch</button>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step locked" id="step-2">
+        <div class="step-num" id="num-2">2</div>
+        <div class="step-body">
+          <div class="step-title">Watch Ad #2</div>
+          <div class="step-sub">~10 seconds • tads.me</div>
+        </div>
+        <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Watch</button>
+      </div>
+
+    </div>
+
+    <!-- CTA -->
+    <button class="cta-btn locked" id="btn-enroll" disabled>
+      🔒 Complete both steps to enroll
+    </button>
+
+  </div>
+
+  <!-- Bottom TGB banner ad -->
+  <div class="ad-section">
+    <div class="ad-label">Sponsored</div>
+    <div class="ad-slot" id="tgb-slot"></div>
+  </div>
+
+  <script>
+    // ── Telegram WebApp init ──────────────────────────────────────
+    const tg = window.Telegram?.WebApp || null;
+    if (tg) { tg.ready(); tg.expand(); }
+
+    // ── Widget IDs ───────────────────────────────────────────────
+    const FULLSCREEN_ID_1 = "9579";   // Step 1 – tads fullscreen
+    const FULLSCREEN_ID_2 = "9579";   // Step 2 – same widget, second impression
+    const TGB_ID          = "9637";   // Bottom TGB banner
+
+    // ── Course URL from startapp param ───────────────────────────
+    function getCourseUrl() {
+      const param = tg?.initDataUnsafe?.start_param
+                 || new URLSearchParams(window.location.search).get('startapp')
+                 || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
+      if (!param) return 'https://www.udemy.com/';
+      try {
+        // base64url → base64 → decode
+        const b64 = param.replace(/-/g, '+').replace(/_/g, '/');
+        const decoded = decodeURIComponent(escape(atob(b64)));
+        return decoded.startsWith('http') ? decoded : 'https://www.udemy.com/';
+      } catch(e) { return 'https://www.udemy.com/'; }
+    }
+
+    // ── Extract course display data from URL (optional meta param) ─
+    function getCourseDisplayData() {
+      const titleParam = new URLSearchParams(window.location.search).get('title');
+      const imgParam   = new URLSearchParams(window.location.search).get('img');
+      const catParam   = new URLSearchParams(window.location.search).get('cat');
+      const priceParam = new URLSearchParams(window.location.search).get('price');
+      return {
+        title: titleParam ? decodeURIComponent(titleParam) : null,
+        img:   imgParam   ? decodeURIComponent(imgParam)   : null,
+        cat:   catParam   ? decodeURIComponent(catParam)   : null,
+        price: priceParam ? decodeURIComponent(priceParam) : null,
+      };
+    }
+
+    const COURSE_URL = getCourseUrl();
+    const meta       = getCourseDisplayData();
+
+    // Populate course info if data available
+    if (meta.title) {
+      document.getElementById('course-title').textContent = meta.title;
+    }
+    if (meta.img) {
+      const thumb = document.getElementById('course-thumb');
+      thumb.innerHTML = `<img src="${meta.img}" alt="course" onerror="this.parentElement.innerHTML='🎓'" />`;
+    }
+    if (meta.cat) {
+      document.getElementById('course-cat').textContent = meta.cat;
+    }
+    if (meta.price) {
+      document.getElementById('course-price-original').textContent = meta.price;
+    }
+
+    // ── State ────────────────────────────────────────────────────
+    let step1Done     = false;
+    let step2Done     = false;
+    let adController1 = null;
+    let adController2 = null;
+    let adPlaying     = false;
+    let countdownTimer = null;
+
+    // ── Init tads controllers ────────────────────────────────────
+    function waitForTads(cb) {
+      if (window.tads && typeof window.tads.init === 'function') { cb(); return; }
+      const t = setInterval(() => {
+        if (window.tads && typeof window.tads.init === 'function') {
+          clearInterval(t); cb();
         }
+      }, 80);
+    }
 
-        // Tads Configuration
-        const FULLSCREEN_WIDGET_ID = "9579";
-        const TGB_WIDGET_ID = "9637";
-        const AD_TYPE_FULLSCREEN = "fullscreen";
-        const AD_TYPE_TGB = "static";
-        const AD_DURATION_SECONDS = 10; // Tads.me ad duration
-        const DELAY_BETWEEN_ADS = 12; // 12 seconds to ensure 2 ads are shown
+    function initAdControllers() {
+      // Controller for step 1
+      adController1 = window.tads.init({
+        widgetId: FULLSCREEN_ID_1,
+        type: 'fullscreen',
+        debug: false,
+        onShowReward: () => onAdComplete(1),
+        onAdsNotFound: () => onAdFallback(1),
+        onError: () => onAdFallback(1),
+      });
 
-        let fullscreenAdController = null;
-        let tgbAdController = null;
-        let currentStep = 1;
-        let isAdPlaying = false;
-        let adTimerInterval = null;
-        let courseData = null;
+      // Controller for step 2 (separate instance so ads fire independently)
+      adController2 = window.tads.init({
+        widgetId: FULLSCREEN_ID_2,
+        type: 'fullscreen',
+        debug: false,
+        onShowReward: () => onAdComplete(2),
+        onAdsNotFound: () => onAdFallback(2),
+        onError: () => onAdFallback(2),
+      });
+    }
 
-        // Get course URL from start_param or default
-        function getCourseUrl() {
-            const code = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('startapp');
-            if (!code) return 'https://www.udemy.com/';
-            try {
-                const decoded = atob(code.replace(/-/g, '+').replace(/_/g, '/'));
-                return decoded.startsWith('http') ? decoded : 'https://www.udemy.com/';
-            } catch (e) { 
-                return 'https://www.udemy.com/'; 
-            }
+    function initTGBBanner() {
+      const tgbController = window.tads.init({
+        widgetId: TGB_ID,
+        type: 'static',
+        debug: false,
+        onAdsNotFound: () => {
+          document.getElementById('tgb-slot').style.display = 'none';
+          document.querySelector('.ad-section').style.display = 'none';
+        },
+      });
+      if (tgbController?.loadAd) {
+        tgbController.loadAd()
+          .then(() => tgbController.showAd())
+          .catch(() => {
+            document.getElementById('tgb-slot').style.display = 'none';
+            document.querySelector('.ad-section').style.display = 'none';
+          });
+      }
+    }
+
+    window.addEventListener('load', () => {
+      waitForTads(() => {
+        initAdControllers();
+        initTGBBanner();
+      });
+    });
+
+    // ── Step logic ───────────────────────────────────────────────
+    function startStep(n) {
+      if (adPlaying) return;
+      if (n === 1 && step1Done) return;
+      if (n === 2 && (!step1Done || step2Done)) return;
+
+      adPlaying = true;
+
+      const btn = document.getElementById(`btn-${n}`);
+      btn.classList.add('counting');
+      btn.textContent = '⏳';
+
+      const controller = n === 1 ? adController1 : adController2;
+
+      if (!controller) {
+        // tads not ready yet — fallback after short wait
+        setTimeout(() => onAdFallback(n), 1200);
+        return;
+      }
+
+      controller.showAd().catch(() => onAdFallback(n));
+
+      // safety net: if tads callback never fires within 20s, auto-complete
+      const safetyTimer = setTimeout(() => {
+        if (adPlaying) {
+          console.warn(`Step ${n}: safety net triggered`);
+          onAdComplete(n);
         }
+      }, 20000);
 
-        const COURSE_URL = getCourseUrl();
+      // store so we can clear if callback fires first
+      window[`_safety_${n}`] = safetyTimer;
+    }
 
-        // Initialize on load
-        window.addEventListener('load', () => {
-            initTadsFullscreen();
-            initTGBAd();
-            loadCourseData();
-        });
+    function onAdComplete(n) {
+      clearTimeout(window[`_safety_${n}`]);
+      if (!adPlaying && ((n === 1 && step1Done) || (n === 2 && step2Done))) return;
+      adPlaying = false;
 
-        // Load course data from URL parameters or API
-        function loadCourseData() {
-            // Extract course info from URL parameters if available
-            const params = new URLSearchParams(window.location.search);
-            const title = params.get('title') || 'Premium Udemy Course';
-            const image = params.get('image') || '';
-            const students = params.get('students') || '10,000+';
-            const rating = params.get('rating') || '4.5';
-            const lang = params.get('lang') || 'English';
-            const originalPrice = params.get('price') || '$99.99';
+      const btn  = document.getElementById(`btn-${n}`);
+      const step = document.getElementById(`step-${n}`);
+      const num  = document.getElementById(`num-${n}`);
 
-            courseData = {
-                title, image, students, rating, lang, originalPrice
-            };
+      btn.classList.remove('counting');
+      btn.className = 'step-btn done-mark';
+      btn.textContent = '✓';
+      step.classList.add('done');
+      num.textContent = '✓';
 
-            updateCoursePreview();
-        }
+      if (n === 1) {
+        step1Done = true;
+        updateProgress();
 
-        function updateCoursePreview() {
-            if (!courseData) return;
+        // Unlock step 2 with a short delay ensuring ~2 ad impressions minimum
+        setTimeout(() => {
+          const s2   = document.getElementById('step-2');
+          const btn2 = document.getElementById('btn-2');
+          s2.classList.remove('locked');
+          btn2.disabled = false;
+        }, 800);
 
-            const preview = document.getElementById('course-preview');
-            preview.classList.add('active');
+      } else {
+        step2Done = true;
+        updateProgress();
+        unlockEnroll();
+      }
+    }
 
-            document.getElementById('course-title').textContent = courseData.title;
-            document.getElementById('course-students').textContent = courseData.students;
-            document.getElementById('course-rating').textContent = courseData.rating;
-            document.getElementById('course-lang').textContent = courseData.lang;
-            document.getElementById('course-original').textContent = courseData.originalPrice;
+    function onAdFallback(n) {
+      console.warn(`Ad ${n} unavailable — using fallback`);
+      setTimeout(() => onAdComplete(n), 1000);
+    }
 
-            if (courseData.image) {
-                const img = document.getElementById('course-image');
-                img.src = courseData.image;
-                img.style.display = 'block';
-                img.onerror = () => { img.style.display = 'none'; };
-            }
-        }
+    function updateProgress() {
+      const done = (step1Done ? 1 : 0) + (step2Done ? 1 : 0);
+      document.getElementById('progress-fill').style.width  = `${done * 50}%`;
+      document.getElementById('progress-label').textContent = `${done}/2`;
+    }
 
-        // Initialize Tads Fullscreen (for both tasks)
-        function initTadsFullscreen() {
-            let checkTads = setInterval(() => {
-                if (window.tads && typeof window.tads.init === 'function') {
-                    clearInterval(checkTads);
-                    fullscreenAdController = window.tads.init({
-                        widgetId: FULLSCREEN_WIDGET_ID,
-                        type: AD_TYPE_FULLSCREEN,
-                        debug: false,
-                        onShowReward: () => handleAdSuccess(),
-                        onAdsNotFound: () => handleAdFallback(),
-                        onError: (err) => {
-                            console.error("Tads Fullscreen Error:", err);
-                            resetButtonState();
-                        }
-                    });
-                }
-            }, 100);
+    function unlockEnroll() {
+      const btn = document.getElementById('btn-enroll');
+      btn.disabled = false;
+      btn.className = 'cta-btn unlocked';
+      btn.innerHTML = '🚀 Enroll Free Now';
+    }
 
-            // Timeout after 10 seconds
-            setTimeout(() => clearInterval(checkTads), 10000);
-        }
+    // ── Open course ───────────────────────────────────────────────
+    function enrollNow() {
+      if (!step1Done || !step2Done) return;
+      if (tg?.openLink) {
+        tg.openLink(COURSE_URL);
+        setTimeout(() => tg.close(), 800);
+      } else {
+        window.open(COURSE_URL, '_blank');
+      }
+    }
 
-        // Initialize TGB Banner Ad (bottom)
-        function initTGBAd() {
-            const adsNotFoundCallback = () => {
-                console.log('TGB: No ads found to show');
-                const container = document.getElementById(`tads-container-${TGB_WIDGET_ID}`);
-                if (container) container.style.display = 'none';
-            };
+    document.getElementById('btn-enroll').addEventListener('click', enrollNow);
+  </script>
 
-            function initTGBController() {
-                if (!window.tads || typeof window.tads.init !== 'function') return;
-
-                tgbAdController = window.tads.init({
-                    widgetId: TGB_WIDGET_ID,
-                    type: AD_TYPE_TGB,
-                    debug: false,
-                    onAdsNotFound: adsNotFoundCallback
-                });
-
-                if (tgbAdController && typeof tgbAdController.loadAd === 'function') {
-                    tgbAdController.loadAd()
-                        .then(() => tgbAdController.showAd())
-                        .catch((err) => {
-                            console.log("TGB Ad load error:", err);
-                            adsNotFoundCallback();
-                        });
-                }
-            }
-
-            if (window.tads && window.tads.init) {
-                initTGBController();
-            } else {
-                let tadsInterval = setInterval(() => {
-                    if (window.tads && window.tads.init) {
-                        clearInterval(tadsInterval);
-                        initTGBController();
-                    }
-                }, 100);
-
-                setTimeout(() => clearInterval(tadsInterval), 10000);
-            }
-        }
-
-        // Main function to watch ad
-        function watchAd(stepNumber) {
-            if (stepNumber !== currentStep || isAdPlaying) return;
-            isAdPlaying = true;
-
-            const btn = document.getElementById(`btn-ad${stepNumber}`);
-            const item = document.getElementById(`task${stepNumber}`);
-            const timer = document.getElementById(`timer${stepNumber}`);
-
-            btn.innerHTML = '<span class="loading-spinner"></span>';
-            btn.disabled = true;
-            item.classList.add('active-waiting');
-
-            if (stepNumber === 1) {
-                // Task 1: Show ad immediately
-                showFullscreenAd(stepNumber);
-            } else if (stepNumber === 2) {
-                // Task 2: Show ad with delay to ensure 2 ads are watched
-                startDelayedAd(stepNumber);
-            }
-        }
-
-        // Show fullscreen ad immediately
-        function showFullscreenAd(stepNumber) {
-            if (fullscreenAdController) {
-                fullscreenAdController.showAd()
-                    .then(() => {
-                        // Ad is showing, start countdown
-                        startAdCountdown(stepNumber, AD_DURATION_SECONDS);
-                    })
-                    .catch((err) => {
-                        console.error("Failed to display fullscreen ad:", err);
-                        handleAdFallback();
-                    });
-            } else {
-                console.warn("Fullscreen controller not ready, using fallback");
-                handleAdFallback();
-            }
-        }
-
-        // Start delayed ad with countdown for Task 2
-        function startDelayedAd(stepNumber) {
-            const btn = document.getElementById(`btn-ad${stepNumber}`);
-            const timer = document.getElementById(`timer${stepNumber}`);
-            let remaining = DELAY_BETWEEN_ADS;
-
-            timer.classList.add('active');
-            timer.textContent = `Wait ${remaining}s...`;
-            btn.innerText = "Waiting...";
-
-            const countdownInterval = setInterval(() => {
-                remaining--;
-                timer.textContent = `Wait ${remaining}s...`;
-
-                if (remaining <= 0) {
-                    clearInterval(countdownInterval);
-                    timer.classList.remove('active');
-                    // Now show the actual ad
-                    showFullscreenAd(stepNumber);
-                }
-            }, 1000);
-        }
-
-        // Countdown during ad playback
-        function startAdCountdown(stepNumber, seconds) {
-            const timer = document.getElementById(`timer${stepNumber}`);
-            let remaining = seconds;
-
-            timer.classList.add('active');
-            timer.textContent = `Ad ${remaining}s...`;
-
-            adTimerInterval = setInterval(() => {
-                remaining--;
-                if (remaining > 0) {
-                    timer.textContent = `Ad ${remaining}s...`;
-                } else {
-                    timer.classList.remove('active');
-                    clearInterval(adTimerInterval);
-                }
-            }, 1000);
-        }
-
-        // Handle ad success (shared)
-        function handleAdSuccess() {
-            if (!isAdPlaying) return;
-            isAdPlaying = false;
-
-            // Clear any running timers
-            if (adTimerInterval) {
-                clearInterval(adTimerInterval);
-                adTimerInterval = null;
-            }
-
-            const currentBtn = document.getElementById(`btn-ad${currentStep}`);
-            const currentItem = document.getElementById(`task${currentStep}`);
-            const currentIcon = document.getElementById(`icon${currentStep}`);
-            const currentTimer = document.getElementById(`timer${currentStep}`);
-
-            currentBtn.innerText = "✅";
-            currentBtn.classList.add('done');
-            currentItem.classList.remove('active-waiting');
-            currentItem.classList.add('completed');
-            currentIcon.innerText = "✓";
-            currentTimer.classList.remove('active');
-
-            document.getElementById('progress-text').textContent = `${currentStep}/2`;
-            currentStep++;
-
-            if (currentStep === 2) {
-                const nextBtn = document.getElementById('btn-ad2');
-                const nextItem = document.getElementById('task2');
-                nextItem.classList.remove('disabled');
-                nextBtn.disabled = false;
-            } else if (currentStep > 2) {
-                const finalBtn = document.getElementById('btn-final');
-                finalBtn.classList.remove('disabled');
-                finalBtn.classList.add('active');
-                finalBtn.disabled = false;
-                finalBtn.innerHTML = "🚀 Get Free Course Now";
-            }
-        }
-
-        // Fallback mechanism if ad fails
-        function handleAdFallback() {
-            console.warn("Using fallback due to unavailable ad or error");
-            setTimeout(() => {
-                handleAdSuccess();
-            }, 2000);
-        }
-
-        // Reset button state on error
-        function resetButtonState() {
-            isAdPlaying = false;
-            const btn = document.getElementById(`btn-ad${currentStep}`);
-            const item = document.getElementById(`task${currentStep}`);
-            const timer = document.getElementById(`timer${currentStep}`);
-
-            if (btn) {
-                btn.innerText = "Start";
-                btn.disabled = false;
-            }
-            if (item) item.classList.remove('active-waiting');
-            if (timer) timer.classList.remove('active');
-
-            if (adTimerInterval) {
-                clearInterval(adTimerInterval);
-                adTimerInterval = null;
-            }
-        }
-
-        // Navigate to course
-        function goToCourse() {
-            if (tg?.openLink) {
-                tg.openLink(COURSE_URL);
-                setTimeout(() => tg.close(), 1500);
-            } else {
-                window.open(COURSE_URL, '_blank');
-            }
-        }
-    </script>
 </body>
 </html>
