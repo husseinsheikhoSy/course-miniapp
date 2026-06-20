@@ -43,8 +43,26 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 0 0 32px;
+      justify-content: center;
+      padding: 18px 12px;
       overflow-x: hidden;
+    }
+
+    /* ── App shell ──
+       Keeps top-bar, card and banner visually unified as one
+       consistent "app" on every screen size — phone, tablet, desktop. */
+    .app-shell {
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+      background: var(--bg);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 12px 44px rgba(0,53,128,.16);
+    }
+    @media (max-width: 480px) {
+      body { padding: 0; justify-content: flex-start; }
+      .app-shell { border-radius: 0; box-shadow: none; max-width: 100%; }
     }
 
     /* ── Top bar ── */
@@ -62,7 +80,11 @@
       font-size: 18px; font-weight: 900; color: var(--fi-blue);
       flex-shrink: 0;
     }
-    .logo-text { font-size: 15px; font-weight: 800; color: #fff; }
+    .logo-text {
+      font-size: 14px; font-weight: 800; color: #fff;
+      flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
     .badge-free {
       margin-left: auto;
       background: var(--fi-yellow); color: var(--fi-blue);
@@ -73,11 +95,11 @@
     /* ── Loading skeleton ── */
     .skeleton {
       display: none;
-      width: calc(100% - 28px); max-width: 440px;
-      margin: 20px auto 0;
+      width: 100%;
+      margin: 0;
       background: var(--card);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-card);
+      border-radius: 0;
+      box-shadow: none;
       padding: 22px 20px;
     }
     .skeleton.visible { display: block; }
@@ -97,12 +119,12 @@
 
     /* ── Main card ── */
     .card {
-      width: calc(100% - 28px); max-width: 440px;
-      margin: 20px auto 0;
+      width: 100%;
+      margin: 0;
       background: var(--card);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-card);
-      padding: 22px 20px 20px;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 20px 18px 18px;
       animation: slideUp .45s cubic-bezier(.22,.61,.36,1) both;
       display: none;
     }
@@ -115,7 +137,7 @@
     /* ── Course info ── */
     .course-info {
       display: flex; gap: 12px;
-      margin-bottom: 18px; padding-bottom: 18px;
+      margin-bottom: 14px; padding-bottom: 14px;
       border-bottom: 1px solid var(--border);
     }
     .course-thumb {
@@ -153,17 +175,17 @@
       background: var(--fi-blue-pale);
       border: 1.5px solid var(--fi-blue);
       border-radius: 10px;
-      padding: 9px 13px;
-      margin-bottom: 14px;
-      font-size: 12px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      font-size: 11.5px;
       color: var(--fi-blue);
       font-weight: 700;
       text-align: center;
-      line-height: 1.5;
+      line-height: 1.45;
     }
 
     /* ── Progress bar ── */
-    .progress-wrap { margin: 14px 0; display: flex; align-items: center; gap: 10px; }
+    .progress-wrap { margin: 12px 0; display: flex; align-items: center; gap: 10px; }
     .progress-bar-bg { flex:1; height:7px; background:var(--border); border-radius:10px; overflow:hidden; }
     .progress-bar-fill {
       height: 100%;
@@ -174,30 +196,30 @@
     .progress-label { font-size:12px; font-weight:800; color:var(--fi-blue); min-width:30px; text-align:right; }
 
     /* ── Steps ── */
-    .steps { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+    .steps { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
     .step {
-      display: flex; align-items: center; gap: 12px;
+      display: flex; align-items: center; gap: 10px;
       background: var(--bg); border: 1.5px solid var(--border);
-      border-radius: 14px; padding: 12px 14px;
+      border-radius: 14px; padding: 10px 12px;
       transition: border-color .3s, background .3s;
     }
     .step.locked { opacity:.5; pointer-events:none; }
     .step.done   { border-color: var(--fi-blue); background: var(--step-done-bg); }
 
     .step-num {
-      width: 36px; height: 36px; border-radius: 50%;
+      width: 32px; height: 32px; border-radius: 50%;
       background: var(--fi-blue-pale); color: var(--fi-blue);
       display: flex; align-items: center; justify-content: center;
-      font-size: 15px; font-weight: 900; flex-shrink: 0;
+      font-size: 14px; font-weight: 900; flex-shrink: 0;
       transition: background .3s, color .3s;
       position: relative;
     }
-    .step.done .step-num { background: var(--fi-blue); color:#fff; font-size:18px; }
+    .step.done .step-num { background: var(--fi-blue); color:#fff; font-size:16px; }
 
     /* countdown ring */
     .countdown-ring {
       position: absolute; top: 0; left: 0;
-      width: 36px; height: 36px;
+      width: 32px; height: 32px;
       transform: rotate(-90deg);
       pointer-events: none;
       opacity: 0; transition: opacity .2s;
@@ -219,11 +241,11 @@
 
     .step-btn {
       background: var(--fi-blue); color: #fff; border: none;
-      border-radius: var(--radius-btn); padding: 8px 16px;
-      font-size: 13px; font-weight: 800;
+      border-radius: var(--radius-btn); padding: 7px 14px;
+      font-size: 12.5px; font-weight: 800;
       cursor: pointer; flex-shrink: 0;
       transition: background .2s, transform .1s;
-      min-width: 68px; text-align: center;
+      min-width: 60px; text-align: center;
     }
     .step-btn:active  { transform: scale(.96); }
     .step-btn:disabled { background: #a0b4cc; cursor: not-allowed; }
@@ -235,8 +257,8 @@
 
     /* ── CTA ── */
     .cta-btn {
-      width: 100%; padding: 16px; border-radius: 14px; border: none;
-      font-size: 16px; font-weight: 900; cursor: pointer;
+      width: 100%; padding: 14px; border-radius: 14px; border: none;
+      font-size: 15px; font-weight: 900; cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 8px;
       transition: all .3s;
     }
@@ -255,16 +277,18 @@
 
     /* ── HelloEncyclo banner ── */
     .encyclo-section {
-      width: calc(100% - 28px); max-width: 440px;
-      margin: 16px auto 0;
+      width: 100%;
+      margin: 0;
+      padding: 14px 18px 18px;
+      background: var(--bg);
     }
     .encyclo-banner {
       background: linear-gradient(135deg, var(--fi-blue), var(--fi-blue-light));
       border-radius: 16px;
-      padding: 16px 18px;
+      padding: 13px 16px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       text-decoration: none;
       box-shadow: 0 4px 16px rgba(0,53,128,.25);
       transition: transform .2s, box-shadow .2s;
@@ -322,17 +346,30 @@
 
     @media (max-width:380px) {
       .card { padding:16px 14px; }
-      .step-btn { padding:7px 11px; font-size:12px; }
-      .cta-btn { font-size:15px; }
+      .step-btn { padding:6px 10px; font-size:11.5px; min-width:52px; }
+      .cta-btn { font-size:14px; padding:13px; }
+      .course-title { font-size:13px; }
+    }
+
+    /* Short viewports (e.g. Telegram desktop's compact window) —
+       trim spacing further so the whole card fits without scrolling */
+    @media (max-height:720px) {
+      body { padding: 10px 12px; }
+      .unlock-headline h2 { font-size:16px; }
+      .unlock-headline p  { font-size:11.5px; margin-top:3px; }
+      .steps { gap:6px; margin-bottom:12px; }
+      .step  { padding:8px 12px; }
     }
   </style>
 </head>
 <body>
 
+<div class="app-shell">
+
   <!-- Top bar -->
   <div class="top-bar">
     <div class="logo-u">u</div>
-    <span class="logo-text">UdemySY Free Courses</span>
+    <span class="logo-text" id="logo-text">UdemySY Free Courses</span>
     <span class="badge-free">FREE</span>
   </div>
 
@@ -392,8 +429,8 @@
       <div class="step" id="step-1">
         <div class="step-num" id="num-1">
           1
-          <svg class="countdown-ring" id="ring-1" viewBox="0 0 36 36">
-            <circle cx="18" cy="18" r="15" id="ring-circle-1"/>
+          <svg class="countdown-ring" id="ring-1" viewBox="0 0 32 32">
+            <circle cx="16" cy="16" r="13" id="ring-circle-1"/>
           </svg>
         </div>
         <div class="step-body">
@@ -407,8 +444,8 @@
       <div class="step locked" id="step-2">
         <div class="step-num" id="num-2">
           2
-          <svg class="countdown-ring" id="ring-2" viewBox="0 0 36 36">
-            <circle cx="18" cy="18" r="15" id="ring-circle-2"/>
+          <svg class="countdown-ring" id="ring-2" viewBox="0 0 32 32">
+            <circle cx="16" cy="16" r="13" id="ring-circle-2"/>
           </svg>
         </div>
         <div class="step-body">
@@ -440,6 +477,8 @@
       <span class="encyclo-arrow">Join →</span>
     </a>
   </div>
+
+</div>
 
   <!-- Confetti canvas -->
   <canvas id="confetti-canvas"></canvas>
@@ -509,9 +548,14 @@
   function loadCourseMeta() {
     const p = new URLSearchParams(window.location.search);
     const title = p.get('title'), img = p.get('img'),
-          cat   = p.get('cat'),   price = p.get('price');
+          cat   = p.get('cat'),   price = p.get('price'),
+          left  = p.get('left');
 
-    if (title) document.getElementById('course-title').textContent = decodeURIComponent(title);
+    if (title) {
+      const decodedTitle = decodeURIComponent(title);
+      document.getElementById('course-title').textContent = decodedTitle;
+      document.getElementById('logo-text').textContent = decodedTitle;
+    }
     if (img) {
       const thumb = document.getElementById('course-thumb');
       const decoded = decodeURIComponent(img);
@@ -520,7 +564,13 @@
     }
     if (cat)   document.getElementById('course-cat').textContent = decodeURIComponent(cat);
     if (price) document.getElementById('course-price-original').textContent = decodeURIComponent(price);
-    if (!price) document.getElementById('free-label').textContent = '🆓 FREE with coupon';
+
+    if (left) {
+      const decodedLeft = decodeURIComponent(left);
+      document.getElementById('free-label').textContent = `🔥 ${decodedLeft} left`;
+    } else if (!price) {
+      document.getElementById('free-label').textContent = '🆓 FREE with coupon';
+    }
   }
 
   const COURSE_URL = getCourseUrl();
@@ -564,7 +614,7 @@
     const btn    = document.getElementById(`btn-${n}`);
     const sub    = document.getElementById(`sub-${n}`);
 
-    const circumference = 2 * Math.PI * 15;
+    const circumference = 2 * Math.PI * 13;
     circle.style.strokeDasharray  = circumference;
     circle.style.strokeDashoffset = circumference;
     ring.classList.add('active');
