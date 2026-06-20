@@ -531,49 +531,89 @@
     geoChecked = true;
   }
 
-  // ── Course URL decode ─────────────────────────────────────────
-  function getCourseUrl() {
-    const param = tg?.initDataUnsafe?.start_param
-               || new URLSearchParams(window.location.search).get('startapp')
-               || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
-    if (!param) return 'https://www.udemy.com/';
-    try {
-      const b64     = param.replace(/-/g,'+').replace(/_/g,'/');
-      const decoded = decodeURIComponent(escape(atob(b64)));
-      return decoded.startsWith('http') ? decoded : 'https://www.udemy.com/';
-    } catch(e) { return 'https://www.udemy.com/'; }
+  // ── start_param decode ──────────────────────────────────────────
+  // Telegram ONLY forwards the single "startapp" parameter to a Mini
+  // App (as tgWebAppStartParam / initDataUnsafe.start_param). Any other
+  // query params on the t.me deep link (title=, img=, left=, ...) get
+  // silently dropped before the page ever loads — that's why only the
+  // course URL (smuggled inside startapp) used to come through.
+  // Fix: the bot now packs everything into ONE base64url-encoded JSON
+  // object and puts that whole blob into startapp.
+  function b64urlDecode(str) {
+    const b64     = str.replace(/-/g, '+').replace(/_/g, '/');
+    const padded  = b64 + '='.repeat((4 - b64.length % 4) % 4);
+    const binary  = atob(padded);
+    const bytes   = Uint8Array.from(binary, c => c.charCodeAt(0));
+    return new TextDecoder('utf-8').decode(bytes);
   }
 
-  // ── Course meta from URL params ───────────────────────────────
+  function getStartParam() {
+    return tg?.initDataUnsafe?.start_param
+        || new URLSearchParams(window.location.search).get('startapp')
+        || new URLSearchParams(window.location.search).get('tgWebAppStartParam')
+        || null;
+  }
+
+  // Decoded JSON payload from the bot: { u: url, t: title, i: img,
+  // c: category, p: price, l: enrollments left }. Null if absent/old format.
+  let courseData = null;
+
+  function resolveCourseUrl() {
+    const raw = getStartParam();
+    if (!raw) return 'https://www.udemy.com/';
+
+    try {
+      const text = b64urlDecode(raw);
+      const parsed = JSON.parse(text);
+      if (parsed && typeof parsed === 'object' && parsed.u) {
+        courseData = parsed;
+        return parsed.u;
+      }
+    } catch (e) { /* not JSON — fall through to legacy plain-URL format */ }
+
+    try {
+      const decoded = b64urlDecode(raw);
+      if (decoded.startsWith('http')) return decoded;
+    } catch (e) {}
+
+    return 'https://www.udemy.com/';
+  }
+
+  // ── Course meta ──────────────────────────────────────────────
   function loadCourseMeta() {
-    const p = new URLSearchParams(window.location.search);
-    const title = p.get('title'), img = p.get('img'),
-          cat   = p.get('cat'),   price = p.get('price'),
-          left  = p.get('left');
+    let title, img, cat, price, left;
+
+    if (courseData) {
+      // Came from the startapp JSON payload — already plain text
+      ({ t: title, i: img, c: cat, p: price, l: left } = courseData);
+    } else {
+      // Fallback for direct browser testing with separate ?title=&left= etc.
+      const p = new URLSearchParams(window.location.search);
+      const get = k => p.get(k) ? decodeURIComponent(p.get(k)) : null;
+      title = get('title'); img = get('img'); cat = get('cat');
+      price = get('price'); left = get('left');
+    }
 
     if (title) {
-      const decodedTitle = decodeURIComponent(title);
-      document.getElementById('course-title').textContent = decodedTitle;
-      document.getElementById('logo-text').textContent = decodedTitle;
+      document.getElementById('course-title').textContent = title;
+      document.getElementById('logo-text').textContent = title;
     }
     if (img) {
       const thumb = document.getElementById('course-thumb');
-      const decoded = decodeURIComponent(img);
-      thumb.innerHTML = `<img src="${decoded}" alt="course"
+      thumb.innerHTML = `<img src="${img}" alt="course"
         onerror="this.parentElement.innerHTML='🎓'" />`;
     }
-    if (cat)   document.getElementById('course-cat').textContent = decodeURIComponent(cat);
-    if (price) document.getElementById('course-price-original').textContent = decodeURIComponent(price);
+    if (cat)   document.getElementById('course-cat').textContent = cat;
+    if (price) document.getElementById('course-price-original').textContent = price;
 
     if (left) {
-      const decodedLeft = decodeURIComponent(left);
-      document.getElementById('free-label').textContent = `🔥 ${decodedLeft} left`;
+      document.getElementById('free-label').textContent = `🔥 ${left} left`;
     } else if (!price) {
       document.getElementById('free-label').textContent = '🆓 FREE with coupon';
     }
   }
 
-  const COURSE_URL = getCourseUrl();
+  const COURSE_URL = resolveCourseUrl();
 
   // ── localStorage progress cache (5 min) ──────────────────────
   const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
