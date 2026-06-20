@@ -6,7 +6,6 @@
   <title>Udemy Free Course Access</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://w.tads.me/widget.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,20 +13,24 @@
 
   <style>
     :root {
-      --udemy-purple:   #5624d0;
-      --udemy-purple-2: #401b9c;
-      --udemy-yellow:   #f4c150;
-      --udemy-yellow-dk:#e59819;
-      --bg:             #f7f9fc;
+      /* Finnish flag colours */
+      --fi-blue:        #003580;
+      --fi-blue-light:  #1a4a9a;
+      --fi-blue-pale:   #d0dff5;
+      --fi-white:       #ffffff;
+      --fi-yellow:      #f5c842;   /* accent – enrol CTA */
+      --fi-yellow-dk:   #d4a800;
+
+      --bg:             #f0f4fb;
       --card:           #ffffff;
-      --text:           #1c1d1f;
-      --text-muted:     #6a6f73;
-      --border:         #e8ecef;
-      --step-done-bg:   #e6f4ea;
-      --step-done-text: #1e7e34;
+      --text:           #0a1a3a;
+      --text-muted:     #4a5a7a;
+      --border:         #ccd8ee;
+      --step-done-bg:   #e6f0ff;
+      --step-done-text: #003580;
       --radius-card:    20px;
       --radius-btn:     10px;
-      --shadow-card:    0 4px 24px rgba(86,36,208,.10);
+      --shadow-card:    0 4px 24px rgba(0,53,128,.12);
     }
 
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -47,21 +50,22 @@
     /* ── Top bar ── */
     .top-bar {
       width: 100%;
-      background: var(--udemy-purple);
+      background: var(--fi-blue);
       padding: 14px 20px 12px;
       display: flex; align-items: center; gap: 10px;
+      border-bottom: 4px solid var(--fi-yellow);
     }
     .logo-u {
       width: 32px; height: 32px; border-radius: 6px;
-      background: var(--udemy-yellow);
+      background: var(--fi-white);
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px; font-weight: 900; color: var(--udemy-purple);
+      font-size: 18px; font-weight: 900; color: var(--fi-blue);
       flex-shrink: 0;
     }
     .logo-text { font-size: 15px; font-weight: 800; color: #fff; }
     .badge-free {
       margin-left: auto;
-      background: var(--udemy-yellow); color: var(--udemy-purple);
+      background: var(--fi-yellow); color: var(--fi-blue);
       font-size: 11px; font-weight: 800;
       padding: 4px 10px; border-radius: 20px;
     }
@@ -78,7 +82,7 @@
     }
     .skeleton.visible { display: block; }
     .skel-line {
-      background: linear-gradient(90deg, #e8ecef 25%, #f3f4f6 50%, #e8ecef 75%);
+      background: linear-gradient(90deg, #dce6f5 25%, #eef2fb 50%, #dce6f5 75%);
       background-size: 200% 100%;
       border-radius: 6px; margin-bottom: 10px;
       animation: shimmer 1.4s infinite;
@@ -116,7 +120,7 @@
     }
     .course-thumb {
       width: 64px; height: 64px; border-radius: 10px;
-      background: linear-gradient(135deg, var(--udemy-purple), #8b5cf6);
+      background: linear-gradient(135deg, var(--fi-blue), var(--fi-blue-light));
       flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
       font-size: 28px; overflow: hidden;
@@ -132,28 +136,42 @@
     .tag {
       font-size: 11px; font-weight: 700;
       padding: 3px 8px; border-radius: 5px;
-      background: #ede9f9; color: var(--udemy-purple);
+      background: var(--fi-blue-pale); color: var(--fi-blue);
     }
-    .tag.free-tag { background: var(--udemy-yellow); color: #5a3a00; }
+    .tag.free-tag { background: var(--fi-yellow); color: #3a2800; }
     .course-price { font-size: 12px; font-weight: 800; margin-top: 6px; color: var(--text-muted); }
-    .course-price s { color: #9aa0a6; font-weight: 600; }
-    .course-price .free { color: #1e7e34; font-size: 14px; margin-left: 4px; }
+    .course-price s { color: #8090aa; font-weight: 600; }
+    .course-price .free { color: var(--fi-blue); font-size: 14px; margin-left: 4px; }
 
     /* ── Headline ── */
     .unlock-headline { text-align: center; margin-bottom: 6px; }
     .unlock-headline h2 { font-size: 17px; font-weight: 900; color: var(--text); line-height: 1.3; }
     .unlock-headline p  { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
 
+    /* ── Ad notice ── */
+    .ad-notice {
+      background: var(--fi-blue-pale);
+      border: 1.5px solid var(--fi-blue);
+      border-radius: 10px;
+      padding: 9px 13px;
+      margin-bottom: 14px;
+      font-size: 12px;
+      color: var(--fi-blue);
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.5;
+    }
+
     /* ── Progress bar ── */
     .progress-wrap { margin: 14px 0; display: flex; align-items: center; gap: 10px; }
     .progress-bar-bg { flex:1; height:7px; background:var(--border); border-radius:10px; overflow:hidden; }
     .progress-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--udemy-purple), #8b5cf6);
+      background: linear-gradient(90deg, var(--fi-blue), var(--fi-blue-light));
       border-radius: 10px; width: 0%;
       transition: width .5s ease;
     }
-    .progress-label { font-size:12px; font-weight:800; color:var(--udemy-purple); min-width:30px; text-align:right; }
+    .progress-label { font-size:12px; font-weight:800; color:var(--fi-blue); min-width:30px; text-align:right; }
 
     /* ── Steps ── */
     .steps { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
@@ -164,17 +182,17 @@
       transition: border-color .3s, background .3s;
     }
     .step.locked { opacity:.5; pointer-events:none; }
-    .step.done   { border-color:#c3e6cb; background:var(--step-done-bg); }
+    .step.done   { border-color: var(--fi-blue); background: var(--step-done-bg); }
 
     .step-num {
       width: 36px; height: 36px; border-radius: 50%;
-      background: #ede9f9; color: var(--udemy-purple);
+      background: var(--fi-blue-pale); color: var(--fi-blue);
       display: flex; align-items: center; justify-content: center;
       font-size: 15px; font-weight: 900; flex-shrink: 0;
       transition: background .3s, color .3s;
       position: relative;
     }
-    .step.done .step-num { background:var(--step-done-text); color:#fff; font-size:18px; }
+    .step.done .step-num { background: var(--fi-blue); color:#fff; font-size:18px; }
 
     /* countdown ring */
     .countdown-ring {
@@ -186,7 +204,7 @@
     }
     .countdown-ring.active { opacity: 1; }
     .countdown-ring circle {
-      fill: none; stroke: var(--udemy-yellow);
+      fill: none; stroke: var(--fi-yellow);
       stroke-width: 3;
       stroke-dasharray: 100;
       stroke-dashoffset: 100;
@@ -196,11 +214,11 @@
 
     .step-body { flex:1; min-width:0; }
     .step-title { font-size:14px; font-weight:800; color:var(--text); }
-    .step.done .step-title { color:var(--step-done-text); }
+    .step.done .step-title { color: var(--fi-blue); }
     .step-sub   { font-size:11px; color:var(--text-muted); margin-top:2px; }
 
     .step-btn {
-      background: var(--udemy-purple); color: #fff; border: none;
+      background: var(--fi-blue); color: #fff; border: none;
       border-radius: var(--radius-btn); padding: 8px 16px;
       font-size: 13px; font-weight: 800;
       cursor: pointer; flex-shrink: 0;
@@ -208,10 +226,10 @@
       min-width: 68px; text-align: center;
     }
     .step-btn:active  { transform: scale(.96); }
-    .step-btn:disabled { background: #c8bfe7; cursor: not-allowed; }
+    .step-btn:disabled { background: #a0b4cc; cursor: not-allowed; }
     .step-btn.watching { background: #f59e0b; pointer-events: none; }
     .step-btn.done-mark {
-      background: transparent; color: var(--step-done-text);
+      background: transparent; color: var(--fi-blue);
       font-size: 20px; pointer-events: none; padding: 0 12px;
     }
 
@@ -224,15 +242,57 @@
     }
     .cta-btn.locked  { background:var(--border); color:var(--text-muted); cursor:not-allowed; }
     .cta-btn.unlocked {
-      background: linear-gradient(135deg, var(--udemy-yellow), var(--udemy-yellow-dk));
+      background: linear-gradient(135deg, var(--fi-yellow), var(--fi-yellow-dk));
       color: #3d2c00;
-      box-shadow: 0 6px 18px -4px rgba(244,193,80,.7);
+      box-shadow: 0 6px 18px -4px rgba(245,200,66,.7);
       animation: pulseYellow 2.2s infinite;
     }
     @keyframes pulseYellow {
-      0%  { box-shadow: 0 0 0 0   rgba(244,193,80,.45); }
-      60% { box-shadow: 0 0 0 12px rgba(244,193,80,0);  }
-      100%{ box-shadow: 0 0 0 0   rgba(244,193,80,0);   }
+      0%  { box-shadow: 0 0 0 0   rgba(245,200,66,.45); }
+      60% { box-shadow: 0 0 0 12px rgba(245,200,66,0);  }
+      100%{ box-shadow: 0 0 0 0   rgba(245,200,66,0);   }
+    }
+
+    /* ── HelloEncyclo banner ── */
+    .encyclo-section {
+      width: calc(100% - 28px); max-width: 440px;
+      margin: 16px auto 0;
+    }
+    .encyclo-banner {
+      background: linear-gradient(135deg, var(--fi-blue), var(--fi-blue-light));
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(0,53,128,.25);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .encyclo-banner:active { transform: scale(.98); }
+    .encyclo-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--fi-white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; flex-shrink: 0;
+    }
+    .encyclo-text { flex: 1; }
+    .encyclo-title {
+      font-size: 13px; font-weight: 900; color: #fff;
+      margin-bottom: 3px;
+    }
+    .encyclo-sub {
+      font-size: 11px; color: rgba(255,255,255,.8);
+      font-weight: 600; line-height: 1.4;
+    }
+    .encyclo-arrow {
+      background: var(--fi-yellow);
+      color: var(--fi-blue);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 900;
+      flex-shrink: 0;
     }
 
     /* ── Confetti canvas ── */
@@ -251,32 +311,14 @@
       margin-top: 14px;
       padding: 12px 16px;
       background: var(--step-done-bg);
-      border: 1.5px solid #c3e6cb;
+      border: 1.5px solid var(--fi-blue);
       border-radius: 12px;
       font-size: 13px; font-weight: 700;
-      color: var(--step-done-text);
+      color: var(--fi-blue);
       animation: fadeIn .4s ease;
     }
     .success-msg.visible { display: block; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
-
-    /* ── TGB ad ── */
-    .ad-section {
-      width: calc(100% - 28px); max-width: 440px;
-      margin: 16px auto 0;
-    }
-    .ad-label {
-      font-size: 10px; font-weight: 700; color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: .8px;
-      text-align: center; margin-bottom: 8px;
-    }
-    .ad-slot {
-      width: 100%; min-height: 80px; border-radius: 14px; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--card); box-shadow: 0 2px 10px rgba(0,0,0,.05);
-    }
-    #tads-container-9636 { width:100%; min-height:80px; display:flex; align-items:center; justify-content:center; }
-    #tads-container-9636:empty { display:none; }
 
     @media (max-width:380px) {
       .card { padding:16px 14px; }
@@ -294,7 +336,7 @@
     <span class="badge-free">FREE</span>
   </div>
 
-  <!-- Skeleton loader (shown while JS runs) -->
+  <!-- Skeleton loader -->
   <div class="skeleton visible" id="skeleton">
     <div class="skel-row">
       <div class="skel-line skel-thumb"></div>
@@ -330,8 +372,12 @@
     </div>
 
     <div class="unlock-headline">
-      <h2>Unlock Your Free Course</h2>
-      <p>Watch 2 short ads to activate your free enrollment link.</p>
+      <h2>🔓 Unlock Your Free Course</h2>
+      <p>Visit 2 advertiser pages briefly, then return here to get your free enrollment link.</p>
+    </div>
+
+    <div class="ad-notice" id="ad-notice">
+      📋 <strong>How it works:</strong> Click <strong>Visit</strong> → view the advertiser page for a few seconds → come back here and the step will unlock automatically.
     </div>
 
     <div class="progress-wrap">
@@ -351,10 +397,10 @@
           </svg>
         </div>
         <div class="step-body">
-          <div class="step-title">Watch Ad #1</div>
-          <div class="step-sub" id="sub-1">~10 seconds • tads.me</div>
+          <div class="step-title">Visit Sponsor Page #1</div>
+          <div class="step-sub" id="sub-1">~4 seconds • return here after</div>
         </div>
-        <button class="step-btn" id="btn-1" onclick="startStep(1)">Watch</button>
+        <button class="step-btn" id="btn-1" onclick="startStep(1)">Visit</button>
       </div>
 
       <!-- Step 2 -->
@@ -366,10 +412,10 @@
           </svg>
         </div>
         <div class="step-body">
-          <div class="step-title">Watch Ad #2</div>
-          <div class="step-sub" id="sub-2">~10 seconds • tads.me</div>
+          <div class="step-title">Visit Sponsor Page #2</div>
+          <div class="step-sub" id="sub-2">~4 seconds • return here after</div>
         </div>
-        <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Watch</button>
+        <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Visit</button>
       </div>
     </div>
 
@@ -383,12 +429,16 @@
 
   </div>
 
-  <!-- TGB banner -->
-  <div class="ad-section" id="ad-section-wrapper">
-    <div class="ad-label">Sponsored</div>
-    <div class="ad-slot">
-      <div id="tads-container-9636"></div>
-    </div>
+  <!-- HelloEncyclo Grant Banner -->
+  <div class="encyclo-section">
+    <a class="encyclo-banner" href="https://helloencyclo.com/?ref=HUSSEINSHEIKHO" target="_blank" rel="noopener">
+      <div class="encyclo-icon">🎓</div>
+      <div class="encyclo-text">
+        <div class="encyclo-title">Join HelloEncyclo Grant</div>
+        <div class="encyclo-sub">Free scholarship to learn Programming &amp; AI</div>
+      </div>
+      <span class="encyclo-arrow">Join →</span>
+    </a>
   </div>
 
   <!-- Confetti canvas -->
@@ -399,13 +449,50 @@
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
-  // ── Widget IDs ──────────────────────────────────────────────
-  const FULLSCREEN_ID_1 = "9579";
-  const FULLSCREEN_ID_2 = "9966";
-  const TGB_ID          = "9636";
-  const AD_DURATION_SEC = 10;   // عدد ثواني الكاونت داون
+  // ── HilltopAds direct links ──────────────────────────────────
+  // Tier-1 countries (US/Americas/EU tier/RU/AU/JP/CN)
+  const TIER1_LINKS = [
+    "https://massive-hall.com/GQtbhS",   // Step 1
+    "https://massive-hall.com/ovT8hP"    // Step 2
+  ];
+  // Fallback / VPN / other countries
+  const TIER2_LINKS = [
+    "https://fluffy-machine.com/Kp60r2", // Step 1
+    "https://fluffy-machine.com/hy0AJ8"  // Step 2
+  ];
 
-  // ── Course URL decode ────────────────────────────────────────
+  const TIER1_COUNTRIES = new Set([
+    "US","CA","MX","BR","AR","CL","CO","PE",  // Americas
+    "CN","JP","AU","NZ",                       // Asia-Pacific
+    "RU","UA",                                 // Eastern Europe
+    "GB","DE","FR","NL","BE","ES","IT",        // Western Europe
+    "PL","SE","NO","DK","FI","CH","AT","PT"   // More EU
+  ]);
+
+  const AD_DURATION_SEC = 4;  // countdown seconds
+
+  let adLinks = TIER2_LINKS; // default until geo check
+  let geoChecked = false;
+
+  // ── Geo + VPN check ──────────────────────────────────────────
+  async function detectGeoAndVPN() {
+    try {
+      const res  = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(4000) });
+      const data = await res.json();
+      const cc   = (data.country_code || "").toUpperCase();
+      const vpn  = data.security?.vpn || data.security?.proxy || data.security?.tor || false;
+      if (!vpn && TIER1_COUNTRIES.has(cc)) {
+        adLinks = TIER1_LINKS;
+      } else {
+        adLinks = TIER2_LINKS;
+      }
+    } catch(e) {
+      adLinks = TIER2_LINKS; // safe default on error
+    }
+    geoChecked = true;
+  }
+
+  // ── Course URL decode ─────────────────────────────────────────
   function getCourseUrl() {
     const param = tg?.initDataUnsafe?.start_param
                || new URLSearchParams(window.location.search).get('startapp')
@@ -418,7 +505,7 @@
     } catch(e) { return 'https://www.udemy.com/'; }
   }
 
-  // ── Course meta from URL params ──────────────────────────────
+  // ── Course meta from URL params ───────────────────────────────
   function loadCourseMeta() {
     const p = new URLSearchParams(window.location.search);
     const title = p.get('title'), img = p.get('img'),
@@ -438,7 +525,7 @@
 
   const COURSE_URL = getCourseUrl();
 
-  // ── localStorage progress cache (30 min) ────────────────────
+  // ── localStorage progress cache (5 min) ──────────────────────
   const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
   const CACHE_TTL = 5 * 60 * 1000;
 
@@ -458,63 +545,24 @@
     } catch(e) {}
   }
 
-  // ── State ────────────────────────────────────────────────────
+  // ── State ─────────────────────────────────────────────────────
   let step1Done = false, step2Done = false;
-  let adController1 = null, adController2 = null;
   let adPlaying = false;
 
-  // ── Init ─────────────────────────────────────────────────────
-  function waitForTads(cb) {
-    if (window.tads && typeof window.tads.init === 'function') { cb(); return; }
-    const t = setInterval(() => {
-      if (window.tads && typeof window.tads.init === 'function') { clearInterval(t); cb(); }
-    }, 80);
-  }
-
-  function initAdControllers() {
-    adController1 = window.tads.init({
-      widgetId: FULLSCREEN_ID_1, type: 'fullscreen', debug: false,
-      onShowReward:  () => onAdComplete(1),
-      onAdsNotFound: () => onAdFallback(1),
-      onError:       () => onAdFallback(1),
-    });
-    adController2 = window.tads.init({
-      widgetId: FULLSCREEN_ID_2, type: 'fullscreen', debug: false,
-      onShowReward:  () => onAdComplete(2),
-      onAdsNotFound: () => onAdFallback(2),
-      onError:       () => onAdFallback(2),
-    });
-  }
-
-  function initTGBBanner() {
-    const ctrl = window.tads.init({
-      widgetId: TGB_ID, type: 'static', debug: false,
-      onAdsNotFound: hideTGB,
-    });
-    if (ctrl && typeof ctrl.loadAd === 'function') {
-      ctrl.loadAd().then(() => ctrl.showAd()).catch(hideTGB);
-    }
-  }
-
-  function hideTGB() {
-    const el = document.getElementById('ad-section-wrapper');
-    if (el) el.style.display = 'none';
-  }
-
-  // ── Show skeleton → card transition ─────────────────────────
+  // ── Show skeleton → card transition ──────────────────────────
   function showCard() {
     document.getElementById('skeleton').classList.remove('visible');
     document.getElementById('main-card').classList.add('visible');
   }
 
-  // ── Countdown ring animation ─────────────────────────────────
-  function startCountdownRing(n) {
+  // ── Countdown ring animation ──────────────────────────────────
+  function startCountdownRing(n, onDone) {
     const ring   = document.getElementById(`ring-${n}`);
     const circle = document.getElementById(`ring-circle-${n}`);
     const btn    = document.getElementById(`btn-${n}`);
     const sub    = document.getElementById(`sub-${n}`);
 
-    const circumference = 2 * Math.PI * 15; // r=15
+    const circumference = 2 * Math.PI * 15;
     circle.style.strokeDasharray  = circumference;
     circle.style.strokeDashoffset = circumference;
     ring.classList.add('active');
@@ -529,15 +577,19 @@
 
       if (remaining > 0) {
         btn.textContent = remaining;
-        sub.textContent = `${remaining}s remaining…`;
+        sub.textContent = `${remaining}s • return here to continue`;
       } else {
         clearInterval(iv);
-        btn.textContent = '⏳';
-        sub.textContent = 'Loading…';
+        btn.textContent = '✓';
+        sub.textContent = 'Back? Click to confirm ✓';
+        btn.classList.remove('watching');
+        btn.style.background = '#10b981';
+        btn.style.pointerEvents = 'auto';
+        btn.style.cursor = 'pointer';
+        btn.onclick = () => onDone();
       }
     }, 1000);
 
-    // store interval id to cancel if ad completes early
     window[`_cd_${n}`] = iv;
   }
 
@@ -547,34 +599,32 @@
     if (ring) ring.classList.remove('active');
   }
 
-  // ── Start step ───────────────────────────────────────────────
+  // ── Start step ────────────────────────────────────────────────
   function startStep(n) {
     if (adPlaying) return;
     if (n === 1 && step1Done) return;
     if (n === 2 && (!step1Done || step2Done)) return;
 
     adPlaying = true;
-    const btn = document.getElementById(`btn-${n}`);
+    const btn  = document.getElementById(`btn-${n}`);
     btn.classList.add('watching');
+    btn.textContent = '⏳';
 
-    startCountdownRing(n);
+    // Open the ad link in new tab/external browser
+    const link = adLinks[n - 1];
+    if (tg?.openLink) {
+      tg.openLink(link);
+    } else {
+      window.open(link, '_blank');
+    }
 
-    const controller = n === 1 ? adController1 : adController2;
-    if (!controller) { setTimeout(() => onAdFallback(n), 1200); return; }
-
-    controller.showAd().catch(() => onAdFallback(n));
-
-    // safety net 22s
-    window[`_safety_${n}`] = setTimeout(() => {
-      if (adPlaying) { console.warn(`Step ${n}: safety net`); onAdComplete(n); }
-    }, 22000);
+    // Start countdown — user confirms return by clicking the button
+    startCountdownRing(n, () => onAdComplete(n));
   }
 
-  // ── Ad complete ──────────────────────────────────────────────
+  // ── Ad complete ───────────────────────────────────────────────
   function onAdComplete(n) {
-    clearTimeout(window[`_safety_${n}`]);
     stopCountdownRing(n);
-    if (!adPlaying) return;
     adPlaying = false;
 
     const btn  = document.getElementById(`btn-${n}`);
@@ -582,7 +632,7 @@
     const num  = document.getElementById(`num-${n}`);
     const sub  = document.getElementById(`sub-${n}`);
 
-    btn.classList.remove('watching');
+    btn.onclick = null;
     btn.className = 'step-btn done-mark';
     btn.textContent = '✓';
     step.classList.add('done');
@@ -606,11 +656,6 @@
     }
   }
 
-  function onAdFallback(n) {
-    console.warn(`Ad ${n} fallback`);
-    setTimeout(() => onAdComplete(n), 800);
-  }
-
   function updateProgress() {
     const done = (step1Done?1:0) + (step2Done?1:0);
     document.getElementById('progress-fill').style.width  = `${done*50}%`;
@@ -623,9 +668,10 @@
     btn.className = 'cta-btn unlocked';
     btn.innerHTML = '🚀 Enroll Free Now';
     document.getElementById('success-msg').classList.add('visible');
+    document.getElementById('ad-notice').style.display = 'none';
   }
 
-  // ── Enroll ───────────────────────────────────────────────────
+  // ── Enroll ────────────────────────────────────────────────────
   function enrollNow() {
     if (!step1Done || !step2Done) return;
     if (tg?.openLink) {
@@ -637,7 +683,7 @@
   }
   document.getElementById('btn-enroll').addEventListener('click', enrollNow);
 
-  // ── Confetti ─────────────────────────────────────────────────
+  // ── Confetti ──────────────────────────────────────────────────
   function launchConfetti() {
     const canvas = document.getElementById('confetti-canvas');
     const ctx    = canvas.getContext('2d');
@@ -645,7 +691,8 @@
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const colors  = ['#5624d0','#f4c150','#10b981','#e59819','#8b5cf6','#f43f5e'];
+    // Finnish flag confetti colours: blue + white + gold
+    const colors  = ['#003580','#ffffff','#f5c842','#1a4a9a','#d4a800','#ffffff'];
     const pieces  = Array.from({length: 90}, () => ({
       x:  Math.random() * canvas.width,
       y:  Math.random() * canvas.height - canvas.height,
@@ -676,18 +723,16 @@
     draw();
   }
 
-  // ── Bootstrap ────────────────────────────────────────────────
-  window.addEventListener('load', () => {
+  // ── Bootstrap ─────────────────────────────────────────────────
+  window.addEventListener('load', async () => {
     loadCourseMeta();
 
-    // Check localStorage cache
+    // Check localStorage cache first
     const cached = loadProgress();
     if (cached?.step1 && cached?.step2) {
-      // Already completed within 30 min — skip ads
       step1Done = true; step2Done = true;
       showCard();
       updateProgress();
-      // mark steps visually
       [1,2].forEach(n => {
         const btn  = document.getElementById(`btn-${n}`);
         const step = document.getElementById(`step-${n}`);
@@ -699,10 +744,8 @@
       unlockEnroll();
     } else {
       showCard();
-      waitForTads(() => {
-        initAdControllers();
-        initTGBBanner();
-      });
+      // Run geo detection in background — non-blocking
+      detectGeoAndVPN();
     }
   });
   </script>
