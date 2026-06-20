@@ -47,32 +47,6 @@
       overflow-x: hidden;
     }
 
-    /* ── Desktop / large screen wrapper ── */
-    @media (min-width: 520px) {
-      body {
-        background: #c8d8ee;
-        justify-content: center;
-        padding: 32px 0;
-      }
-      body > * {
-        max-width: 480px;
-        width: 100%;
-      }
-      .top-bar {
-        border-radius: 16px 16px 0 0;
-        max-width: 480px;
-        width: 100%;
-      }
-      .skeleton,
-      .card,
-      .encyclo-section {
-        max-width: 480px !important;
-        width: calc(100% - 0px) !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-      }
-    }
-
     /* ── Top bar ── */
     .top-bar {
       width: 100%;
@@ -358,7 +332,7 @@
   <!-- Top bar -->
   <div class="top-bar">
     <div class="logo-u">u</div>
-    <span class="logo-text" id="logo-text">UdemySY Free Courses</span>
+    <span class="logo-text">UdemySY Free Courses</span>
     <span class="badge-free">FREE</span>
   </div>
 
@@ -518,83 +492,38 @@
     geoChecked = true;
   }
 
-  // ── Decode startapp param (JSON payload packed by bot) ──────────
-  // Telegram only forwards the `startapp` value to the Mini App.
-  // The bot packs all course data as JSON → base64 inside startapp.
-  // Format: { u, t, i, c, p, e }
-  //   u = udemy URL, t = title, i = image, c = category, p = price, e = enrollments
-  function decodeStartParam() {
-    const raw = tg?.initDataUnsafe?.start_param
-             || new URLSearchParams(window.location.search).get('startapp')
-             || new URLSearchParams(window.location.search).get('tgWebAppStartParam')
-             || '';
-    if (!raw) return {};
+  // ── Course URL decode ─────────────────────────────────────────
+  function getCourseUrl() {
+    const param = tg?.initDataUnsafe?.start_param
+               || new URLSearchParams(window.location.search).get('startapp')
+               || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
+    if (!param) return 'https://www.udemy.com/';
     try {
-      // Restore base64 padding and decode JSON
-      const b64  = raw.replace(/-/g, '+').replace(/_/g, '/');
-      const pad  = b64 + '='.repeat((4 - b64.length % 4) % 4);
-      const text = decodeURIComponent(escape(atob(pad)));
-      const obj  = JSON.parse(text);
-      // Validate: if it has a "u" key it's the new JSON format
-      if (obj && obj.u) return obj;
-      // Legacy: plain base64 URL (old format — no course meta)
-      if (text.startsWith('http')) return { u: text };
-      return {};
-    } catch(e) {
-      // Last resort: try as plain base64 URL
-      try {
-        const b64  = raw.replace(/-/g, '+').replace(/_/g, '/');
-        const text = decodeURIComponent(escape(atob(b64)));
-        if (text.startsWith('http')) return { u: text };
-      } catch(_) {}
-      return {};
-    }
+      const b64     = param.replace(/-/g,'+').replace(/_/g,'/');
+      const decoded = decodeURIComponent(escape(atob(b64)));
+      return decoded.startsWith('http') ? decoded : 'https://www.udemy.com/';
+    } catch(e) { return 'https://www.udemy.com/'; }
   }
 
-  const _PAYLOAD   = decodeStartParam();
-  const COURSE_URL = _PAYLOAD.u || 'https://www.udemy.com/';
-
-  // ── Populate course meta from decoded payload ─────────────────
+  // ── Course meta from URL params ───────────────────────────────
   function loadCourseMeta() {
-    const title  = _PAYLOAD.t || '';
-    const img    = _PAYLOAD.i || '';
-    const cat    = _PAYLOAD.c || '';
-    const price  = _PAYLOAD.p || '';
-    const enroll = _PAYLOAD.e || '';
+    const p = new URLSearchParams(window.location.search);
+    const title = p.get('title'), img = p.get('img'),
+          cat   = p.get('cat'),   price = p.get('price');
 
-    // Card course title
-    if (title) document.getElementById('course-title').textContent = title;
-
-    // Top-bar → course title (truncated to ~32 chars)
-    if (title) {
-      const short = title.length > 32 ? title.slice(0, 30).trimEnd() + '\u2026' : title;
-      document.getElementById('logo-text').textContent = short;
-    }
-
-    // Thumbnail image
+    if (title) document.getElementById('course-title').textContent = decodeURIComponent(title);
     if (img) {
       const thumb = document.getElementById('course-thumb');
-      thumb.innerHTML = '<img src="' + img + '" alt="course" onerror="this.parentElement.innerHTML=\'\uD83C\uDF93\'" />';
+      const decoded = decodeURIComponent(img);
+      thumb.innerHTML = `<img src="${decoded}" alt="course"
+        onerror="this.parentElement.innerHTML='🎓'" />`;
     }
-
-    // Category tag
-    if (cat) document.getElementById('course-cat').textContent = cat;
-
-    // Original price (strikethrough)
-    if (price) document.getElementById('course-price-original').textContent = price;
-
-    // Enrollments left
-    const freeLabel = document.getElementById('free-label');
-    if (enroll && enroll !== 'N/A' && enroll !== '0') {
-      freeLabel.textContent = '\uD83C\uDFAB ' + enroll + ' enrollments left';
-      freeLabel.style.color = '#c0392b';
-    } else if (enroll === '0') {
-      freeLabel.textContent = '\u26D4 Sold out';
-      freeLabel.style.color = '#c0392b';
-    } else {
-      freeLabel.textContent = '\uD83C\uDD93 FREE with coupon';
-    }
+    if (cat)   document.getElementById('course-cat').textContent = decodeURIComponent(cat);
+    if (price) document.getElementById('course-price-original').textContent = decodeURIComponent(price);
+    if (!price) document.getElementById('free-label').textContent = '🆓 FREE with coupon';
   }
+
+  const COURSE_URL = getCourseUrl();
 
   // ── localStorage progress cache (5 min) ──────────────────────
   const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
