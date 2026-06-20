@@ -332,7 +332,7 @@
   <!-- Top bar -->
   <div class="top-bar">
     <div class="logo-u">u</div>
-    <span class="logo-text">UdemySY Free Courses</span>
+    <span class="logo-text" id="logo-text">UdemySY Free Courses</span>
     <span class="badge-free">FREE</span>
   </div>
 
@@ -508,19 +508,52 @@
   // ── Course meta from URL params ───────────────────────────────
   function loadCourseMeta() {
     const p = new URLSearchParams(window.location.search);
-    const title = p.get('title'), img = p.get('img'),
-          cat   = p.get('cat'),   price = p.get('price');
+    const title  = p.get('title'),
+          img    = p.get('img'),
+          cat    = p.get('cat'),
+          price  = p.get('price'),
+          enroll = p.get('enroll'); // enrollments_left passed from bot
 
-    if (title) document.getElementById('course-title').textContent = decodeURIComponent(title);
+    const titleDecoded = title ? decodeURIComponent(title) : '';
+
+    // Card course title
+    if (titleDecoded) {
+      document.getElementById('course-title').textContent = titleDecoded;
+    }
+
+    // Top-bar logo text → course title (truncated to ~32 chars)
+    if (titleDecoded) {
+      const short = titleDecoded.length > 32
+        ? titleDecoded.slice(0, 30).trimEnd() + '\u2026'
+        : titleDecoded;
+      document.getElementById('logo-text').textContent = short;
+    }
+
+    // Thumbnail image
     if (img) {
       const thumb = document.getElementById('course-thumb');
       const decoded = decodeURIComponent(img);
-      thumb.innerHTML = `<img src="${decoded}" alt="course"
-        onerror="this.parentElement.innerHTML='🎓'" />`;
+      thumb.innerHTML = '<img src="' + decoded + '" alt="course" onerror="this.parentElement.innerHTML=\'\uD83C\uDF93\'" />';
     }
-    if (cat)   document.getElementById('course-cat').textContent = decodeURIComponent(cat);
+
+    // Category tag
+    if (cat) document.getElementById('course-cat').textContent = decodeURIComponent(cat);
+
+    // Original price (strikethrough)
     if (price) document.getElementById('course-price-original').textContent = decodeURIComponent(price);
-    if (!price) document.getElementById('free-label').textContent = '🆓 FREE with coupon';
+
+    // Enrollments left label (replaces static text)
+    const enrollDecoded = enroll ? decodeURIComponent(enroll) : '';
+    const freeLabel = document.getElementById('free-label');
+    if (enrollDecoded && enrollDecoded !== 'N/A' && enrollDecoded !== '0') {
+      freeLabel.textContent = '\uD83C\uDFAB ' + enrollDecoded + ' enrollments left';
+      freeLabel.style.color = '#c0392b';
+    } else if (enrollDecoded === '0') {
+      freeLabel.textContent = '\u26D4 Sold out';
+      freeLabel.style.color = '#c0392b';
+    } else {
+      freeLabel.textContent = '\uD83C\uDD93 FREE with coupon';
+    }
   }
 
   const COURSE_URL = getCourseUrl();
