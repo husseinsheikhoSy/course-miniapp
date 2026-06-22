@@ -491,16 +491,42 @@
   // ── Onclicka TMA Rewarded Video ──────────────────────────────
   // Spot ID: 445739  |  inout selector: udemy
   const ONCLICKA_SPOT_ID = '445739';
-  const AD_DURATION_SEC  = 4;  // fallback countdown (not used for rewarded video)
+  const AD_DURATION_SEC  = 4;  // kept for compatibility
 
-  let onclickaShow = null; // will hold the show() function after init
+  let onclickaShow  = null;
+  let onclickaReady = false;
 
-  // Initialise the Onclicka ad engine as soon as possible
-  window.initCdTma?.({ id: ONCLICKA_SPOT_ID })
-    .then(show => { onclickaShow = show; })
-    .catch(e   => console.warn('[Onclicka] init error:', e));
+  // Wait for tma.js to finish loading before calling initCdTma
+  function initOnclicka() {
+    return new Promise((resolve, reject) => {
+      function tryInit() {
+        if (typeof window.initCdTma === 'function') {
+          window.initCdTma({ id: ONCLICKA_SPOT_ID, inout: 'udemy' })
+            .then(show => {
+              onclickaShow  = show;
+              onclickaReady = true;
+              console.log('[Onclicka] ready');
+              resolve(show);
+            })
+            .catch(e => { console.warn('[Onclicka] init error:', e); reject(e); });
+        } else {
+          setTimeout(tryInit, 200); // tma.js not loaded yet, retry
+        }
+      }
+      tryInit();
+    });
+  }
 
-  // No geo check needed – Onclicka handles targeting internally
+  // Kick off init immediately (non-blocking)
+  initOnclicka().catch(() => {});
+
+  // Returns a ready show() — re-inits if needed
+  async function getShow() {
+    if (onclickaShow) return onclickaShow;
+    return await initOnclicka();
+  }
+
+  // No geo check needed
   let geoChecked = true;
   async function detectGeoAndVPN() { /* replaced by Onclicka */ }
 
@@ -676,7 +702,7 @@
   }
 
   // ── Start step (Onclicka Rewarded Video) ─────────────────────
-  function startStep(n) {
+  async function startStep(n) {
     if (adPlaying) return;
     if (n === 1 && step1Done) return;
     if (n === 2 && (!step1Done || step2Done)) return;
@@ -686,35 +712,15 @@
     btn.classList.add('watching');
     btn.textContent = '⏳';
 
-    // Play the rewarded video ad via Onclicka SDK
-    if (onclickaShow) {
-      onclickaShow()
-        .then(() => {
-          // Ad completed successfully
-          onAdComplete(n);
-        })
-        .catch(e => {
-          // Ad was skipped or failed — reset button so user can retry
-          console.warn('[Onclicka] ad not completed:', e);
-          adPlaying = false;
-          btn.classList.remove('watching');
-          btn.textContent = 'Watch';
-        });
-    } else {
-      // SDK not ready yet — retry after a short delay
-      console.warn('[Onclicka] SDK not ready, retrying…');
-      window.initCdTma?.({ id: ONCLICKA_SPOT_ID })
-        .then(show => {
-          onclickaShow = show;
-          return show();
-        })
-        .then(() => onAdComplete(n))
-        .catch(e => {
-          console.warn('[Onclicka] retry failed:', e);
-          adPlaying = false;
-          btn.classList.remove('watching');
-          btn.textContent = 'Watch';
-        });
+    try {
+      const show = await getShow(); // ensure SDK is ready
+      await show();                 // play rewarded video — resolves on completion
+      onAdComplete(n);
+    } catch (e) {
+      console.warn('[Onclicka] ad failed or skipped:', e);
+      adPlaying = false;
+      btn.classList.remove('watching');
+      btn.textContent = 'Watch';
     }
   }
 
