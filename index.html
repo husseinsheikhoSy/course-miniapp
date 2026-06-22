@@ -319,48 +319,6 @@
       flex-shrink: 0;
     }
 
-    /* ── Wait overlay (early-return blocker) ── */
-    #wait-overlay {
-      position: fixed; inset: 0; z-index: 1000;
-      background: rgba(0, 20, 60, 0.72);
-      backdrop-filter: blur(6px);
-      display: flex; align-items: center; justify-content: center;
-      animation: fadeIn .25s ease;
-    }
-    #wait-overlay.fade-out { animation: fadeOut .4s ease forwards; }
-    @keyframes fadeOut { to { opacity: 0; } }
-
-    .wait-box {
-      background: var(--card);
-      border-radius: 22px;
-      padding: 32px 28px;
-      text-align: center;
-      box-shadow: 0 12px 40px rgba(0,0,0,.35);
-      max-width: 300px; width: 88%;
-      animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
-    }
-    @keyframes popIn {
-      from { opacity:0; transform: scale(.82); }
-      to   { opacity:1; transform: scale(1); }
-    }
-    .wait-icon    { font-size: 44px; margin-bottom: 8px; }
-    .wait-title   { font-size: 18px; font-weight: 900; color: var(--text); margin-bottom: 6px; }
-    .wait-sub     { font-size: 13px; color: var(--text-muted); font-weight: 600; line-height: 1.5; margin-bottom: 16px; }
-    .wait-countdown {
-      font-size: 56px; font-weight: 900; color: var(--fi-blue);
-      line-height: 1; margin-bottom: 16px;
-      animation: pulse 1s ease infinite;
-    }
-    @keyframes pulse {
-      0%,100% { transform: scale(1); }
-      50%      { transform: scale(1.08); }
-    }
-    .wait-hint {
-      font-size: 11px; color: var(--text-muted); font-weight: 600;
-      background: var(--fi-blue-pale); border-radius: 8px;
-      padding: 8px 12px; line-height: 1.5;
-    }
-
     /* ── Confetti canvas ── */
     #confetti-canvas {
       position: fixed; top:0; left:0;
@@ -455,7 +413,7 @@
     </div>
 
     <div class="ad-notice" id="ad-notice">
-      📋 <strong>How it works:</strong> Click <strong>Visit</strong> → stay on the advertiser page for <strong>7 seconds</strong> → come back here and the next step unlocks <strong>automatically</strong>.
+      📋 <strong>How it works:</strong> Click <strong>Visit</strong> → view the advertiser page for a few seconds → come back here and the next step unlocks <strong>automatically</strong>.
     </div>
 
     <div class="progress-wrap">
@@ -463,6 +421,12 @@
         <div class="progress-bar-fill" id="progress-fill"></div>
       </div>
       <span class="progress-label" id="progress-label">0/2</span>
+    </div>
+
+    <!-- Adsterra Native Banner -->
+    <div style="margin:10px 0 14px; overflow:hidden; border-radius:10px;">
+      <script async="async" data-cfasync="false" src="https://pl29841411.effectivecpmnetwork.com/7351fc3b8698105b3544395f015ba9fb/invoke.js"></script>
+      <div id="container-7351fc3b8698105b3544395f015ba9fb"></div>
     </div>
 
     <div class="steps">
@@ -476,7 +440,7 @@
         </div>
         <div class="step-body">
           <div class="step-title">Visit Sponsor Page #1</div>
-          <div class="step-sub" id="sub-1">~7 seconds • returns automatically</div>
+          <div class="step-sub" id="sub-1">~4 seconds • returns automatically</div>
         </div>
         <button class="step-btn" id="btn-1" onclick="startStep(1)">Visit</button>
       </div>
@@ -491,7 +455,7 @@
         </div>
         <div class="step-body">
           <div class="step-title">Visit Sponsor Page #2</div>
-          <div class="step-sub" id="sub-2">~7 seconds • returns automatically</div>
+          <div class="step-sub" id="sub-2">~4 seconds • returns automatically</div>
         </div>
         <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Visit</button>
       </div>
@@ -505,6 +469,22 @@
       🎉 You're all set! Click above to enroll for free.
     </div>
 
+  </div>
+
+  <!-- Adsterra Banner 300x250 -->
+  <div style="display:flex; justify-content:center; padding:14px 18px 0; background:var(--bg);">
+    <div style="width:300px; height:250px; overflow:hidden; border-radius:10px;">
+      <script>
+        atOptions = {
+          'key' : 'c22f33e0192916eaa77bd8b5038a5cd5',
+          'format' : 'iframe',
+          'height' : 250,
+          'width' : 300,
+          'params' : {}
+        };
+      </script>
+      <script src="https://www.highperformanceformat.com/c22f33e0192916eaa77bd8b5038a5cd5/invoke.js"></script>
+    </div>
   </div>
 
   <!-- HelloEncyclo Grant Banner -->
@@ -529,16 +509,17 @@
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
-  // ── HilltopAds direct links ──────────────────────────────────
-  // Tier-1 countries (US/Americas/EU tier/RU/AU/JP/CN)
+  // ── Adsterra Smartlink ──────────────────────────────────────
+  // Adsterra يختار أفضل إعلان تلقائياً لكل زائر حسب بلده
+  const SMARTLINK = "https://www.effectivecpmnetwork.com/v6czsbiv9?key=a4ccd15a1755a9ec8a86e88432b4e609";
+
   const TIER1_LINKS = [
-    "https://massive-hall.com/GQtbhS",   // Step 1
-    "https://massive-hall.com/ovT8hP"    // Step 2
+    SMARTLINK,   // Step 1
+    SMARTLINK    // Step 2
   ];
-  // Fallback / VPN / other countries
   const TIER2_LINKS = [
-    "https://fluffy-machine.com/Kp60r2", // Step 1
-    "https://fluffy-machine.com/hy0AJ8"  // Step 2
+    SMARTLINK,   // Step 1
+    SMARTLINK    // Step 2
   ];
 
   const TIER1_COUNTRIES = new Set([
@@ -549,7 +530,7 @@
     "PL","SE","NO","DK","FI","CH","AT","PT"   // More EU
   ]);
 
-  const AD_DURATION_SEC = 7;  // minimum seconds user must spend on ad page
+  const AD_DURATION_SEC = 7;  // minimum seconds on ad page
 
   let adLinks = TIER2_LINKS; // default until geo check
   let geoChecked = false;
@@ -686,44 +667,14 @@
     document.getElementById('main-card').classList.add('visible');
   }
 
-  // ── Wait overlay (blocks early return) ───────────────────────
-  function showWaitOverlay(secondsLeft, onExpired) {
-    let existing = document.getElementById('wait-overlay');
-    if (existing) existing.remove();
-
-    const overlay = document.createElement('div');
-    overlay.id = 'wait-overlay';
-    overlay.innerHTML = `
-      <div class="wait-box">
-        <div class="wait-icon">&#x23F3;</div>
-        <div class="wait-title">Please wait&#8230;</div>
-        <div class="wait-sub">You returned too early.<br>Step unlocks in:</div>
-        <div class="wait-countdown" id="wait-num">${secondsLeft}</div>
-        <div class="wait-hint">Stay on the sponsor page longer next time.</div>
-      </div>`;
-    document.body.appendChild(overlay);
-
-    let rem = secondsLeft;
-    const iv = setInterval(function() {
-      rem--;
-      const el = document.getElementById('wait-num');
-      if (el) el.textContent = rem;
-      if (rem <= 0) {
-        clearInterval(iv);
-        overlay.classList.add('fade-out');
-        setTimeout(function() { overlay.remove(); onExpired(); }, 400);
-      }
-    }, 1000);
-  }
-
   // ── Countdown ring animation ──────────────────────────────────
-  // Records departure time; on return checks elapsed. If user was on
-  // the ad page less than AD_DURATION_SEC, blocks with an overlay.
+  // Auto-completes when: (1) countdown hits 0, OR (2) user returns
+  // to this page — whichever comes first. No extra tap needed.
   function startCountdownRing(n, onDone) {
-    const ring   = document.getElementById('ring-' + n);
-    const circle = document.getElementById('ring-circle-' + n);
-    const btn    = document.getElementById('btn-' + n);
-    const sub    = document.getElementById('sub-' + n);
+    const ring   = document.getElementById(`ring-${n}`);
+    const circle = document.getElementById(`ring-circle-${n}`);
+    const btn    = document.getElementById(`btn-${n}`);
+    const sub    = document.getElementById(`sub-${n}`);
 
     const circumference = 2 * Math.PI * 13;
     circle.style.strokeDasharray  = circumference;
@@ -734,8 +685,6 @@
     let finished  = false;
     btn.textContent = remaining;
 
-    const departureTime = Date.now();
-
     function finish() {
       if (finished) return;
       finished = true;
@@ -745,36 +694,28 @@
       onDone();
     }
 
+    // Auto-complete the moment the user switches back to this tab/mini-app
     function onVisible() {
-      if (document.visibilityState !== 'visible') return;
-      document.removeEventListener('visibilitychange', onVisible);
-
-      const elapsedSec = (Date.now() - departureTime) / 1000;
-      const shortfall  = Math.ceil(AD_DURATION_SEC - elapsedSec);
-
-      if (shortfall <= 0) {
-        setTimeout(finish, 200);
-      } else {
-        sub.textContent = 'Returned too early \u2014 please wait\u2026';
-        showWaitOverlay(shortfall, finish);
+      if (document.visibilityState === 'visible') {
+        setTimeout(finish, 250); // tiny grace so tab animation settles
       }
     }
     document.addEventListener('visibilitychange', onVisible);
 
-    const iv = setInterval(function() {
+    const iv = setInterval(() => {
       remaining--;
       const progress = (AD_DURATION_SEC - remaining) / AD_DURATION_SEC;
       circle.style.strokeDashoffset = circumference * (1 - progress);
 
       if (remaining > 0) {
         btn.textContent = remaining;
-        sub.textContent = remaining + 's \u2022 return here after visiting';
+        sub.textContent = `${remaining}s • return here after visiting`;
       } else {
-        finish();
+        finish(); // countdown expired — complete immediately
       }
     }, 1000);
 
-    window['_cd_' + n] = iv;
+    window[`_cd_${n}`] = iv;
   }
 
   function stopCountdownRing(n) {
