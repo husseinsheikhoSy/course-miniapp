@@ -6,6 +6,7 @@
   <title>Udemy Free Course Access</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -413,7 +414,7 @@
     </div>
 
     <div class="ad-notice" id="ad-notice">
-      📋 <strong>How it works:</strong> Click <strong>Visit</strong> → view the advertiser page for a few seconds → come back here and the next step unlocks <strong>automatically</strong>.
+      📋 <strong>How it works:</strong> Click <strong>Watch</strong> → watch the short video ad to completion → the next step unlocks <strong>automatically</strong>.
     </div>
 
     <div class="progress-wrap">
@@ -421,12 +422,6 @@
         <div class="progress-bar-fill" id="progress-fill"></div>
       </div>
       <span class="progress-label" id="progress-label">0/2</span>
-    </div>
-
-    <!-- Adsterra Native Banner -->
-    <div style="margin:10px 0 14px; overflow:hidden; border-radius:10px;">
-      <script async="async" data-cfasync="false" src="https://pl29841411.effectivecpmnetwork.com/7351fc3b8698105b3544395f015ba9fb/invoke.js"></script>
-      <div id="container-7351fc3b8698105b3544395f015ba9fb"></div>
     </div>
 
     <div class="steps">
@@ -439,10 +434,10 @@
           </svg>
         </div>
         <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #1</div>
-          <div class="step-sub" id="sub-1">~4 seconds • returns automatically</div>
+          <div class="step-title">Watch Video Ad #1</div>
+          <div class="step-sub" id="sub-1">Watch a short video ad to unlock</div>
         </div>
-        <button class="step-btn" id="btn-1" onclick="startStep(1)">Visit</button>
+        <button class="step-btn" id="btn-1" onclick="startStep(1)">Watch</button>
       </div>
 
       <!-- Step 2 -->
@@ -454,10 +449,10 @@
           </svg>
         </div>
         <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #2</div>
-          <div class="step-sub" id="sub-2">~4 seconds • returns automatically</div>
+          <div class="step-title">Watch Video Ad #2</div>
+          <div class="step-sub" id="sub-2">Watch a short video ad to unlock</div>
         </div>
-        <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Visit</button>
+        <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Watch</button>
       </div>
     </div>
 
@@ -469,22 +464,6 @@
       🎉 You're all set! Click above to enroll for free.
     </div>
 
-  </div>
-
-  <!-- Adsterra Banner 300x250 -->
-  <div style="display:flex; justify-content:center; padding:14px 18px 0; background:var(--bg);">
-    <div style="width:300px; height:250px; overflow:hidden; border-radius:10px;">
-      <script>
-        atOptions = {
-          'key' : 'c22f33e0192916eaa77bd8b5038a5cd5',
-          'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
-          'params' : {}
-        };
-      </script>
-      <script src="https://www.highperformanceformat.com/c22f33e0192916eaa77bd8b5038a5cd5/invoke.js"></script>
-    </div>
   </div>
 
   <!-- HelloEncyclo Grant Banner -->
@@ -509,14 +488,21 @@
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
-  // ── Adsterra Smartlink ──────────────────────────────────────
-  // Smartlink واحد لكل الدول — Adsterra يتولى الـ geo تلقائياً
-  const adLinks = [
-    "https://www.effectivecpmnetwork.com/v6czsbiv9?key=a4ccd15a1755a9ec8a86e88432b4e609",   // Step 1
-    "https://www.effectivecpmnetwork.com/wyxswzy35?key=bfc02d4bb354a5d2fbdb5cec69e391bd"    // Step 2
-  ];
+  // ── Onclicka TMA Rewarded Video ──────────────────────────────
+  // Spot ID: 445739  |  inout selector: udemy
+  const ONCLICKA_SPOT_ID = '445739';
+  const AD_DURATION_SEC  = 4;  // fallback countdown (not used for rewarded video)
 
-  const AD_DURATION_SEC = 7;  // minimum seconds on ad page
+  let onclickaShow = null; // will hold the show() function after init
+
+  // Initialise the Onclicka ad engine as soon as possible
+  window.initCdTma?.({ id: ONCLICKA_SPOT_ID })
+    .then(show => { onclickaShow = show; })
+    .catch(e   => console.warn('[Onclicka] init error:', e));
+
+  // No geo check needed – Onclicka handles targeting internally
+  let geoChecked = true;
+  async function detectGeoAndVPN() { /* replaced by Onclicka */ }
 
   // ── start_param decode ──────────────────────────────────────────
   // Telegram ONLY forwards the single "startapp" parameter to a Mini
@@ -689,7 +675,7 @@
     if (ring) ring.classList.remove('active');
   }
 
-  // ── Start step ────────────────────────────────────────────────
+  // ── Start step (Onclicka Rewarded Video) ─────────────────────
   function startStep(n) {
     if (adPlaying) return;
     if (n === 1 && step1Done) return;
@@ -700,16 +686,36 @@
     btn.classList.add('watching');
     btn.textContent = '⏳';
 
-    // Open the ad link in external browser / new tab
-    const link = adLinks[n - 1];
-    if (tg?.openLink) {
-      tg.openLink(link);
+    // Play the rewarded video ad via Onclicka SDK
+    if (onclickaShow) {
+      onclickaShow()
+        .then(() => {
+          // Ad completed successfully
+          onAdComplete(n);
+        })
+        .catch(e => {
+          // Ad was skipped or failed — reset button so user can retry
+          console.warn('[Onclicka] ad not completed:', e);
+          adPlaying = false;
+          btn.classList.remove('watching');
+          btn.textContent = 'Watch';
+        });
     } else {
-      window.open(link, '_blank');
+      // SDK not ready yet — retry after a short delay
+      console.warn('[Onclicka] SDK not ready, retrying…');
+      window.initCdTma?.({ id: ONCLICKA_SPOT_ID })
+        .then(show => {
+          onclickaShow = show;
+          return show();
+        })
+        .then(() => onAdComplete(n))
+        .catch(e => {
+          console.warn('[Onclicka] retry failed:', e);
+          adPlaying = false;
+          btn.classList.remove('watching');
+          btn.textContent = 'Watch';
+        });
     }
-
-    // Auto-completes on return — user does NOT need to tap anything
-    startCountdownRing(n, () => onAdComplete(n));
   }
 
   // ── Ad complete ───────────────────────────────────────────────
@@ -834,6 +840,7 @@
       unlockEnroll();
     } else {
       showCard();
+      // No geo detection needed — Onclicka handles targeting internally
     }
   });
   </script>
