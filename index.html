@@ -510,48 +510,13 @@
   if (tg) { tg.ready(); tg.expand(); }
 
   // ── Adsterra Smartlink ──────────────────────────────────────
-  // Adsterra يختار أفضل إعلان تلقائياً لكل زائر حسب بلده
-  const SMARTLINK = "https://www.effectivecpmnetwork.com/v6czsbiv9?key=a4ccd15a1755a9ec8a86e88432b4e609";
-
-  const TIER1_LINKS = [
-    SMARTLINK,   // Step 1
-    SMARTLINK    // Step 2
+  // Smartlink واحد لكل الدول — Adsterra يتولى الـ geo تلقائياً
+  const adLinks = [
+    "https://www.effectivecpmnetwork.com/v6czsbiv9?key=a4ccd15a1755a9ec8a86e88432b4e609",  // Step 1
+    "https://www.effectivecpmnetwork.com/v6czsbiv9?key=a4ccd15a1755a9ec8a86e88432b4e609"   // Step 2
   ];
-  const TIER2_LINKS = [
-    SMARTLINK,   // Step 1
-    SMARTLINK    // Step 2
-  ];
-
-  const TIER1_COUNTRIES = new Set([
-    "US","CA","MX","BR","AR","CL","CO","PE",  // Americas
-    "CN","JP","AU","NZ",                       // Asia-Pacific
-    "RU","UA",                                 // Eastern Europe
-    "GB","DE","FR","NL","BE","ES","IT",        // Western Europe
-    "PL","SE","NO","DK","FI","CH","AT","PT"   // More EU
-  ]);
 
   const AD_DURATION_SEC = 7;  // minimum seconds on ad page
-
-  let adLinks = TIER2_LINKS; // default until geo check
-  let geoChecked = false;
-
-  // ── Geo + VPN check ──────────────────────────────────────────
-  async function detectGeoAndVPN() {
-    try {
-      const res  = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(4000) });
-      const data = await res.json();
-      const cc   = (data.country_code || "").toUpperCase();
-      const vpn  = data.security?.vpn || data.security?.proxy || data.security?.tor || false;
-      if (!vpn && TIER1_COUNTRIES.has(cc)) {
-        adLinks = TIER1_LINKS;
-      } else {
-        adLinks = TIER2_LINKS;
-      }
-    } catch(e) {
-      adLinks = TIER2_LINKS; // safe default on error
-    }
-    geoChecked = true;
-  }
 
   // ── start_param decode ──────────────────────────────────────────
   // Telegram ONLY forwards the single "startapp" parameter to a Mini
@@ -869,8 +834,6 @@
       unlockEnroll();
     } else {
       showCard();
-      // Run geo detection in background — non-blocking
-      detectGeoAndVPN();
     }
   });
   </script>
