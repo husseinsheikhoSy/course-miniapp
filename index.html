@@ -14,24 +14,26 @@
 
   <style>
     :root {
-      /* Finnish flag colours */
-      --fi-blue:        #003580;
-      --fi-blue-light:  #1a4a9a;
-      --fi-blue-pale:   #d0dff5;
-      --fi-white:       #ffffff;
-      --fi-yellow:      #f5c842;   /* accent – enrol CTA */
-      --fi-yellow-dk:   #d4a800;
+      /* Palette: deep navy / bright cyan-blue / soft sky tones — light theme */
+      --of-navy:        #00aff0;   /* primary brand blue */
+      --of-navy-dk:     #008ecf;   /* darker variant */
+      --of-navy-deep:   #005f8e;   /* deep for top-bar */
+      --of-pale:        #e0f5fd;   /* very light blue tint */
+      --of-white:       #ffffff;
+      --of-accent:      #00aff0;   /* cyan-blue accent */
+      --of-accent-dk:   #008ecf;
+      --of-teal:        #00c6ff;   /* bright highlight */
 
-      --bg:             #f0f4fb;
+      --bg:             #f4fbff;
       --card:           #ffffff;
-      --text:           #0a1a3a;
-      --text-muted:     #4a5a7a;
-      --border:         #ccd8ee;
-      --step-done-bg:   #e6f0ff;
-      --step-done-text: #003580;
+      --text:           #0a2233;
+      --text-muted:     #4a6a80;
+      --border:         #bde8f8;
+      --step-done-bg:   #e0f5fd;
+      --step-done-text: #005f8e;
       --radius-card:    20px;
       --radius-btn:     10px;
-      --shadow-card:    0 4px 24px rgba(0,53,128,.12);
+      --shadow-card:    0 4px 24px rgba(0,175,240,.13);
     }
 
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -49,9 +51,6 @@
       overflow-x: hidden;
     }
 
-    /* ── App shell ──
-       Keeps top-bar, card and banner visually unified as one
-       consistent "app" on every screen size — phone, tablet, desktop. */
     .app-shell {
       width: 100%;
       max-width: 440px;
@@ -59,7 +58,7 @@
       background: var(--bg);
       border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 12px 44px rgba(0,53,128,.16);
+      box-shadow: 0 12px 44px rgba(0,175,240,.18);
     }
     @media (max-width: 480px) {
       body { padding: 0; justify-content: flex-start; }
@@ -69,16 +68,16 @@
     /* ── Top bar ── */
     .top-bar {
       width: 100%;
-      background: var(--fi-blue);
+      background: linear-gradient(135deg, var(--of-navy-deep), var(--of-navy));
       padding: 14px 20px 12px;
       display: flex; align-items: center; gap: 10px;
-      border-bottom: 4px solid var(--fi-yellow);
+      border-bottom: 4px solid var(--of-teal);
     }
     .logo-u {
       width: 32px; height: 32px; border-radius: 6px;
-      background: var(--fi-white);
+      background: var(--of-white);
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px; font-weight: 900; color: var(--fi-blue);
+      font-size: 18px; font-weight: 900; color: var(--of-navy-deep);
       flex-shrink: 0;
     }
     .logo-text {
@@ -88,7 +87,7 @@
     }
     .badge-free {
       margin-left: auto;
-      background: var(--fi-yellow); color: var(--fi-blue);
+      background: var(--of-teal); color: #003d55;
       font-size: 11px; font-weight: 800;
       padding: 4px 10px; border-radius: 20px;
     }
@@ -105,7 +104,7 @@
     }
     .skeleton.visible { display: block; }
     .skel-line {
-      background: linear-gradient(90deg, #dce6f5 25%, #eef2fb 50%, #dce6f5 75%);
+      background: linear-gradient(90deg, #d0eefa 25%, #eaf7ff 50%, #d0eefa 75%);
       background-size: 200% 100%;
       border-radius: 6px; margin-bottom: 10px;
       animation: shimmer 1.4s infinite;
@@ -143,7 +142,7 @@
     }
     .course-thumb {
       width: 64px; height: 64px; border-radius: 10px;
-      background: linear-gradient(135deg, var(--fi-blue), var(--fi-blue-light));
+      background: linear-gradient(135deg, var(--of-navy-deep), var(--of-navy));
       flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
       font-size: 28px; overflow: hidden;
@@ -159,12 +158,12 @@
     .tag {
       font-size: 11px; font-weight: 700;
       padding: 3px 8px; border-radius: 5px;
-      background: var(--fi-blue-pale); color: var(--fi-blue);
+      background: var(--of-pale); color: var(--of-navy-deep);
     }
-    .tag.free-tag { background: var(--fi-yellow); color: #3a2800; }
+    .tag.free-tag { background: var(--of-teal); color: #003d55; }
     .course-price { font-size: 12px; font-weight: 800; margin-top: 6px; color: var(--text-muted); }
-    .course-price s { color: #8090aa; font-weight: 600; }
-    .course-price .free { color: var(--fi-blue); font-size: 14px; margin-left: 4px; }
+    .course-price s { color: #8099aa; font-weight: 600; }
+    .course-price .free { color: var(--of-navy-deep); font-size: 14px; margin-left: 4px; }
 
     /* ── Headline ── */
     .unlock-headline { text-align: center; margin-bottom: 6px; }
@@ -173,13 +172,13 @@
 
     /* ── Ad notice ── */
     .ad-notice {
-      background: var(--fi-blue-pale);
-      border: 1.5px solid var(--fi-blue);
+      background: var(--of-pale);
+      border: 1.5px solid var(--of-navy);
       border-radius: 10px;
       padding: 8px 12px;
       margin-bottom: 12px;
       font-size: 11.5px;
-      color: var(--fi-blue);
+      color: var(--of-navy-deep);
       font-weight: 700;
       text-align: center;
       line-height: 1.45;
@@ -190,11 +189,11 @@
     .progress-bar-bg { flex:1; height:7px; background:var(--border); border-radius:10px; overflow:hidden; }
     .progress-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--fi-blue), var(--fi-blue-light));
+      background: linear-gradient(90deg, var(--of-navy-deep), var(--of-teal));
       border-radius: 10px; width: 0%;
       transition: width .5s ease;
     }
-    .progress-label { font-size:12px; font-weight:800; color:var(--fi-blue); min-width:30px; text-align:right; }
+    .progress-label { font-size:12px; font-weight:800; color:var(--of-navy-deep); min-width:30px; text-align:right; }
 
     /* ── Steps ── */
     .steps { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
@@ -205,17 +204,17 @@
       transition: border-color .3s, background .3s;
     }
     .step.locked { opacity:.5; pointer-events:none; }
-    .step.done   { border-color: var(--fi-blue); background: var(--step-done-bg); }
+    .step.done   { border-color: var(--of-navy); background: var(--step-done-bg); }
 
     .step-num {
       width: 32px; height: 32px; border-radius: 50%;
-      background: var(--fi-blue-pale); color: var(--fi-blue);
+      background: var(--of-pale); color: var(--of-navy-deep);
       display: flex; align-items: center; justify-content: center;
       font-size: 14px; font-weight: 900; flex-shrink: 0;
       transition: background .3s, color .3s;
       position: relative;
     }
-    .step.done .step-num { background: var(--fi-blue); color:#fff; font-size:16px; }
+    .step.done .step-num { background: var(--of-navy); color:#fff; font-size:16px; }
 
     /* countdown ring */
     .countdown-ring {
@@ -227,7 +226,7 @@
     }
     .countdown-ring.active { opacity: 1; }
     .countdown-ring circle {
-      fill: none; stroke: var(--fi-yellow);
+      fill: none; stroke: var(--of-teal);
       stroke-width: 3;
       stroke-dasharray: 100;
       stroke-dashoffset: 100;
@@ -237,11 +236,12 @@
 
     .step-body { flex:1; min-width:0; }
     .step-title { font-size:14px; font-weight:800; color:var(--text); }
-    .step.done .step-title { color: var(--fi-blue); }
+    .step.done .step-title { color: var(--of-navy-deep); }
     .step-sub   { font-size:11px; color:var(--text-muted); margin-top:2px; }
 
     .step-btn {
-      background: var(--fi-blue); color: #fff; border: none;
+      background: linear-gradient(135deg, var(--of-navy), var(--of-navy-dk));
+      color: #fff; border: none;
       border-radius: var(--radius-btn); padding: 7px 14px;
       font-size: 12.5px; font-weight: 800;
       cursor: pointer; flex-shrink: 0;
@@ -249,10 +249,10 @@
       min-width: 60px; text-align: center;
     }
     .step-btn:active  { transform: scale(.96); }
-    .step-btn:disabled { background: #a0b4cc; cursor: not-allowed; }
-    .step-btn.watching { background: #f59e0b; pointer-events: none; }
+    .step-btn:disabled { background: #a8cfe0; cursor: not-allowed; }
+    .step-btn.watching { background: #0099cc; pointer-events: none; }
     .step-btn.done-mark {
-      background: transparent; color: var(--fi-blue);
+      background: transparent; color: var(--of-navy-deep);
       font-size: 20px; pointer-events: none; padding: 0 12px;
     }
 
@@ -265,15 +265,15 @@
     }
     .cta-btn.locked  { background:var(--border); color:var(--text-muted); cursor:not-allowed; }
     .cta-btn.unlocked {
-      background: linear-gradient(135deg, var(--fi-yellow), var(--fi-yellow-dk));
-      color: #3d2c00;
-      box-shadow: 0 6px 18px -4px rgba(245,200,66,.7);
-      animation: pulseYellow 2.2s infinite;
+      background: linear-gradient(135deg, var(--of-navy), var(--of-teal));
+      color: #fff;
+      box-shadow: 0 6px 18px -4px rgba(0,175,240,.55);
+      animation: pulseBlue 2.2s infinite;
     }
-    @keyframes pulseYellow {
-      0%  { box-shadow: 0 0 0 0   rgba(245,200,66,.45); }
-      60% { box-shadow: 0 0 0 12px rgba(245,200,66,0);  }
-      100%{ box-shadow: 0 0 0 0   rgba(245,200,66,0);   }
+    @keyframes pulseBlue {
+      0%  { box-shadow: 0 0 0 0   rgba(0,175,240,.45); }
+      60% { box-shadow: 0 0 0 12px rgba(0,175,240,0);  }
+      100%{ box-shadow: 0 0 0 0   rgba(0,175,240,0);   }
     }
 
     /* ── HelloEncyclo banner ── */
@@ -284,20 +284,20 @@
       background: var(--bg);
     }
     .encyclo-banner {
-      background: linear-gradient(135deg, var(--fi-blue), var(--fi-blue-light));
+      background: linear-gradient(135deg, var(--of-navy-deep), var(--of-navy));
       border-radius: 16px;
       padding: 13px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
       text-decoration: none;
-      box-shadow: 0 4px 16px rgba(0,53,128,.25);
+      box-shadow: 0 4px 16px rgba(0,175,240,.25);
       transition: transform .2s, box-shadow .2s;
     }
     .encyclo-banner:active { transform: scale(.98); }
     .encyclo-icon {
       width: 48px; height: 48px; border-radius: 12px;
-      background: var(--fi-white);
+      background: var(--of-white);
       display: flex; align-items: center; justify-content: center;
       font-size: 26px; flex-shrink: 0;
     }
@@ -307,12 +307,12 @@
       margin-bottom: 3px;
     }
     .encyclo-sub {
-      font-size: 11px; color: rgba(255,255,255,.8);
+      font-size: 11px; color: rgba(255,255,255,.85);
       font-weight: 600; line-height: 1.4;
     }
     .encyclo-arrow {
-      background: var(--fi-yellow);
-      color: var(--fi-blue);
+      background: var(--of-teal);
+      color: #003d55;
       border-radius: 8px;
       padding: 6px 10px;
       font-size: 13px;
@@ -336,10 +336,10 @@
       margin-top: 14px;
       padding: 12px 16px;
       background: var(--step-done-bg);
-      border: 1.5px solid var(--fi-blue);
+      border: 1.5px solid var(--of-navy);
       border-radius: 12px;
       font-size: 13px; font-weight: 700;
-      color: var(--fi-blue);
+      color: var(--of-navy-deep);
       animation: fadeIn .4s ease;
     }
     .success-msg.visible { display: block; }
@@ -352,8 +352,6 @@
       .course-title { font-size:13px; }
     }
 
-    /* Short viewports (e.g. Telegram desktop's compact window) —
-       trim spacing further so the whole card fits without scrolling */
     @media (max-height:720px) {
       body { padding: 10px 12px; }
       .unlock-headline h2 { font-size:16px; }
@@ -510,23 +508,15 @@
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
-  // ── Adsterra Smartlink ──────────────────────────────────────
-  // Smartlink واحد لكل الدول — Adsterra يتولى الـ geo تلقائياً
+  // ── Ad Links ────────────────────────────────────────────────
   const adLinks = [
     "https://www.effectivecpmnetwork.com/hsv9hdaif?key=4039e55f670c0769c5b6e42e143b2585",   // Step 1
-    "https://www.effectivecpmnetwork.com/wyxswzy35?key=bfc02d4bb354a5d2fbdb5cec69e391bd"    // Step 2
+    "https://wasputtinghish.com/?8iPyf=1377104"                                               // Step 2
   ];
 
-  const AD_DURATION_SEC = 7;  // minimum seconds on ad page
+  const AD_DURATION_SEC = 7;
 
   // ── start_param decode ──────────────────────────────────────────
-  // Telegram ONLY forwards the single "startapp" parameter to a Mini
-  // App (as tgWebAppStartParam / initDataUnsafe.start_param). Any other
-  // query params on the t.me deep link (title=, img=, left=, ...) get
-  // silently dropped before the page ever loads — that's why only the
-  // course URL (smuggled inside startapp) used to come through.
-  // Fix: the bot now packs everything into ONE base64url-encoded JSON
-  // object and puts that whole blob into startapp.
   function b64urlDecode(str) {
     const b64     = str.replace(/-/g, '+').replace(/_/g, '/');
     const padded  = b64 + '='.repeat((4 - b64.length % 4) % 4);
@@ -542,8 +532,6 @@
         || null;
   }
 
-  // Decoded JSON payload from the bot: { u: url, t: title, i: img,
-  // c: category, p: price, l: enrollments left }. Null if absent/old format.
   let courseData = null;
 
   function resolveCourseUrl() {
@@ -557,7 +545,7 @@
         courseData = parsed;
         return parsed.u;
       }
-    } catch (e) { /* not JSON — fall through to legacy plain-URL format */ }
+    } catch (e) {}
 
     try {
       const decoded = b64urlDecode(raw);
@@ -572,10 +560,8 @@
     let title, img, cat, price, left;
 
     if (courseData) {
-      // Came from the startapp JSON payload — already plain text
       ({ t: title, i: img, c: cat, p: price, l: left } = courseData);
     } else {
-      // Fallback for direct browser testing with separate ?title=&left= etc.
       const p = new URLSearchParams(window.location.search);
       const get = k => p.get(k) ? decodeURIComponent(p.get(k)) : null;
       title = get('title'); img = get('img'); cat = get('cat');
@@ -634,8 +620,6 @@
   }
 
   // ── Countdown ring animation ──────────────────────────────────
-  // Auto-completes when: (1) countdown hits 0, OR (2) user returns
-  // to this page — whichever comes first. No extra tap needed.
   function startCountdownRing(n, onDone) {
     const ring   = document.getElementById(`ring-${n}`);
     const circle = document.getElementById(`ring-circle-${n}`);
@@ -660,10 +644,9 @@
       onDone();
     }
 
-    // Auto-complete the moment the user switches back to this tab/mini-app
     function onVisible() {
       if (document.visibilityState === 'visible') {
-        setTimeout(finish, 250); // tiny grace so tab animation settles
+        setTimeout(finish, 250);
       }
     }
     document.addEventListener('visibilitychange', onVisible);
@@ -677,7 +660,7 @@
         btn.textContent = remaining;
         sub.textContent = `${remaining}s • return here after visiting`;
       } else {
-        finish(); // countdown expired — complete immediately
+        finish();
       }
     }, 1000);
 
@@ -701,7 +684,6 @@
     btn.classList.add('watching');
     btn.textContent = '⏳';
 
-    // Open the ad link in external browser / new tab
     const link = adLinks[n - 1];
     if (tg?.openLink) {
       tg.openLink(link);
@@ -709,7 +691,6 @@
       window.open(link, '_blank');
     }
 
-    // Auto-completes on return — user does NOT need to tap anything
     startCountdownRing(n, () => onAdComplete(n));
   }
 
@@ -782,8 +763,8 @@
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Finnish flag confetti colours: blue + white + gold
-    const colors  = ['#003580','#ffffff','#f5c842','#1a4a9a','#d4a800','#ffffff'];
+    // Cyan-blue palette confetti
+    const colors  = ['#00aff0','#ffffff','#00c6ff','#005f8e','#008ecf','#e0f5fd'];
     const pieces  = Array.from({length: 90}, () => ({
       x:  Math.random() * canvas.width,
       y:  Math.random() * canvas.height - canvas.height,
@@ -818,7 +799,6 @@
   window.addEventListener('load', async () => {
     loadCourseMeta();
 
-    // Check localStorage cache first
     const cached = loadProgress();
     if (cached?.step1 && cached?.step2) {
       step1Done = true; step2Done = true;
