@@ -8,6 +8,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
   <script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
+  <script src="https://w.tads.me/widget.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -277,6 +278,18 @@
       100%{ box-shadow: 0 0 0 0   rgba(0,175,240,0);   }
     }
 
+    /* ── tads.me TGB Banner ── */
+    .tads-banner-section {
+      width: 100%;
+      padding: 0 18px 14px;
+      background: var(--bg);
+    }
+    #tads-container-9636 {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
     /* ── HelloEncyclo banner ── */
     .encyclo-section {
       width: 100%;
@@ -467,6 +480,11 @@
   </div>
 
 
+  <!-- tads.me TGB Banner #9636 -->
+  <div class="tads-banner-section">
+    <div id="tads-container-9636"></div>
+  </div>
+
   <!-- HelloEncyclo Grant Banner -->
   <div class="encyclo-section">
     <a class="encyclo-banner" href="https://helloencyclo.com/?ref=HUSSEINSHEIKHO" target="_blank" rel="noopener">
@@ -489,12 +507,85 @@
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
-  // ── Adexium Widget ─────────────────────────────────────────
+  // ── Ad config ───────────────────────────────────────────────
   const AD_DURATION_SEC = 5;
   const ADEXIUM_WID = 'ce45e384-0fb7-4198-b3ba-477584913169';
 
-  // Creates a fresh AdexiumWidget instance for each ad request
-  // to avoid internal state issues that block a second ad request
+  // tads.me Fullscreen widget IDs per step
+  const TADS_FULLSCREEN_IDS = {
+    1: 9579,
+    2: 9966,
+  };
+  const TADS_TGB_ID = 9636;
+
+  // ── tads.me controller cache ─────────────────────────────────
+  const tadsControllers = {};
+
+  function waitForTads(timeout = 5000) {
+    return new Promise((resolve, reject) => {
+      if (window.tads && typeof window.tads.init === 'function') return resolve();
+      const start = performance.now();
+      const iv = setInterval(() => {
+        if (window.tads && typeof window.tads.init === 'function') {
+          clearInterval(iv); resolve();
+        } else if (performance.now() - start > timeout) {
+          clearInterval(iv); reject(new Error('tads not loaded'));
+        }
+      }, 50);
+    });
+  }
+
+  // Returns promise: resolves true if ad shown, false if no ad
+  function showTadsFullscreen(stepN) {
+    return new Promise(async (resolve) => {
+      try {
+        await waitForTads();
+        const widgetId = TADS_FULLSCREEN_IDS[stepN];
+
+        let adShown = false;
+
+        const ctrl = window.tads.init({
+          widgetId: widgetId,
+          type: 'fullscreen',
+          debug: false,
+          onShowReward: () => {
+            adShown = true;
+            resolve(true);
+          },
+          onAdsNotFound: () => {
+            if (!adShown) resolve(false);
+          }
+        });
+
+        tadsControllers[stepN] = ctrl;
+
+        if (ctrl && typeof ctrl.showAd === 'function') {
+          ctrl.showAd().catch(() => {
+            if (!adShown) resolve(false);
+          });
+        } else {
+          resolve(false);
+        }
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  }
+
+  // ── Init tads TGB Banner #9636 ───────────────────────────────
+  function initTadsBanner() {
+    waitForTads().then(() => {
+      const ctrl = window.tads.init({
+        widgetId: TADS_TGB_ID,
+        type: 'static',
+        debug: false,
+        onAdsNotFound: () => {}
+      });
+      ctrl.loadAd().then(() => ctrl.showAd()).catch(() => {});
+    }).catch(() => {});
+  }
+
+  // ── Adexium Widget ─────────────────────────────────────────
   function createAdexiumInstance() {
     if (!window.AdexiumWidget) return null;
     return new AdexiumWidget({
@@ -652,7 +743,7 @@
     if (ring) ring.classList.remove('active');
   }
 
-  // ── Start step ────────────────────────────────────────────────
+  // ── Start step — Adexium first, fallback to tads.me ──────────
   function startStep(n) {
     if (adPlaying) return;
     if (n === 1 && step1Done) return;
@@ -663,52 +754,72 @@
     btn.classList.add('watching');
     btn.textContent = '⏳';
 
-    // Track whether ad was closed and timer finished
-    let timerDone  = false;
-    let adClosed   = false;
+    let timerDone = false;
+    let adHandled = false; // true once ad interaction resolved (closed or noAd)
 
     function tryComplete() {
-      if (timerDone && adClosed) onAdComplete(n);
+      if (timerDone && adHandled) onAdComplete(n);
     }
 
-    // Start 5-second countdown ring regardless of ad state
+    // Start countdown ring regardless of ad state
     startCountdownRing(n, () => {
       timerDone = true;
       tryComplete();
     });
 
-    // Request Adexium interstitial ad — fresh instance each time
+    // ── Try Adexium first ──
     const widget = createAdexiumInstance();
     if (widget) {
+      let adexiumResolved = false;
+
+      const resolveAdexium = (adFound) => {
+        if (adexiumResolved) return;
+        adexiumResolved = true;
+        widget.off('adReceived',         onReceived);
+        widget.off('adClosed',           onClosed);
+        widget.off('adPlaybackCompleted',onClosed);
+        widget.off('noAdFound',          onNoAd);
+        if (widget.destroy) widget.destroy();
+
+        if (adFound) {
+          // Ad was shown by Adexium — wait for timer
+          adHandled = true;
+          tryComplete();
+        } else {
+          // No Adexium ad → try tads.me fullscreen fallback
+          tryTadsFallback(n);
+        }
+      };
+
       const onReceived = (ad) => {
         widget.displayAd(ad);
         widget.off('adReceived', onReceived);
       };
-      const onClosed = () => {
-        adClosed = true;
-        widget.off('adClosed', onClosed);
-        widget.off('adPlaybackCompleted', onClosed);
-        widget.off('noAdFound', onNoAd);
-        if (widget.destroy) widget.destroy();
-        tryComplete();
-      };
-      const onNoAd = () => {
-        adClosed = true;
-        widget.off('adReceived', onReceived);
-        widget.off('adClosed', onClosed);
-        widget.off('adPlaybackCompleted', onClosed);
-        widget.off('noAdFound', onNoAd);
-        if (widget.destroy) widget.destroy();
-        tryComplete();
-      };
-      widget.on('adReceived', onReceived);
-      widget.on('adClosed', onClosed);
+      const onClosed = () => resolveAdexium(true);
+      const onNoAd   = () => resolveAdexium(false);
+
+      widget.on('adReceived',          onReceived);
+      widget.on('adClosed',            onClosed);
       widget.on('adPlaybackCompleted', onClosed);
-      widget.on('noAdFound', onNoAd);
+      widget.on('noAdFound',           onNoAd);
       widget.requestAd('interstitial');
+
     } else {
-      // Widget script not loaded — just rely on the timer
-      adClosed = true;
+      // Adexium script not loaded → try tads.me directly
+      tryTadsFallback(n);
+    }
+
+    // ── tads.me fullscreen fallback ──
+    function tryTadsFallback(stepN) {
+      const sub = document.getElementById(`sub-${stepN}`);
+      if (sub) sub.textContent = `loading alternate ad…`;
+
+      showTadsFullscreen(stepN).then((shown) => {
+        // Whether tads showed an ad or not — mark as handled
+        // (we still respect the timer for minimum exposure)
+        adHandled = true;
+        tryComplete();
+      });
     }
   }
 
@@ -781,7 +892,6 @@
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Cyan-blue palette confetti
     const colors  = ['#00aff0','#ffffff','#00c6ff','#005f8e','#008ecf','#e0f5fd'];
     const pieces  = Array.from({length: 90}, () => ({
       x:  Math.random() * canvas.width,
@@ -816,6 +926,7 @@
   // ── Bootstrap ─────────────────────────────────────────────────
   window.addEventListener('load', async () => {
     loadCourseMeta();
+    initTadsBanner();
 
     const cached = loadProgress();
     if (cached?.step1 && cached?.step2) {
