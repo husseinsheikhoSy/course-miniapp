@@ -7,7 +7,7 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
-  <script src="https://sdk.adsbitvex.com/functions/v1/ad-script?appid=000166"></script>
+  <script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
   <script src="https://w.tads.me/widget.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -509,7 +509,7 @@
 
   // ── Ad config ───────────────────────────────────────────────
   const AD_DURATION_SEC = 5;
-  const ADSBITVEX_APP_ID = '000166';
+  const ADEXIUM_WID = 'ce45e384-0fb7-4198-b3ba-477584913169';
 
   // tads.me Fullscreen widget IDs per step
   const TADS_FULLSCREEN_IDS = {
@@ -535,92 +535,6 @@
     });
   }
 
-  // ── Universal safe-link opener ───────────────────────────────
-  window.__origOpen = window.open;
-
-  function openLinkSafely(url) {
-    if (!url || typeof url !== 'string') return;
-    if (tg && tg.openLink) {
-      tg.openLink(url);
-    } else {
-      window.__origOpen.call(window, url, '_blank');
-    }
-  }
-
-  // Installs a guard that intercepts ALL ways an ad can open a link.
-  // Returns a cleanup function to remove the guard.
-  function installLinkGuard(onLinkOpened) {
-    // 1) window.open
-    window.open = function(url, target, features) {
-      if (url && typeof url === 'string' && url.startsWith('http')) {
-        openLinkSafely(url);
-        onLinkOpened(url);
-        return null;
-      }
-      return window.__origOpen.call(window, url, target, features);
-    };
-
-    // 2) window.location.assign / replace / href
-    const _assign  = window.location.assign.bind(window.location);
-    const _replace = window.location.replace.bind(window.location);
-    window.location.assign = function(url) {
-      if (url && String(url).startsWith('http')) { openLinkSafely(url); onLinkOpened(url); }
-      else { _assign(url); }
-    };
-    window.location.replace = function(url) {
-      if (url && String(url).startsWith('http')) { openLinkSafely(url); onLinkOpened(url); }
-      else { _replace(url); }
-    };
-    try {
-      Object.defineProperty(window.location, 'href', {
-        set(url) { if (url && String(url).startsWith('http')) { openLinkSafely(url); onLinkOpened(url); } },
-        get() { return location.href; },
-        configurable: true
-      });
-    } catch(e) {}
-
-    // 3) <a href> clicks inside ad overlays
-    function clickGuard(e) {
-      const a = e.target.closest && e.target.closest('a[href]');
-      if (!a) return;
-      const href = a.getAttribute('href');
-      if (href && href.startsWith('http')) {
-        e.preventDefault(); e.stopPropagation();
-        openLinkSafely(href);
-        onLinkOpened(href);
-      }
-    }
-    document.addEventListener('click', clickGuard, true);
-
-    return function removeLinkGuard() {
-      window.open = window.__origOpen;
-      try {
-        window.location.assign  = _assign;
-        window.location.replace = _replace;
-        Object.defineProperty(window.location, 'href', {
-          set(v) { _assign(v); }, get() { return location.href; }, configurable: true
-        });
-      } catch(e) {}
-      document.removeEventListener('click', clickGuard, true);
-    };
-  }
-
-  // Waits for the user to return after ad link opens
-  function waitForUserReturn(onReturn) {
-    let done = false;
-    function ret() {
-      if (done) return; done = true;
-      document.removeEventListener('visibilitychange', onVis);
-      window.removeEventListener('focus', onFocus);
-      onReturn();
-    }
-    function onVis()   { if (!document.hidden) ret(); }
-    function onFocus() { ret(); }
-    document.addEventListener('visibilitychange', onVis);
-    window.addEventListener('focus', onFocus);
-    setTimeout(ret, (AD_DURATION_SEC + 6) * 1000);
-  }
-
   // Returns promise: resolves true if ad shown, false if no ad
   function showTadsFullscreen(stepN) {
     return new Promise(async (resolve) => {
@@ -628,32 +542,29 @@
         await waitForTads();
         const widgetId = TADS_FULLSCREEN_IDS[stepN];
 
-        let resolved = false;
-        function done(val) {
-          if (resolved) return; resolved = true;
-          removeLinkGuard();
-          resolve(val);
-        }
-
-        const removeLinkGuard = installLinkGuard((url) => {
-          // Link intercepted — wait for user return then resolve
-          waitForUserReturn(() => done(true));
-        });
+        let adShown = false;
 
         const ctrl = window.tads.init({
           widgetId: widgetId,
           type: 'fullscreen',
           debug: false,
-          onShowReward:   () => done(true),
-          onAdsNotFound:  () => done(false),
+          onShowReward: () => {
+            adShown = true;
+            resolve(true);
+          },
+          onAdsNotFound: () => {
+            if (!adShown) resolve(false);
+          }
         });
 
         tadsControllers[stepN] = ctrl;
 
         if (ctrl && typeof ctrl.showAd === 'function') {
-          ctrl.showAd().catch(() => { if (!resolved) done(false); });
+          ctrl.showAd().catch(() => {
+            if (!adShown) resolve(false);
+          });
         } else {
-          done(false);
+          resolve(false);
         }
       } catch (e) {
         resolve(false);
@@ -674,23 +585,27 @@
     }).catch(() => {});
   }
 
-  // ── AdsBitVex Widget ──────────────────────────────────────
-  function waitForAdsBitVex(timeout = 5000) {
+  // ── Adexium Widget ─────────────────────────────────────────
+  function waitForAdexium(timeout = 5000) {
     return new Promise((resolve, reject) => {
-      if (typeof window.showadsbitvex === 'function') return resolve();
+      if (window.AdexiumWidget) return resolve();
       const start = performance.now();
       const iv = setInterval(() => {
-        if (typeof window.showadsbitvex === 'function') {
+        if (window.AdexiumWidget) {
           clearInterval(iv); resolve();
         } else if (performance.now() - start > timeout) {
-          clearInterval(iv); reject(new Error('AdsBitVex not loaded'));
+          clearInterval(iv); reject(new Error('AdexiumWidget not loaded'));
         }
       }, 50);
     });
   }
 
-  function showAdsBitVexAd() {
-    return window.showadsbitvex();
+  function createAdexiumInstance() {
+    if (!window.AdexiumWidget) return null;
+    return new AdexiumWidget({
+      wid: ADEXIUM_WID,
+      adFormat: 'interstitial'
+    });
   }
 
   // ── start_param decode ──────────────────────────────────────────
@@ -842,7 +757,7 @@
     if (ring) ring.classList.remove('active');
   }
 
-  // ── Start step — AdsBitVex first, fallback to tads.me ──────────
+  // ── Start step — Adexium first, fallback to tads.me ──────────
   function startStep(n) {
     if (adPlaying) return;
     if (n === 1 && step1Done) return;
@@ -872,71 +787,75 @@
       if (timerDone && adHandled) onAdComplete(n);
     }
 
-    // ── Try AdsBitVex first, with full fallback coverage ──────────
-    //
-    // Cases we handle:
-    //  A) Ad shown + link opened (normal)        → guard intercepts, opens safely, waits return
-    //  B) Ad shown + no link (reward promise)    → start timer, mark done
-    //  C) No ad / promise rejects                → fallback to tads.me
-    //  D) Frequency-cap / warning resolves fast  → elapsed < MIN_AD_DURATION_MS → fallback
-    //  E) Script never loads                     → fallback to tads.me
-    //
-    const MIN_AD_DURATION_MS = 2000;
-    let adsBitVexLinkOpened = false;
-    let adsBitVexStartTime  = 0;
-    let removeBvGuard       = null;
-
-    // Watch DOM for AdsBitVex overlay disappearing quickly (freq-cap / error)
-    let domObserver = null;
-    function watchForAdsBitVexOverlay() {
-      domObserver = new MutationObserver(() => {
-        const overlay = document.querySelector(
-          '[class*="adsbitvex"],[id*="adsbitvex"],[class*="adsbv"],[id*="adsbv"]'
-        );
-        if (!overlay && adsBitVexStartTime > 0) {
-          const elapsed = Date.now() - adsBitVexStartTime;
-          if (elapsed < MIN_AD_DURATION_MS && !adsBitVexLinkOpened) {
-            domObserver.disconnect();
-            if (removeBvGuard) removeBvGuard();
-            tryTadsFallback(n);
-          }
-        }
-      });
-      domObserver.observe(document.body, { childList: true, subtree: true });
-    }
-
-    waitForAdsBitVex(5000).then(() => {
-      removeBvGuard = installLinkGuard((url) => {
-        adsBitVexLinkOpened = true;
-        startTimer();
-        waitForUserReturn(() => { adHandled = true; tryComplete(); });
-      });
-      watchForAdsBitVexOverlay();
-      adsBitVexStartTime = Date.now();
-      return showAdsBitVexAd();
-    }).then(() => {
-      if (domObserver) domObserver.disconnect();
-      if (removeBvGuard) removeBvGuard();
-
-      if (adsBitVexLinkOpened) return; // already handled via waitForUserReturn
-
-      const elapsed = Date.now() - adsBitVexStartTime;
-      if (elapsed < MIN_AD_DURATION_MS) {
-        tryTadsFallback(n); // freq-cap or no-ad → fallback
-      } else {
-        startTimer(); adHandled = true; tryComplete(); // reward ad finished normally
+    // ── Safety net: if Adexium hangs for 8s, force fallback to tads ──
+    const adexiumHangGuard = setTimeout(() => {
+      if (!adHandled) {
+        tryTadsFallback(n);
       }
+    }, 8000);
+
+    // ── Try Adexium (wait up to 5s for script to load) ──
+    waitForAdexium(5000).then(() => {
+      const widget = createAdexiumInstance();
+      if (!widget) {
+        clearTimeout(adexiumHangGuard);
+        tryTadsFallback(n);
+        return;
+      }
+
+      let adexiumResolved = false;
+
+      const resolveAdexium = (adFound) => {
+        if (adexiumResolved) return;
+        adexiumResolved = true;
+        clearTimeout(adexiumHangGuard);
+        widget.off('adReceived',          onReceived);
+        widget.off('adClosed',            onClosed);
+        widget.off('adPlaybackCompleted', onClosed);
+        widget.off('noAdFound',           onNoAd);
+        if (widget.destroy) widget.destroy();
+
+        if (adFound) {
+          // Ad was shown by Adexium — wait for timer
+          adHandled = true;
+          tryComplete();
+        } else {
+          // No Adexium ad → try tads.me fullscreen fallback
+          tryTadsFallback(n);
+        }
+      };
+
+      const onReceived = (ad) => {
+        // Ad arrived — now safe to start the countdown timer
+        startTimer();
+        widget.displayAd(ad);
+        widget.off('adReceived', onReceived);
+      };
+      const onClosed = () => resolveAdexium(true);
+      const onNoAd   = () => resolveAdexium(false);
+
+      widget.on('adReceived',          onReceived);
+      widget.on('adClosed',            onClosed);
+      widget.on('adPlaybackCompleted', onClosed);
+      widget.on('noAdFound',           onNoAd);
+      widget.requestAd('interstitial');
+
     }).catch(() => {
-      if (domObserver) domObserver.disconnect();
-      if (removeBvGuard) removeBvGuard();
+      // Adexium script never loaded → go straight to tads
+      clearTimeout(adexiumHangGuard);
       tryTadsFallback(n);
     });
 
     // ── tads.me fullscreen fallback ──
     function tryTadsFallback(stepN) {
       if (sub) sub.textContent = 'loading alternate ad…';
+      // Start timer now if not already started (e.g. Adexium didn't fire adReceived)
       startTimer();
-      showTadsFullscreen(stepN).then(() => { adHandled = true; tryComplete(); });
+
+      showTadsFullscreen(stepN).then(() => {
+        adHandled = true;
+        tryComplete();
+      });
     }
   }
 
