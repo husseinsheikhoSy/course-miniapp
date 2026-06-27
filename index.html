@@ -576,25 +576,9 @@
 
   const COURSE_URL = resolveCourseUrl();
 
-  // ── localStorage progress cache (5 min) ──────────────────────
-  const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
-  const CACHE_TTL = 5 * 60 * 1000;
-
-  function loadProgress() {
-    try {
-      const raw = localStorage.getItem(CACHE_KEY);
-      if (!raw) return null;
-      const obj = JSON.parse(raw);
-      if (Date.now() - obj.ts > CACHE_TTL) { localStorage.removeItem(CACHE_KEY); return null; }
-      return obj;
-    } catch(e) { return null; }
-  }
-
-  function saveProgress(step1, step2) {
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ step1, step2, ts: Date.now() }));
-    } catch(e) {}
-  }
+  // ── Progress cache disabled — ads must be watched every visit ──
+  function loadProgress() { return null; }
+  function saveProgress() {}
 
   // ── State ─────────────────────────────────────────────────────
   let step1Done = false, step2Done = false;
@@ -663,47 +647,51 @@
     btn.classList.add('watching');
     btn.textContent = '⏳';
 
-    let timerDone = false;
-    let adClosed  = false;
+    // Track whether ad was closed and timer finished
+    let timerDone  = false;
+    let adClosed   = false;
 
     function tryComplete() {
       if (timerDone && adClosed) onAdComplete(n);
     }
 
-    // timeout احتياطي: إذا لم يأتِ adClosed خلال 15 ثانية يكتمل تلقائياً
-    const safetyTimer = setTimeout(() => {
-      adClosed = true;
-      tryComplete();
-    }, 15000);
-
+    // Start 5-second countdown ring regardless of ad state
     startCountdownRing(n, () => {
       timerDone = true;
       tryComplete();
     });
 
+    // Request Adexium interstitial ad — fresh instance each time
     const widget = createAdexiumInstance();
     if (widget) {
       const onReceived = (ad) => {
         widget.displayAd(ad);
         widget.off('adReceived', onReceived);
       };
-      const onDone = () => {
-        clearTimeout(safetyTimer);
+      const onClosed = () => {
         adClosed = true;
-        widget.off('adClosed', onDone);
-        widget.off('adPlaybackCompleted', onDone);
-        widget.off('noAdFound', onDone);
+        widget.off('adClosed', onClosed);
+        widget.off('adPlaybackCompleted', onClosed);
+        widget.off('noAdFound', onNoAd);
+        if (widget.destroy) widget.destroy();
+        tryComplete();
+      };
+      const onNoAd = () => {
+        adClosed = true;
+        widget.off('adReceived', onReceived);
+        widget.off('adClosed', onClosed);
+        widget.off('adPlaybackCompleted', onClosed);
+        widget.off('noAdFound', onNoAd);
         if (widget.destroy) widget.destroy();
         tryComplete();
       };
       widget.on('adReceived', onReceived);
-      widget.on('adClosed', onDone);
-      widget.on('adPlaybackCompleted', onDone);
-      widget.on('noAdFound', onDone);
+      widget.on('adClosed', onClosed);
+      widget.on('adPlaybackCompleted', onClosed);
+      widget.on('noAdFound', onNoAd);
       widget.requestAd('interstitial');
     } else {
-      // الـ widget غير محمّل — أكمل بالعداد فقط
-      clearTimeout(safetyTimer);
+      // Widget script not loaded — just rely on the timer
       adClosed = true;
     }
   }
