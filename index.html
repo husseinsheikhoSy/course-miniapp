@@ -7,7 +7,201 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
-  <!-- tads.me SDK (primary) -->
+  <!-- ══════════════════════════════════════════════════════════════
+       🔒 MINI APP PROTECTION — MUST be defined BEFORE ad SDKs
+       ══════════════════════════════════════════════════════════════ -->
+  <script>
+  (function() {
+    const tg = window.Telegram?.WebApp || null;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      if (tg.disableClosingConfirmation) tg.disableClosingConfirmation();
+    }
+
+    if (!tg) return;
+
+    const isExternal = (url) => {
+      if (!url || typeof url !== 'string') return false;
+      return /^https?:\/\//.test(url);
+    };
+
+    const safeOpen = (url) => {
+      if (tg.openLink) tg.openLink(url, { try_instant_view: false });
+      else window.open(url, '_blank');
+    };
+
+    // 1️⃣ window.open
+    const _origOpen = window.open;
+    window.open = function(url, target, features) {
+      if (isExternal(url)) {
+        safeOpen(url);
+        return null;
+      }
+      return _origOpen.apply(this, arguments);
+    };
+
+    // 2️⃣ window.location setter
+    try {
+      const _loc = window.location;
+      Object.defineProperty(window, 'location', {
+        get: () => _loc,
+        set: (url) => {
+          if (isExternal(url)) { safeOpen(url); return; }
+          _loc.href = url;
+        },
+        configurable: true
+      });
+    } catch(e) {}
+
+    // 3️⃣ document.location setter
+    try {
+      const _docLoc = document.location;
+      Object.defineProperty(document, 'location', {
+        get: () => _docLoc,
+        set: (url) => {
+          if (isExternal(url)) { safeOpen(url); return; }
+          _docLoc.href = url;
+        },
+        configurable: true
+      });
+    } catch(e) {}
+
+    // 4️⃣ window.top.location & window.parent.location
+    ['top', 'parent'].forEach(prop => {
+      try {
+        const obj = window[prop];
+        if (obj && obj !== window) {
+          const _propLoc = obj.location;
+          Object.defineProperty(obj, 'location', {
+            get: () => _propLoc,
+            set: (url) => {
+              if (isExternal(url)) { safeOpen(url); return; }
+              _propLoc.href = url;
+            },
+            configurable: true
+          });
+        }
+      } catch(e) {}
+    });
+
+    // 5️⃣ location.href setter
+    try {
+      const _origHref = Object.getOwnPropertyDescriptor(window.location, 'href');
+      if (_origHref && _origHref.set) {
+        Object.defineProperty(window.location, 'href', {
+          get: () => _origHref.get.call(window.location),
+          set: (url) => {
+            if (isExternal(url)) { safeOpen(url); return; }
+            _origHref.set.call(window.location, url);
+          },
+          configurable: true
+        });
+      }
+    } catch(e) {}
+
+    // 6️⃣ location.replace & location.assign
+    try {
+      const _origReplace = window.location.replace.bind(window.location);
+      window.location.replace = function(url) {
+        if (isExternal(url)) { safeOpen(url); return; }
+        _origReplace(url);
+      };
+    } catch(e) {}
+    try {
+      const _origAssign = window.location.assign.bind(window.location);
+      window.location.assign = function(url) {
+        if (isExternal(url)) { safeOpen(url); return; }
+        _origAssign(url);
+      };
+    } catch(e) {}
+
+    // 7️⃣ document.location.href/replace/assign
+    try {
+      const _origDocHref = Object.getOwnPropertyDescriptor(document.location, 'href');
+      if (_origDocHref && _origDocHref.set) {
+        Object.defineProperty(document.location, 'href', {
+          get: () => _origDocHref.get.call(document.location),
+          set: (url) => {
+            if (isExternal(url)) { safeOpen(url); return; }
+            _origDocHref.set.call(document.location, url);
+          },
+          configurable: true
+        });
+      }
+    } catch(e) {}
+    try {
+      const _origDocReplace = document.location.replace.bind(document.location);
+      document.location.replace = function(url) {
+        if (isExternal(url)) { safeOpen(url); return; }
+        _origDocReplace(url);
+      };
+    } catch(e) {}
+    try {
+      const _origDocAssign = document.location.assign.bind(document.location);
+      document.location.assign = function(url) {
+        if (isExternal(url)) { safeOpen(url); return; }
+        _origDocAssign(url);
+      };
+    } catch(e) {}
+
+    // 8️⃣ Prevent beforeunload
+    window.addEventListener('beforeunload', (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    });
+
+    // 9️⃣ Intercept all clicks on external links
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a');
+      if (a && isExternal(a.href)) {
+        e.preventDefault();
+        e.stopPropagation();
+        safeOpen(a.href);
+      }
+    }, true);
+
+    // 🔟 Intercept iframe creation
+    const _origCreateElement = document.createElement;
+    document.createElement = function(tagName) {
+      const el = _origCreateElement.call(document, tagName);
+      if (tagName.toLowerCase() === 'iframe') {
+        const _origSrc = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'src');
+        if (_origSrc && _origSrc.set) {
+          Object.defineProperty(el, 'src', {
+            get: () => _origSrc.get.call(el),
+            set: (url) => {
+              if (isExternal(url)) {
+                safeOpen(url);
+                return;
+              }
+              _origSrc.set.call(el, url);
+            }
+          });
+        }
+      }
+      return el;
+    };
+
+    // 1️⃣1️⃣ Monitor for dynamically added iframes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.tagName === 'IFRAME' && isExternal(node.src)) {
+            node.remove();
+            safeOpen(node.src);
+          }
+        });
+      });
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  })();
+  </script>
+
+  <!-- adsbitvex SDK (fallback) — loaded AFTER protection -->
+  <script src="https://sdk.adsbitvex.com/functions/v1/ad-script?appid=000166"></script>
+
+  <!-- tads.me SDK (primary) — loaded AFTER protection -->
   <script src="https://w.tads.me/widget.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -66,7 +260,6 @@
       .app-shell { border-radius: 0; box-shadow: none; max-width: 100%; }
     }
 
-    /* ── Top bar ── */
     .top-bar {
       width: 100%;
       background: linear-gradient(135deg, var(--of-navy-deep), var(--of-navy));
@@ -93,7 +286,6 @@
       padding: 4px 10px; border-radius: 20px;
     }
 
-    /* ── Loading skeleton ── */
     .skeleton {
       display: none;
       width: 100%;
@@ -118,7 +310,6 @@
     .skel-row { display: flex; gap: 12px; margin-bottom: 18px; }
     .skel-lines { flex: 1; }
 
-    /* ── Main card ── */
     .card {
       width: 100%;
       margin: 0;
@@ -135,7 +326,6 @@
       to   { opacity:1; transform:translateY(0); }
     }
 
-    /* ── Course info ── */
     .course-info {
       display: flex; gap: 12px;
       margin-bottom: 14px; padding-bottom: 14px;
@@ -166,12 +356,10 @@
     .course-price s { color: #8099aa; font-weight: 600; }
     .course-price .free { color: var(--of-navy-deep); font-size: 14px; margin-left: 4px; }
 
-    /* ── Headline ── */
     .unlock-headline { text-align: center; margin-bottom: 6px; }
     .unlock-headline h2 { font-size: 17px; font-weight: 900; color: var(--text); line-height: 1.3; }
     .unlock-headline p  { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
 
-    /* ── Ad notice ── */
     .ad-notice {
       background: var(--of-pale);
       border: 1.5px solid var(--of-navy);
@@ -185,7 +373,6 @@
       line-height: 1.45;
     }
 
-    /* ── Progress bar ── */
     .progress-wrap { margin: 12px 0; display: flex; align-items: center; gap: 10px; }
     .progress-bar-bg { flex:1; height:7px; background:var(--border); border-radius:10px; overflow:hidden; }
     .progress-bar-fill {
@@ -196,7 +383,6 @@
     }
     .progress-label { font-size:12px; font-weight:800; color:var(--of-navy-deep); min-width:30px; text-align:right; }
 
-    /* ── Steps ── */
     .steps { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
     .step {
       display: flex; align-items: center; gap: 10px;
@@ -217,7 +403,6 @@
     }
     .step.done .step-num { background: var(--of-navy); color:#fff; font-size:16px; }
 
-    /* countdown ring */
     .countdown-ring {
       position: absolute; top: 0; left: 0;
       width: 32px; height: 32px;
@@ -257,7 +442,6 @@
       font-size: 20px; pointer-events: none; padding: 0 12px;
     }
 
-    /* ── CTA ── */
     .cta-btn {
       width: 100%; padding: 14px; border-radius: 14px; border: none;
       font-size: 15px; font-weight: 900; cursor: pointer;
@@ -277,7 +461,6 @@
       100%{ box-shadow: 0 0 0 0   rgba(0,175,240,0);   }
     }
 
-    /* ── tads.me TGB Banner ── */
     .tads-banner-section {
       width: 100%;
       padding: 0 18px 14px;
@@ -289,7 +472,6 @@
       overflow: hidden;
     }
 
-    /* ── HelloEncyclo banner ── */
     .encyclo-section {
       width: 100%;
       margin: 0;
@@ -333,7 +515,6 @@
       flex-shrink: 0;
     }
 
-    /* ── Confetti canvas ── */
     #confetti-canvas {
       position: fixed; top:0; left:0;
       width:100%; height:100%;
@@ -342,7 +523,6 @@
       display: none;
     }
 
-    /* ── Success message ── */
     .success-msg {
       display: none;
       text-align: center;
@@ -373,19 +553,17 @@
       .step  { padding:8px 12px; }
     }
   </style>
+<base target="_blank">
 </head>
 <body>
 
 <div class="app-shell">
-
-  <!-- Top bar -->
   <div class="top-bar">
     <div class="logo-u">u</div>
     <span class="logo-text" id="logo-text">UdemySY Free Courses</span>
     <span class="badge-free">FREE</span>
   </div>
 
-  <!-- Skeleton loader -->
   <div class="skeleton visible" id="skeleton">
     <div class="skel-row">
       <div class="skel-line skel-thumb"></div>
@@ -402,9 +580,7 @@
     <div class="skel-line" style="height:52px;border-radius:14px;margin-top:4px;"></div>
   </div>
 
-  <!-- Main card -->
   <div class="card" id="main-card">
-
     <div class="course-info">
       <div class="course-thumb" id="course-thumb">🎓</div>
       <div class="course-meta">
@@ -436,7 +612,6 @@
     </div>
 
     <div class="steps">
-      <!-- Step 1 -->
       <div class="step" id="step-1">
         <div class="step-num" id="num-1">
           1
@@ -451,7 +626,6 @@
         <button class="step-btn" id="btn-1" onclick="startStep(1)">Visit</button>
       </div>
 
-      <!-- Step 2 -->
       <div class="step locked" id="step-2">
         <div class="step-num" id="num-2">
           2
@@ -474,15 +648,12 @@
     <div class="success-msg" id="success-msg">
       🎉 You're all set! Click above to enroll for free.
     </div>
-
   </div>
 
-  <!-- tads.me TGB Banner #9636 -->
   <div class="tads-banner-section">
     <div id="tads-container-9636"></div>
   </div>
 
-  <!-- HelloEncyclo Grant Banner -->
   <div class="encyclo-section">
     <a class="encyclo-banner" href="https://helloencyclo.com/?ref=HUSSEINSHEIKHO" target="_blank" rel="noopener">
       <div class="encyclo-icon">🎓</div>
@@ -493,36 +664,24 @@
       <span class="encyclo-arrow">Join →</span>
     </a>
   </div>
-
 </div>
 
-<!-- Confetti canvas -->
 <canvas id="confetti-canvas"></canvas>
 
 <script>
-// ── Telegram WebApp ─────────────────────────────────────────
+// ── Telegram WebApp (already initialized in head, just reference) ──
 const tg = window.Telegram?.WebApp || null;
-if (tg) {
-  tg.ready();
-  tg.expand();
-  // منع إغلاق التطبيق عند فتح روابط خارجية
-  if (tg.disableClosingConfirmation) tg.disableClosingConfirmation();
-}
 
 // ── Ad config ───────────────────────────────────────────────
 const AD_DURATION_SEC = 5;
-
-// tads.me widget IDs — أساسي لكل زر
 const TADS_FULLSCREEN_IDS = { 1: 9579, 2: 9966 };
 const TADS_TGB_ID = 9636;
 
-// ── حالة كل زر مستقلة ───────────────────────────────────────
 const stepState = {
   1: { done: false, playing: false },
   2: { done: false, playing: false },
 };
 
-// ── tads.me helpers ─────────────────────────────────────────
 function waitForTads(timeout = 6000) {
   return new Promise((resolve, reject) => {
     if (window.tads && typeof window.tads.init === 'function') return resolve();
@@ -537,8 +696,6 @@ function waitForTads(timeout = 6000) {
   });
 }
 
-// يحاول عرض إعلان tads.me الـ fullscreen للخطوة n
-// يُرجع Promise<boolean> — true إذا عُرض الإعلان، false إذا لا يوجد
 function showTadsFullscreen(stepN) {
   return new Promise(async (resolve) => {
     try {
@@ -550,98 +707,45 @@ function showTadsFullscreen(stepN) {
         widgetId: widgetId,
         type: 'fullscreen',
         debug: false,
-        onShowReward: () => {
-          if (!settled) { settled = true; resolve(true); }
-        },
-        onAdsNotFound: () => {
-          if (!settled) { settled = true; resolve(false); }
-        }
+        onShowReward: () => { if (!settled) { settled = true; resolve(true); } },
+        onAdsNotFound: () => { if (!settled) { settled = true; resolve(false); } }
       });
 
       if (ctrl && typeof ctrl.showAd === 'function') {
-        ctrl.showAd().catch(() => {
-          if (!settled) { settled = true; resolve(false); }
-        });
+        ctrl.showAd().catch(() => { if (!settled) { settled = true; resolve(false); } });
       } else {
         if (!settled) { settled = true; resolve(false); }
       }
-
-      // حارس: إذا لم يستجب tads خلال 7 ثوانٍ → اعتبره فاشلاً
-      setTimeout(() => {
-        if (!settled) { settled = true; resolve(false); }
-      }, 7000);
-
-    } catch (e) {
-      resolve(false);
-    }
+      setTimeout(() => { if (!settled) { settled = true; resolve(false); } }, 7000);
+    } catch (e) { resolve(false); }
   });
 }
 
-// ── adsbitvex fallback ───────────────────────────────────────
-// لا نستخدم showadsbitvex() أبداً — تفتح overlay يُغلق الـ Mini App.
-// بدلاً منها: نجلب رابط إعلان مباشر من API adsbitvex ونفتحه
-// عبر tg.openLink() ← يفتح في متصفح Telegram الداخلي
-// والـ Mini App يبقى حياً خلفه.
-// visibilitychange يرصد عودة المستخدم وينهي الخطوة.
+function waitForAdsBitvex(timeout = 6000) {
+  return new Promise((resolve, reject) => {
+    if (typeof window.showadsbitvex === 'function') return resolve();
+    const start = performance.now();
+    const iv = setInterval(() => {
+      if (typeof window.showadsbitvex === 'function') {
+        clearInterval(iv); resolve();
+      } else if (performance.now() - start > timeout) {
+        clearInterval(iv); reject(new Error('adsbitvex timeout'));
+      }
+    }, 50);
+  });
+}
 
-const ADSBITVEX_APP_ID  = '000166';
-const ADSBITVEX_API_URL = `https://sdk.adsbitvex.com/functions/v1/get-ad?appid=${ADSBITVEX_APP_ID}`;
-// رابط احتياطي ثابت إذا فشل API
-const ADSBITVEX_FALLBACK_URL = `https://adsbitvex.com/ads/?appid=${ADSBITVEX_APP_ID}`;
-
-function showAdsBitvexSafe() {
+function showAdsBitvex() {
   return new Promise(async (resolve) => {
-
-    // ── 1. جلب رابط الإعلان من API ──────────────────────────
-    let adUrl = ADSBITVEX_FALLBACK_URL;
     try {
-      const res  = await fetch(ADSBITVEX_API_URL);
-      const data = await res.json();
-      // الرابط المباشر قد يكون في data.url أو data.redirect أو data.link
-      const url  = data?.url || data?.redirect || data?.link || data?.ad_url;
-      if (url && url.startsWith('http')) adUrl = url;
-    } catch (_) {
-      // استخدم الرابط الاحتياطي
-    }
-
-    // ── 2. افتح الرابط عبر Telegram (لا يُغلق الـ Mini App) ─
-    if (tg?.openLink) {
-      tg.openLink(adUrl);
-    } else {
-      window.open(adUrl, '_blank');
-    }
-
-    // ── 3. انتظر عودة المستخدم للتطبيق ──────────────────────
-    let resolved = false;
-
-    const done = () => {
-      if (resolved) return;
-      resolved = true;
-      document.removeEventListener('visibilitychange', onVisible);
-      clearTimeout(safetyTimer);
-      resolve(true);
-    };
-
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') done();
-    };
-
-    // على Desktop قد لا يُطلق visibilitychange — نضيف pageshow أيضاً
-    const onPageShow = () => done();
-
-    document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('pageshow', onPageShow, { once: true });
-    window.addEventListener('focus', onPageShow, { once: true });
-
-    // حارس: بعد 60 ثانية نكمل تلقائياً إذا لم يعد المستخدم
-    const safetyTimer = setTimeout(() => {
-      document.removeEventListener('visibilitychange', onVisible);
-      if (!resolved) { resolved = true; resolve(false); }
-    }, 60000);
+      await waitForAdsBitvex(5000);
+      window.showadsbitvex()
+        .then(() => resolve(true))
+        .catch(() => resolve(false));
+    } catch (e) { resolve(false); }
   });
 }
 
-// ── Init tads TGB Banner #9636 ───────────────────────────────
 function initTadsBanner() {
   waitForTads().then(() => {
     const ctrl = window.tads.init({
@@ -654,12 +758,11 @@ function initTadsBanner() {
   }).catch(() => {});
 }
 
-// ── start_param decode ──────────────────────────────────────────
 function b64urlDecode(str) {
-  const b64    = str.replace(/-/g, '+').replace(/_/g, '/');
+  const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
   const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
   const binary = atob(padded);
-  const bytes  = Uint8Array.from(binary, c => c.charCodeAt(0));
+  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
   return new TextDecoder('utf-8').decode(bytes);
 }
 
@@ -676,7 +779,7 @@ function resolveCourseUrl() {
   const raw = getStartParam();
   if (!raw) return 'https://www.udemy.com/';
   try {
-    const text   = b64urlDecode(raw);
+    const text = b64urlDecode(raw);
     const parsed = JSON.parse(text);
     if (parsed && typeof parsed === 'object' && parsed.u) {
       courseData = parsed;
@@ -690,27 +793,25 @@ function resolveCourseUrl() {
   return 'https://www.udemy.com/';
 }
 
-// ── Course meta ──────────────────────────────────────────────
 function loadCourseMeta() {
   let title, img, cat, price, left;
   if (courseData) {
     ({ t: title, i: img, c: cat, p: price, l: left } = courseData);
   } else {
-    const p   = new URLSearchParams(window.location.search);
+    const p = new URLSearchParams(window.location.search);
     const get = k => p.get(k) ? decodeURIComponent(p.get(k)) : null;
     title = get('title'); img = get('img'); cat = get('cat');
     price = get('price'); left = get('left');
   }
   if (title) {
     document.getElementById('course-title').textContent = title;
-    document.getElementById('logo-text').textContent    = title;
+    document.getElementById('logo-text').textContent = title;
   }
   if (img) {
     const thumb = document.getElementById('course-thumb');
-    thumb.innerHTML = `<img src="${img}" alt="course"
-      onerror="this.parentElement.innerHTML='🎓'" />`;
+    thumb.innerHTML = `<img src="${img}" alt="course" onerror="this.parentElement.innerHTML='🎓'" />`;
   }
-  if (cat)   document.getElementById('course-cat').textContent            = cat;
+  if (cat) document.getElementById('course-cat').textContent = cat;
   if (price) document.getElementById('course-price-original').textContent = price;
   if (left) {
     document.getElementById('free-label').textContent = `🔥 ${left} left`;
@@ -721,7 +822,6 @@ function loadCourseMeta() {
 
 const COURSE_URL = resolveCourseUrl();
 
-// ── localStorage progress cache (5 min) ──────────────────────
 const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
 const CACHE_TTL = 5 * 60 * 1000;
 
@@ -741,26 +841,24 @@ function saveProgress(step1, step2) {
   } catch(e) {}
 }
 
-// ── Show skeleton → card transition ──────────────────────────
 function showCard() {
   document.getElementById('skeleton').classList.remove('visible');
   document.getElementById('main-card').classList.add('visible');
 }
 
-// ── Countdown ring animation ──────────────────────────────────
 function startCountdownRing(n, onDone) {
-  const ring   = document.getElementById(`ring-${n}`);
+  const ring = document.getElementById(`ring-${n}`);
   const circle = document.getElementById(`ring-circle-${n}`);
-  const btn    = document.getElementById(`btn-${n}`);
-  const sub    = document.getElementById(`sub-${n}`);
+  const btn = document.getElementById(`btn-${n}`);
+  const sub = document.getElementById(`sub-${n}`);
 
   const circumference = 2 * Math.PI * 13;
-  circle.style.strokeDasharray  = circumference;
+  circle.style.strokeDasharray = circumference;
   circle.style.strokeDashoffset = circumference;
   ring.classList.add('active');
 
   let remaining = AD_DURATION_SEC;
-  let finished  = false;
+  let finished = false;
   btn.textContent = remaining;
 
   function finish() {
@@ -792,12 +890,7 @@ function stopCountdownRing(n) {
   if (ring) ring.classList.remove('active');
 }
 
-// ══════════════════════════════════════════════════════════════
-//  startStep — كل زر يعمل بشكل مستقل تماماً
-//  المنهجية: tads.me أولاً → إذا لا يوجد إعلان → adsbitvex
-// ══════════════════════════════════════════════════════════════
 function startStep(n) {
-  // تجاهل النقر المزدوج أو إذا انتهى الزر مسبقاً
   if (stepState[n].playing) return;
   if (n === 1 && stepState[1].done) return;
   if (n === 2 && (!stepState[1].done || stepState[2].done)) return;
@@ -811,9 +904,8 @@ function startStep(n) {
   btn.textContent = '⏳';
   if (sub) sub.textContent = 'loading ad…';
 
-  // ── حالة الانتهاء المزدوج (مؤقت + إعلان) ──
-  let timerDone  = false;
-  let adHandled  = false;
+  let timerDone = false;
+  let adHandled = false;
   let timerStarted = false;
 
   function startTimer() {
@@ -829,22 +921,17 @@ function startStep(n) {
     if (timerDone && adHandled) onAdComplete(n);
   }
 
-  // ── المرحلة 1: tads.me ──────────────────────────────────────
   if (sub) sub.textContent = 'loading ad…';
 
   showTadsFullscreen(n).then((tadsShown) => {
     if (tadsShown) {
-      // tads.me عرض الإعلان بنجاح → ابدأ المؤقت وانتظر
       startTimer();
       adHandled = true;
       tryComplete();
     } else {
-      // tads.me لا يوجد إعلان → fallback إلى adsbitvex
       if (sub) sub.textContent = 'loading alternate ad…';
-      startTimer(); // نبدأ المؤقت موازياً
-
-      showAdsBitvexSafe().then(() => {
-        // سواء عُرض الإعلان أم لا → نكمل
+      startTimer();
+      showAdsBitvex().then(() => {
         adHandled = true;
         tryComplete();
       });
@@ -852,19 +939,18 @@ function startStep(n) {
   });
 }
 
-// ── Ad complete ───────────────────────────────────────────────
 function onAdComplete(n) {
   stopCountdownRing(n);
   stepState[n].playing = false;
-  stepState[n].done    = true;
+  stepState[n].done = true;
 
-  const btn  = document.getElementById(`btn-${n}`);
+  const btn = document.getElementById(`btn-${n}`);
   const step = document.getElementById(`step-${n}`);
-  const num  = document.getElementById(`num-${n}`);
-  const sub  = document.getElementById(`sub-${n}`);
+  const num = document.getElementById(`num-${n}`);
+  const sub = document.getElementById(`sub-${n}`);
 
   btn.onclick = null;
-  btn.className   = 'step-btn done-mark';
+  btn.className = 'step-btn done-mark';
   btn.textContent = '✓';
   step.classList.add('done');
   num.childNodes[0].textContent = '✓';
@@ -886,24 +972,22 @@ function onAdComplete(n) {
 }
 
 function updateProgress() {
-  const done = (stepState[1].done?1:0) + (stepState[2].done?1:0);
-  document.getElementById('progress-fill').style.width  = `${done*50}%`;
+  const done = (stepState[1].done ? 1 : 0) + (stepState[2].done ? 1 : 0);
+  document.getElementById('progress-fill').style.width = `${done * 50}%`;
   document.getElementById('progress-label').textContent = `${done}/2`;
 }
 
 function unlockEnroll() {
   const btn = document.getElementById('btn-enroll');
-  btn.disabled  = false;
+  btn.disabled = false;
   btn.className = 'cta-btn unlocked';
   btn.innerHTML = '🚀 Enroll Free Now';
   document.getElementById('success-msg').classList.add('visible');
   document.getElementById('ad-notice').style.display = 'none';
 }
 
-// ── Enroll ────────────────────────────────────────────────────
 function enrollNow() {
   if (!stepState[1].done || !stepState[2].done) return;
-  // نفتح الرابط بدون إغلاق التطبيق
   if (tg?.openLink) {
     tg.openLink(COURSE_URL);
   } else {
@@ -912,46 +996,44 @@ function enrollNow() {
 }
 document.getElementById('btn-enroll').addEventListener('click', enrollNow);
 
-// ── Confetti ──────────────────────────────────────────────────
 function launchConfetti() {
   const canvas = document.getElementById('confetti-canvas');
-  const ctx    = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d');
   canvas.style.display = 'block';
-  canvas.width  = window.innerWidth;
+  canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  const colors = ['#00aff0','#ffffff','#00c6ff','#005f8e','#008ecf','#e0f5fd'];
-  const pieces = Array.from({length: 90}, () => ({
+  const colors = ['#00aff0', '#ffffff', '#00c6ff', '#005f8e', '#008ecf', '#e0f5fd'];
+  const pieces = Array.from({ length: 90 }, () => ({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height - canvas.height,
     r: Math.random() * 5 + 3,
     d: Math.random() * 2 + 1,
-    color: colors[Math.floor(Math.random()*colors.length)],
-    tilt: Math.random()*10-5,
-    tiltSpeed: (Math.random()*.07+.03) * (Math.random()<.5?1:-1),
+    color: colors[Math.floor(Math.random() * colors.length)],
+    tilt: Math.random() * 10 - 5,
+    tiltSpeed: (Math.random() * .07 + .03) * (Math.random() < .5 ? 1 : -1),
   }));
 
   let frame = 0;
   function draw() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     pieces.forEach(p => {
       ctx.beginPath();
       ctx.fillStyle = p.color;
-      ctx.ellipse(p.x, p.y, p.r, p.r*0.4, p.tilt, 0, Math.PI*2);
+      ctx.ellipse(p.x, p.y, p.r, p.r * 0.4, p.tilt, 0, Math.PI * 2);
       ctx.fill();
-      p.y += p.d + frame/80;
+      p.y += p.d + frame / 80;
       p.tilt += p.tiltSpeed;
-      p.x += Math.sin(frame/20) * 0.5;
-      if (p.y > canvas.height) { p.y = -10; p.x = Math.random()*canvas.width; }
+      p.x += Math.sin(frame / 20) * 0.5;
+      if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
     });
     frame++;
     if (frame < 160) requestAnimationFrame(draw);
-    else { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }
+    else { ctx.clearRect(0, 0, canvas.width, canvas.height); canvas.style.display = 'none'; }
   }
   draw();
 }
 
-// ── Bootstrap ─────────────────────────────────────────────────
 window.addEventListener('load', async () => {
   loadCourseMeta();
   initTadsBanner();
@@ -961,10 +1043,10 @@ window.addEventListener('load', async () => {
     stepState[1].done = true; stepState[2].done = true;
     showCard();
     updateProgress();
-    [1,2].forEach(n => {
-      const btn  = document.getElementById(`btn-${n}`);
+    [1, 2].forEach(n => {
+      const btn = document.getElementById(`btn-${n}`);
       const step = document.getElementById(`step-${n}`);
-      btn.className   = 'step-btn done-mark';
+      btn.className = 'step-btn done-mark';
       btn.textContent = '✓';
       step.classList.add('done');
       document.getElementById(`step-${n}`).classList.remove('locked');
