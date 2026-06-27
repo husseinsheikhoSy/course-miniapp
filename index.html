@@ -578,7 +578,7 @@
       adLog('TGB: tads ready, initializing banner #' + TADS_TGB_ID);
       const ctrl = window.tads.init({
         widgetId: TADS_TGB_ID,
-        type: 'tgb',        // ← TGB type (not 'static')
+        type: 'static',
         debug: false,
         onAdsNotFound: () => { adLog('TGB: no ad found for banner'); }
       });
