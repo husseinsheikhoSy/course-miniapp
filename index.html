@@ -7,7 +7,7 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
-  <script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
+  <script src="https://sdk.adsbitvex.com/functions/v1/ad-script?appid=000166"></script>
   <script src="https://w.tads.me/widget.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -447,7 +447,7 @@
           </svg>
         </div>
         <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #1</div>
+          <div class="step-title">Visit Sponsor Page #n</div>
           <div class="step-sub" id="sub-1">~5 seconds • watch the ad to unlock</div>
         </div>
         <button class="step-btn" id="btn-1" onclick="startStep(1)">Visit</button>
@@ -509,7 +509,7 @@
 
   // ── Ad config ───────────────────────────────────────────────
   const AD_DURATION_SEC = 5;
-  const ADEXIUM_WID = 'ce45e384-0fb7-4198-b3ba-477584913169';
+  const ADSBITVEX_APP_ID = '000166';
 
   // tads.me Fullscreen widget IDs per step
   const TADS_FULLSCREEN_IDS = {
@@ -585,27 +585,23 @@
     }).catch(() => {});
   }
 
-  // ── Adexium Widget ─────────────────────────────────────────
-  function waitForAdexium(timeout = 5000) {
+  // ── AdsBitVex Widget ──────────────────────────────────────
+  function waitForAdsBitVex(timeout = 5000) {
     return new Promise((resolve, reject) => {
-      if (window.AdexiumWidget) return resolve();
+      if (typeof window.showadsbitvex === 'function') return resolve();
       const start = performance.now();
       const iv = setInterval(() => {
-        if (window.AdexiumWidget) {
+        if (typeof window.showadsbitvex === 'function') {
           clearInterval(iv); resolve();
         } else if (performance.now() - start > timeout) {
-          clearInterval(iv); reject(new Error('AdexiumWidget not loaded'));
+          clearInterval(iv); reject(new Error('AdsBitVex not loaded'));
         }
       }, 50);
     });
   }
 
-  function createAdexiumInstance() {
-    if (!window.AdexiumWidget) return null;
-    return new AdexiumWidget({
-      wid: ADEXIUM_WID,
-      adFormat: 'interstitial'
-    });
+  function showAdsBitVexAd() {
+    return window.showadsbitvex();
   }
 
   // ── start_param decode ──────────────────────────────────────────
@@ -757,7 +753,7 @@
     if (ring) ring.classList.remove('active');
   }
 
-  // ── Start step — Adexium first, fallback to tads.me ──────────
+  // ── Start step — AdsBitVex first, fallback to tads.me ──────────
   function startStep(n) {
     if (adPlaying) return;
     if (n === 1 && step1Done) return;
@@ -787,69 +783,21 @@
       if (timerDone && adHandled) onAdComplete(n);
     }
 
-    // ── Safety net: if Adexium hangs for 8s, force fallback to tads ──
-    const adexiumHangGuard = setTimeout(() => {
-      if (!adHandled) {
-        tryTadsFallback(n);
-      }
-    }, 8000);
-
-    // ── Try Adexium (wait up to 5s for script to load) ──
-    waitForAdexium(5000).then(() => {
-      const widget = createAdexiumInstance();
-      if (!widget) {
-        clearTimeout(adexiumHangGuard);
-        tryTadsFallback(n);
-        return;
-      }
-
-      let adexiumResolved = false;
-
-      const resolveAdexium = (adFound) => {
-        if (adexiumResolved) return;
-        adexiumResolved = true;
-        clearTimeout(adexiumHangGuard);
-        widget.off('adReceived',          onReceived);
-        widget.off('adClosed',            onClosed);
-        widget.off('adPlaybackCompleted', onClosed);
-        widget.off('noAdFound',           onNoAd);
-        if (widget.destroy) widget.destroy();
-
-        if (adFound) {
-          // Ad was shown by Adexium — wait for timer
-          adHandled = true;
-          tryComplete();
-        } else {
-          // No Adexium ad → try tads.me fullscreen fallback
-          tryTadsFallback(n);
-        }
-      };
-
-      const onReceived = (ad) => {
-        // Ad arrived — now safe to start the countdown timer
-        startTimer();
-        widget.displayAd(ad);
-        widget.off('adReceived', onReceived);
-      };
-      const onClosed = () => resolveAdexium(true);
-      const onNoAd   = () => resolveAdexium(false);
-
-      widget.on('adReceived',          onReceived);
-      widget.on('adClosed',            onClosed);
-      widget.on('adPlaybackCompleted', onClosed);
-      widget.on('noAdFound',           onNoAd);
-      widget.requestAd('interstitial');
-
+    // ── Try AdsBitVex (wait up to 5s for script to load) ──
+    waitForAdsBitVex(5000).then(() => {
+      startTimer();
+      return showAdsBitVexAd();
+    }).then(() => {
+      adHandled = true;
+      tryComplete();
     }).catch(() => {
-      // Adexium script never loaded → go straight to tads
-      clearTimeout(adexiumHangGuard);
+      // AdsBitVex failed or not loaded → fallback to tads.me
       tryTadsFallback(n);
     });
 
     // ── tads.me fullscreen fallback ──
     function tryTadsFallback(stepN) {
       if (sub) sub.textContent = 'loading alternate ad…';
-      // Start timer now if not already started (e.g. Adexium didn't fire adReceived)
       startTimer();
 
       showTadsFullscreen(stepN).then(() => {
