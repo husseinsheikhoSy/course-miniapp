@@ -575,25 +575,14 @@
   // ── Init tads TGB Banner #9636 ───────────────────────────────
   function initTadsBanner() {
     waitForTads().then(() => {
-      adLog('TGB: tads ready, initializing banner #' + TADS_TGB_ID);
       const ctrl = window.tads.init({
         widgetId: TADS_TGB_ID,
         type: 'static',
         debug: false,
-        onAdsNotFound: () => { adLog('TGB: no ad found for banner'); }
+        onAdsNotFound: () => {}
       });
-      if (ctrl && typeof ctrl.loadAd === 'function') {
-        ctrl.loadAd()
-          .then(() => {
-            adLog('TGB: loadAd OK → showAd');
-            return ctrl.showAd();
-          })
-          .then(() => adLog('TGB: showAd OK'))
-          .catch((e) => adLog('TGB: error — ' + e));
-      } else {
-        adLog('TGB: ctrl missing loadAd method');
-      }
-    }).catch((e) => adLog('TGB: waitForTads failed — ' + e));
+      ctrl.loadAd().then(() => ctrl.showAd()).catch(() => {});
+    }).catch(() => {});
   }
 
   // ── Adexium Widget ─────────────────────────────────────────
@@ -768,9 +757,6 @@
     if (ring) ring.classList.remove('active');
   }
 
-  // ── Diagnostic log ───────────────────────────────────────────
-  function adLog(msg) { console.log(`[AdSystem] ${msg}`); }
-
   // ── Start step — Adexium first, fallback to tads.me ──────────
   function startStep(n) {
     if (adPlaying) return;
@@ -784,39 +770,34 @@
     btn.textContent = '⏳';
     if (sub) sub.textContent = 'loading ad…';
 
-    let timerDone    = false;
-    let adHandled    = false;
+    let timerDone  = false;
+    let adHandled  = false;
     let timerStarted = false;
 
-    function startTimer(source) {
+    function startTimer() {
       if (timerStarted) return;
       timerStarted = true;
-      adLog(`Step ${n}: timer started by [${source}]`);
       startCountdownRing(n, () => {
         timerDone = true;
-        adLog(`Step ${n}: timer done. adHandled=${adHandled}`);
         tryComplete();
       });
     }
 
     function tryComplete() {
-      adLog(`Step ${n}: tryComplete → timerDone=${timerDone}, adHandled=${adHandled}`);
       if (timerDone && adHandled) onAdComplete(n);
     }
 
-    // Safety net: إذا علق Adexium 8 ثواني
+    // ── Safety net: if Adexium hangs for 8s, force fallback to tads ──
     const adexiumHangGuard = setTimeout(() => {
       if (!adHandled) {
-        adLog(`Step ${n}: Adexium hang guard (8s) → tads fallback`);
         tryTadsFallback(n);
       }
     }, 8000);
 
+    // ── Try Adexium (wait up to 5s for script to load) ──
     waitForAdexium(5000).then(() => {
-      adLog(`Step ${n}: AdexiumWidget ready`);
       const widget = createAdexiumInstance();
       if (!widget) {
-        adLog(`Step ${n}: widget is null → tads fallback`);
         clearTimeout(adexiumHangGuard);
         tryTadsFallback(n);
         return;
@@ -833,43 +814,45 @@
         widget.off('adPlaybackCompleted', onClosed);
         widget.off('noAdFound',           onNoAd);
         if (widget.destroy) widget.destroy();
-        adLog(`Step ${n}: Adexium resolved — adFound=${adFound}`);
+
         if (adFound) {
+          // Ad was shown by Adexium — wait for timer
           adHandled = true;
           tryComplete();
         } else {
+          // No Adexium ad → try tads.me fullscreen fallback
           tryTadsFallback(n);
         }
       };
 
       const onReceived = (ad) => {
-        adLog(`Step ${n}: Adexium adReceived → show ad + start timer`);
-        startTimer('adexium-adReceived');
+        // Ad arrived — now safe to start the countdown timer
+        startTimer();
         widget.displayAd(ad);
         widget.off('adReceived', onReceived);
       };
-      const onClosed = () => { adLog(`Step ${n}: Adexium adClosed`); resolveAdexium(true); };
-      const onNoAd   = () => { adLog(`Step ${n}: Adexium noAdFound`); resolveAdexium(false); };
+      const onClosed = () => resolveAdexium(true);
+      const onNoAd   = () => resolveAdexium(false);
 
       widget.on('adReceived',          onReceived);
       widget.on('adClosed',            onClosed);
       widget.on('adPlaybackCompleted', onClosed);
       widget.on('noAdFound',           onNoAd);
-      adLog(`Step ${n}: requestAd('interstitial')`);
       widget.requestAd('interstitial');
 
-    }).catch((err) => {
-      adLog(`Step ${n}: waitForAdexium failed (${err.message}) → tads fallback`);
+    }).catch(() => {
+      // Adexium script never loaded → go straight to tads
       clearTimeout(adexiumHangGuard);
       tryTadsFallback(n);
     });
 
+    // ── tads.me fullscreen fallback ──
     function tryTadsFallback(stepN) {
-      adLog(`Step ${n}: tryTadsFallback`);
       if (sub) sub.textContent = 'loading alternate ad…';
-      startTimer('tads-fallback');
-      showTadsFullscreen(stepN).then((shown) => {
-        adLog(`Step ${n}: tads resolved — shown=${shown}`);
+      // Start timer now if not already started (e.g. Adexium didn't fire adReceived)
+      startTimer();
+
+      showTadsFullscreen(stepN).then(() => {
         adHandled = true;
         tryComplete();
       });
