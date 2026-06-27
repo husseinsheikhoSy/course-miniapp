@@ -542,7 +542,45 @@
         await waitForTads();
         const widgetId = TADS_FULLSCREEN_IDS[stepN];
 
-        let adShown = false;
+        let adShown   = false;
+        let resolved  = false;
+
+        function done(val) {
+          if (resolved) return;
+          resolved = true;
+          // Restore window.open before resolving
+          window.open = _tadsOrigOpen;
+          resolve(val);
+        }
+
+        // ── Intercept window.open so tads links don't close the WebApp ──
+        const _tadsOrigOpen = window.open;
+        window.open = function(url, target, features) {
+          window.open = _tadsOrigOpen; // restore immediately
+          if (url && typeof url === 'string' && url.startsWith('http')) {
+            // Open safely via Telegram so WebApp stays alive on desktop
+            if (tg && tg.openLink) {
+              tg.openLink(url);
+            } else {
+              _tadsOrigOpen.call(window, url, '_blank');
+            }
+
+            // Detect when user returns
+            function onReturn() {
+              document.removeEventListener('visibilitychange', onVisibility);
+              window.removeEventListener('focus', onReturn);
+              done(true);
+            }
+            function onVisibility() { if (!document.hidden) onReturn(); }
+            document.addEventListener('visibilitychange', onVisibility);
+            window.addEventListener('focus', onReturn);
+
+            // Safety net
+            setTimeout(() => done(true), (AD_DURATION_SEC + 5) * 1000);
+            return null;
+          }
+          return _tadsOrigOpen.call(window, url, target, features);
+        };
 
         const ctrl = window.tads.init({
           widgetId: widgetId,
@@ -550,10 +588,10 @@
           debug: false,
           onShowReward: () => {
             adShown = true;
-            resolve(true);
+            done(true);
           },
           onAdsNotFound: () => {
-            if (!adShown) resolve(false);
+            if (!adShown) done(false);
           }
         });
 
@@ -561,10 +599,10 @@
 
         if (ctrl && typeof ctrl.showAd === 'function') {
           ctrl.showAd().catch(() => {
-            if (!adShown) resolve(false);
+            if (!resolved) done(false);
           });
         } else {
-          resolve(false);
+          done(false);
         }
       } catch (e) {
         resolve(false);
