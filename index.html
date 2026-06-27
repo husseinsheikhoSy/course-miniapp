@@ -586,6 +586,20 @@
   }
 
   // ── Adexium Widget ─────────────────────────────────────────
+  function waitForAdexium(timeout = 5000) {
+    return new Promise((resolve, reject) => {
+      if (window.AdexiumWidget) return resolve();
+      const start = performance.now();
+      const iv = setInterval(() => {
+        if (window.AdexiumWidget) {
+          clearInterval(iv); resolve();
+        } else if (performance.now() - start > timeout) {
+          clearInterval(iv); reject(new Error('AdexiumWidget not loaded'));
+        }
+      }, 50);
+    });
+  }
+
   function createAdexiumInstance() {
     if (!window.AdexiumWidget) return null;
     return new AdexiumWidget({
@@ -751,34 +765,54 @@
 
     adPlaying = true;
     const btn = document.getElementById(`btn-${n}`);
+    const sub = document.getElementById(`sub-${n}`);
     btn.classList.add('watching');
     btn.textContent = '⏳';
+    if (sub) sub.textContent = 'loading ad…';
 
-    let timerDone = false;
-    let adHandled = false; // true once ad interaction resolved (closed or noAd)
+    let timerDone  = false;
+    let adHandled  = false;
+    let timerStarted = false;
+
+    function startTimer() {
+      if (timerStarted) return;
+      timerStarted = true;
+      startCountdownRing(n, () => {
+        timerDone = true;
+        tryComplete();
+      });
+    }
 
     function tryComplete() {
       if (timerDone && adHandled) onAdComplete(n);
     }
 
-    // Start countdown ring regardless of ad state
-    startCountdownRing(n, () => {
-      timerDone = true;
-      tryComplete();
-    });
+    // ── Safety net: if Adexium hangs for 8s, force fallback to tads ──
+    const adexiumHangGuard = setTimeout(() => {
+      if (!adHandled) {
+        tryTadsFallback(n);
+      }
+    }, 8000);
 
-    // ── Try Adexium first ──
-    const widget = createAdexiumInstance();
-    if (widget) {
+    // ── Try Adexium (wait up to 5s for script to load) ──
+    waitForAdexium(5000).then(() => {
+      const widget = createAdexiumInstance();
+      if (!widget) {
+        clearTimeout(adexiumHangGuard);
+        tryTadsFallback(n);
+        return;
+      }
+
       let adexiumResolved = false;
 
       const resolveAdexium = (adFound) => {
         if (adexiumResolved) return;
         adexiumResolved = true;
-        widget.off('adReceived',         onReceived);
-        widget.off('adClosed',           onClosed);
-        widget.off('adPlaybackCompleted',onClosed);
-        widget.off('noAdFound',          onNoAd);
+        clearTimeout(adexiumHangGuard);
+        widget.off('adReceived',          onReceived);
+        widget.off('adClosed',            onClosed);
+        widget.off('adPlaybackCompleted', onClosed);
+        widget.off('noAdFound',           onNoAd);
         if (widget.destroy) widget.destroy();
 
         if (adFound) {
@@ -792,6 +826,8 @@
       };
 
       const onReceived = (ad) => {
+        // Ad arrived — now safe to start the countdown timer
+        startTimer();
         widget.displayAd(ad);
         widget.off('adReceived', onReceived);
       };
@@ -804,19 +840,19 @@
       widget.on('noAdFound',           onNoAd);
       widget.requestAd('interstitial');
 
-    } else {
-      // Adexium script not loaded → try tads.me directly
+    }).catch(() => {
+      // Adexium script never loaded → go straight to tads
+      clearTimeout(adexiumHangGuard);
       tryTadsFallback(n);
-    }
+    });
 
     // ── tads.me fullscreen fallback ──
     function tryTadsFallback(stepN) {
-      const sub = document.getElementById(`sub-${stepN}`);
-      if (sub) sub.textContent = `loading alternate ad…`;
+      if (sub) sub.textContent = 'loading alternate ad…';
+      // Start timer now if not already started (e.g. Adexium didn't fire adReceived)
+      startTimer();
 
-      showTadsFullscreen(stepN).then((shown) => {
-        // Whether tads showed an ad or not — mark as handled
-        // (we still respect the timer for minimum exposure)
+      showTadsFullscreen(stepN).then(() => {
         adHandled = true;
         tryComplete();
       });
