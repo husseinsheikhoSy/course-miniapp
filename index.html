@@ -447,7 +447,7 @@
           </svg>
         </div>
         <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #n</div>
+          <div class="step-title">Visit Sponsor Page #1</div>
           <div class="step-sub" id="sub-1">~5 seconds • watch the ad to unlock</div>
         </div>
         <button class="step-btn" id="btn-1" onclick="startStep(1)">Visit</button>
@@ -784,13 +784,72 @@
     }
 
     // ── Try AdsBitVex (wait up to 5s for script to load) ──
-    waitForAdsBitVex(5000).then(() => {
+    // On Telegram Desktop, opening an external link closes the WebApp.
+    // We intercept window.open to catch the URL and use tg.openLink() instead,
+    // then use visibilitychange / focus to detect when the user returns.
+    let adsBitVexHandled = false;
+
+    function interceptAndOpenSafely(url) {
+      if (adsBitVexHandled) return;
+      adsBitVexHandled = true;
       startTimer();
-      return showAdsBitVexAd();
+
+      // Use Telegram's openLink so the WebApp stays alive on desktop
+      if (tg && tg.openLink) {
+        tg.openLink(url);
+      } else {
+        window.open(url, '_blank');
+      }
+
+      // Detect when user comes back (desktop: focus/visibilitychange)
+      function onReturn() {
+        document.removeEventListener('visibilitychange', onVisibility);
+        window.removeEventListener('focus', onReturn);
+        adHandled = true;
+        tryComplete();
+      }
+      function onVisibility() {
+        if (!document.hidden) onReturn();
+      }
+      document.addEventListener('visibilitychange', onVisibility);
+      window.addEventListener('focus', onReturn);
+
+      // Safety net: if user never "returns" (desktop keeps WebApp open),
+      // resolve after timer finishes anyway via tryComplete chain
+      setTimeout(() => {
+        if (!adHandled) {
+          adHandled = true;
+          tryComplete();
+        }
+      }, (AD_DURATION_SEC + 3) * 1000);
+    }
+
+    // Patch window.open temporarily to intercept AdsBitVex link
+    const _origOpen = window.open;
+    function patchWindowOpen() {
+      window.open = function(url, target, features) {
+        window.open = _origOpen; // restore immediately
+        if (url && typeof url === 'string' && url.startsWith('http')) {
+          interceptAndOpenSafely(url);
+          return null;
+        }
+        return _origOpen.call(window, url, target, features);
+      };
+    }
+
+    waitForAdsBitVex(5000).then(() => {
+      patchWindowOpen();
+      return showAdsBitVexAd().catch(() => null);
     }).then(() => {
-      adHandled = true;
-      tryComplete();
+      window.open = _origOpen; // restore if promise resolved without opening
+      if (!adsBitVexHandled) {
+        // Ad closed without opening a link (e.g. reward ad resolved directly)
+        startTimer();
+        adHandled = true;
+        tryComplete();
+      }
     }).catch(() => {
+      window.open = _origOpen;
       // AdsBitVex failed or not loaded → fallback to tads.me
       tryTadsFallback(n);
     });
