@@ -576,9 +576,25 @@
 
   const COURSE_URL = resolveCourseUrl();
 
-  // ── Progress cache disabled — ads must be watched every visit ──
-  function loadProgress() { return null; }
-  function saveProgress() {}
+  // ── localStorage progress cache (5 min) ──────────────────────
+  const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
+  const CACHE_TTL = 5 * 60 * 1000;
+
+  function loadProgress() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (Date.now() - obj.ts > CACHE_TTL) { localStorage.removeItem(CACHE_KEY); return null; }
+      return obj;
+    } catch(e) { return null; }
+  }
+
+  function saveProgress(step1, step2) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ step1, step2, ts: Date.now() }));
+    } catch(e) {}
+  }
 
   // ── State ─────────────────────────────────────────────────────
   let step1Done = false, step2Done = false;
