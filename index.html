@@ -7,6 +7,9 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
+  <!-- adsbitvex SDK (fallback — reward overlay داخل الصفحة) -->
+  <script src="https://sdk.adsbitvex.com/functions/v1/ad-script?appid=000166"></script>
+
   <!-- tads.me SDK (primary) -->
   <script src="https://w.tads.me/widget.js"></script>
 
@@ -577,44 +580,34 @@ function showTadsFullscreen(stepN) {
   });
 }
 
-// ── adsbitvex fallback — يفتح رابط الإعلان عبر tg.openLink ──
-// لا نستدعي window.showadsbitvex() داخل الـ WebApp أبداً
-// لأنها تُفتح كـ overlay خارجي يُغلق التطبيق المصغر.
-// بدلاً منها: نفتح صفحة الإعلان المباشرة عبر Telegram browser
-// ونرصد عودة المستخدم بـ visibilitychange.
-const ADSBITVEX_APP_ID = '000166';
-const ADSBITVEX_URL    = `https://adsbitvex.com/?appid=${ADSBITVEX_APP_ID}`;
-
+// ── adsbitvex fallback ───────────────────────────────────────
 function showAdsBitvexSafe() {
   return new Promise((resolve) => {
-    // افتح رابط الإعلان بدون إغلاق الـ Mini App
-    if (tg?.openLink) {
-      tg.openLink(ADSBITVEX_URL);
-    } else {
-      window.open(ADSBITVEX_URL, '_blank');
-    }
+    if (tg?.enableClosingConfirmation) tg.enableClosingConfirmation();
 
-    // عند عودة المستخدم للتطبيق (التبويب يصبح مرئياً مجدداً) → اكتمل
-    let resolved = false;
-    const onVisible = () => {
-      if (document.visibilityState === 'visible' && !resolved) {
-        resolved = true;
-        document.removeEventListener('visibilitychange', onVisible);
-        clearTimeout(safetyTimer);
-        resolve(true);
+    const tryShow = () => {
+      if (typeof window.showadsbitvex !== 'function') {
+        if (tg?.disableClosingConfirmation) tg.disableClosingConfirmation();
+        return resolve(false);
       }
+      window.showadsbitvex()
+        .then(() => { if (tg?.disableClosingConfirmation) tg.disableClosingConfirmation(); resolve(true); })
+        .catch(() => { if (tg?.disableClosingConfirmation) tg.disableClosingConfirmation(); resolve(false); });
     };
 
-    document.addEventListener('visibilitychange', onVisible);
-
-    // حارس أمان: بعد 30 ثانية نكمل حتى لو لم يعد المستخدم
-    const safetyTimer = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        document.removeEventListener('visibilitychange', onVisible);
-        resolve(false);
-      }
-    }, 30000);
+    if (typeof window.showadsbitvex === 'function') {
+      tryShow();
+    } else {
+      const start = performance.now();
+      const iv = setInterval(() => {
+        if (typeof window.showadsbitvex === 'function') { clearInterval(iv); tryShow(); }
+        else if (performance.now() - start > 5000) {
+          clearInterval(iv);
+          if (tg?.disableClosingConfirmation) tg.disableClosingConfirmation();
+          resolve(false);
+        }
+      }, 100);
+    }
   });
 }
 
