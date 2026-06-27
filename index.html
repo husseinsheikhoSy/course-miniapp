@@ -783,74 +783,107 @@
       if (timerDone && adHandled) onAdComplete(n);
     }
 
-    // ── Try AdsBitVex (wait up to 5s for script to load) ──
-    // On Telegram Desktop, opening an external link closes the WebApp.
-    // We intercept window.open to catch the URL and use tg.openLink() instead,
-    // then use visibilitychange / focus to detect when the user returns.
-    let adsBitVexHandled = false;
-
-    function interceptAndOpenSafely(url) {
-      if (adsBitVexHandled) return;
-      adsBitVexHandled = true;
-      startTimer();
-
-      // Use Telegram's openLink so the WebApp stays alive on desktop
-      if (tg && tg.openLink) {
-        tg.openLink(url);
-      } else {
-        window.open(url, '_blank');
-      }
-
-      // Detect when user comes back (desktop: focus/visibilitychange)
-      function onReturn() {
-        document.removeEventListener('visibilitychange', onVisibility);
-        window.removeEventListener('focus', onReturn);
-        adHandled = true;
-        tryComplete();
-      }
-      function onVisibility() {
-        if (!document.hidden) onReturn();
-      }
-      document.addEventListener('visibilitychange', onVisibility);
-      window.addEventListener('focus', onReturn);
-
-      // Safety net: if user never "returns" (desktop keeps WebApp open),
-      // resolve after timer finishes anyway via tryComplete chain
-      setTimeout(() => {
-        if (!adHandled) {
-          adHandled = true;
-          tryComplete();
-        }
-      }, (AD_DURATION_SEC + 3) * 1000);
-    }
-
-    // Patch window.open temporarily to intercept AdsBitVex link
+    // ── Try AdsBitVex first, with full fallback coverage ──────────
+    //
+    // Cases we handle:
+    //  A) Ad shown + link opened (normal)        → intercept link, open safely, wait return
+    //  B) Ad shown + no link (promise resolves)  → start timer, mark done
+    //  C) No ad available (promise rejects)      → fallback to tads.me
+    //  D) Frequency cap / warning message shown  → promise resolves quickly (<2s) without
+    //                                              a link opening → detected & fallback
+    //  E) Script never loads                     → fallback to tads.me
+    //
     const _origOpen = window.open;
+    let adsBitVexLinkOpened = false;   // true if a real ad link was intercepted
+    let adsBitVexStartTime  = 0;       // when showadsbitvex() was called
+    const MIN_AD_DURATION_MS = 2000;   // real ad takes at least 2s; freq-cap message resolves faster
+
+    // Intercept window.open so we can use tg.openLink on desktop
     function patchWindowOpen() {
       window.open = function(url, target, features) {
         window.open = _origOpen; // restore immediately
         if (url && typeof url === 'string' && url.startsWith('http')) {
-          interceptAndOpenSafely(url);
+          adsBitVexLinkOpened = true;
+          startTimer();
+
+          // Use Telegram's openLink so the WebApp stays alive on desktop
+          if (tg && tg.openLink) {
+            tg.openLink(url);
+          } else {
+            _origOpen.call(window, url, '_blank');
+          }
+
+          // Detect when user comes back (visibilitychange / focus)
+          function onReturn() {
+            document.removeEventListener('visibilitychange', onVisibility);
+            window.removeEventListener('focus', onReturn);
+            adHandled = true;
+            tryComplete();
+          }
+          function onVisibility() { if (!document.hidden) onReturn(); }
+          document.addEventListener('visibilitychange', onVisibility);
+          window.addEventListener('focus', onReturn);
+
+          // Safety net: complete after timer + 3s in case events never fire
+          setTimeout(() => {
+            if (!adHandled) { adHandled = true; tryComplete(); }
+          }, (AD_DURATION_SEC + 3) * 1000);
+
           return null;
         }
         return _origOpen.call(window, url, target, features);
       };
     }
 
+    // Watch DOM for AdsBitVex overlay disappearing (frequency-cap / error message)
+    let domObserver = null;
+    function watchForAdsBitVexOverlay() {
+      domObserver = new MutationObserver(() => {
+        // If an overlay was added then removed quickly → likely freq-cap message
+        const overlay = document.querySelector(
+          '[class*="adsbitvex"],[id*="adsbitvex"],[class*="adsbv"],[id*="adsbv"]'
+        );
+        if (!overlay && adsBitVexStartTime > 0) {
+          const elapsed = Date.now() - adsBitVexStartTime;
+          if (elapsed < MIN_AD_DURATION_MS && !adsBitVexLinkOpened) {
+            // Closed too fast without a link → freq-cap or error → fallback
+            domObserver.disconnect();
+            window.open = _origOpen;
+            tryTadsFallback(n);
+          }
+        }
+      });
+      domObserver.observe(document.body, { childList: true, subtree: true });
+    }
+
     waitForAdsBitVex(5000).then(() => {
       patchWindowOpen();
-      return showAdsBitVexAd().catch(() => null);
+      watchForAdsBitVexOverlay();
+      adsBitVexStartTime = Date.now();
+      return showAdsBitVexAd();
     }).then(() => {
-      window.open = _origOpen; // restore if promise resolved without opening
-      if (!adsBitVexHandled) {
-        // Ad closed without opening a link (e.g. reward ad resolved directly)
+      // Promise resolved — check if it was a real ad or a freq-cap/no-ad
+      if (domObserver) domObserver.disconnect();
+      window.open = _origOpen;
+
+      const elapsed = Date.now() - adsBitVexStartTime;
+      if (adsBitVexLinkOpened) {
+        // Real ad was opened — already handled inside interceptAndOpenSafely
+        return;
+      }
+      if (elapsed < MIN_AD_DURATION_MS) {
+        // Resolved too fast without opening a link → freq-cap or no ad → fallback
+        tryTadsFallback(n);
+      } else {
+        // Reward ad resolved normally (e.g. 15s countdown finished)
         startTimer();
         adHandled = true;
         tryComplete();
       }
     }).catch(() => {
+      // AdsBitVex rejected (no ad, error, script issue) → fallback
+      if (domObserver) domObserver.disconnect();
       window.open = _origOpen;
-      // AdsBitVex failed or not loaded → fallback to tads.me
       tryTadsFallback(n);
     });
 
