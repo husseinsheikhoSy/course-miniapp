@@ -491,16 +491,17 @@
 
   // ── Adexium Widget ─────────────────────────────────────────
   const AD_DURATION_SEC = 5;
+  const ADEXIUM_WID = 'ce45e384-0fb7-4198-b3ba-477584913169';
 
-  let adexiumWidget = null;
-  document.addEventListener('DOMContentLoaded', () => {
-    if (window.AdexiumWidget) {
-      adexiumWidget = new AdexiumWidget({
-        wid: 'ce45e384-0fb7-4198-b3ba-477584913169',
-        adFormat: 'interstitial'
-      });
-    }
-  });
+  // Creates a fresh AdexiumWidget instance for each ad request
+  // to avoid internal state issues that block a second ad request
+  function createAdexiumInstance() {
+    if (!window.AdexiumWidget) return null;
+    return new AdexiumWidget({
+      wid: ADEXIUM_WID,
+      adFormat: 'interstitial'
+    });
+  }
 
   // ── start_param decode ──────────────────────────────────────────
   function b64urlDecode(str) {
@@ -676,31 +677,37 @@
       tryComplete();
     });
 
-    // Request Adexium interstitial ad
-    if (adexiumWidget) {
+    // Request Adexium interstitial ad — fresh instance each time
+    const widget = createAdexiumInstance();
+    if (widget) {
       const onReceived = (ad) => {
-        adexiumWidget.displayAd(ad);
-        adexiumWidget.off('adReceived', onReceived);
+        widget.displayAd(ad);
+        widget.off('adReceived', onReceived);
       };
       const onClosed = () => {
         adClosed = true;
-        adexiumWidget.off('adClosed', onClosed);
-        adexiumWidget.off('adPlaybackCompleted', onClosed);
+        widget.off('adClosed', onClosed);
+        widget.off('adPlaybackCompleted', onClosed);
+        widget.off('noAdFound', onNoAd);
+        if (widget.destroy) widget.destroy();
         tryComplete();
       };
       const onNoAd = () => {
-        // No ad available — treat as closed immediately
         adClosed = true;
-        adexiumWidget.off('noAdFound', onNoAd);
+        widget.off('adReceived', onReceived);
+        widget.off('adClosed', onClosed);
+        widget.off('adPlaybackCompleted', onClosed);
+        widget.off('noAdFound', onNoAd);
+        if (widget.destroy) widget.destroy();
         tryComplete();
       };
-      adexiumWidget.on('adReceived', onReceived);
-      adexiumWidget.on('adClosed', onClosed);
-      adexiumWidget.on('adPlaybackCompleted', onClosed);
-      adexiumWidget.on('noAdFound', onNoAd);
-      adexiumWidget.requestAd('interstitial');
+      widget.on('adReceived', onReceived);
+      widget.on('adClosed', onClosed);
+      widget.on('adPlaybackCompleted', onClosed);
+      widget.on('noAdFound', onNoAd);
+      widget.requestAd('interstitial');
     } else {
-      // Widget not loaded yet — just rely on the timer
+      // Widget script not loaded — just rely on the timer
       adClosed = true;
     }
   }
