@@ -8,12 +8,6 @@
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
   <script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
-  <script type="text/javascript">
-    document.addEventListener('DOMContentLoaded', () => {
-        const adexiumWidget = new AdexiumWidget({wid: 'ce45e384-0fb7-4198-b3ba-477584913169', adFormat: 'interstitial'});
-        adexiumWidget.autoMode();
-    });
-  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -441,7 +435,7 @@
         </div>
         <div class="step-body">
           <div class="step-title">Visit Sponsor Page #1</div>
-          <div class="step-sub" id="sub-1">~4 seconds • returns automatically</div>
+          <div class="step-sub" id="sub-1">~5 seconds • watch the ad to unlock</div>
         </div>
         <button class="step-btn" id="btn-1" onclick="startStep(1)">Visit</button>
       </div>
@@ -456,7 +450,7 @@
         </div>
         <div class="step-body">
           <div class="step-title">Visit Sponsor Page #2</div>
-          <div class="step-sub" id="sub-2">~4 seconds • returns automatically</div>
+          <div class="step-sub" id="sub-2">~5 seconds • watch the ad to unlock</div>
         </div>
         <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Visit</button>
       </div>
@@ -495,13 +489,18 @@
   const tg = window.Telegram?.WebApp || null;
   if (tg) { tg.ready(); tg.expand(); }
 
-  // ── Ad Links ────────────────────────────────────────────────
-  const adLinks = [
-    "https://www.effectivecpmnetwork.com/hsv9hdaif?key=4039e55f670c0769c5b6e42e143b2585",   // Step 1
-    "https://wasputtinghish.com/?8iPyf=1377104"                                               // Step 2
-  ];
+  // ── Adexium Widget ─────────────────────────────────────────
+  const AD_DURATION_SEC = 5;
 
-  const AD_DURATION_SEC = 7;
+  let adexiumWidget = null;
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.AdexiumWidget) {
+      adexiumWidget = new AdexiumWidget({
+        wid: 'ce45e384-0fb7-4198-b3ba-477584913169',
+        adFormat: 'interstitial'
+      });
+    }
+  });
 
   // ── start_param decode ──────────────────────────────────────────
   function b64urlDecode(str) {
@@ -626,17 +625,9 @@
       if (finished) return;
       finished = true;
       clearInterval(iv);
-      document.removeEventListener('visibilitychange', onVisible);
       stopCountdownRing(n);
       onDone();
     }
-
-    function onVisible() {
-      if (document.visibilityState === 'visible') {
-        setTimeout(finish, 250);
-      }
-    }
-    document.addEventListener('visibilitychange', onVisible);
 
     const iv = setInterval(() => {
       remaining--;
@@ -645,7 +636,7 @@
 
       if (remaining > 0) {
         btn.textContent = remaining;
-        sub.textContent = `${remaining}s • return here after visiting`;
+        sub.textContent = `${remaining}s • watching ad…`;
       } else {
         finish();
       }
@@ -671,14 +662,47 @@
     btn.classList.add('watching');
     btn.textContent = '⏳';
 
-    const link = adLinks[n - 1];
-    if (tg?.openLink) {
-      tg.openLink(link);
-    } else {
-      window.open(link, '_blank');
+    // Track whether ad was closed and timer finished
+    let timerDone  = false;
+    let adClosed   = false;
+
+    function tryComplete() {
+      if (timerDone && adClosed) onAdComplete(n);
     }
 
-    startCountdownRing(n, () => onAdComplete(n));
+    // Start 5-second countdown ring regardless of ad state
+    startCountdownRing(n, () => {
+      timerDone = true;
+      tryComplete();
+    });
+
+    // Request Adexium interstitial ad
+    if (adexiumWidget) {
+      const onReceived = (ad) => {
+        adexiumWidget.displayAd(ad);
+        adexiumWidget.off('adReceived', onReceived);
+      };
+      const onClosed = () => {
+        adClosed = true;
+        adexiumWidget.off('adClosed', onClosed);
+        adexiumWidget.off('adPlaybackCompleted', onClosed);
+        tryComplete();
+      };
+      const onNoAd = () => {
+        // No ad available — treat as closed immediately
+        adClosed = true;
+        adexiumWidget.off('noAdFound', onNoAd);
+        tryComplete();
+      };
+      adexiumWidget.on('adReceived', onReceived);
+      adexiumWidget.on('adClosed', onClosed);
+      adexiumWidget.on('adPlaybackCompleted', onClosed);
+      adexiumWidget.on('noAdFound', onNoAd);
+      adexiumWidget.requestAd('interstitial');
+    } else {
+      // Widget not loaded yet — just rely on the timer
+      adClosed = true;
+    }
   }
 
   // ── Ad complete ───────────────────────────────────────────────
