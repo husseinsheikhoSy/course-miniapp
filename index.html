@@ -648,51 +648,27 @@
     btn.textContent = '⏳';
 
     // Track whether ad was closed and timer finished
-    let timerDone  = false;
-    let adClosed   = false;
+    // انتهاء العداد = اكتمال الخطوة مباشرة بدون انتظار إغلاق الإعلان
+    startCountdownRing(n, () => onAdComplete(n));
 
-    function tryComplete() {
-      if (timerDone && adClosed) onAdComplete(n);
-    }
-
-    // Start 5-second countdown ring regardless of ad state
-    startCountdownRing(n, () => {
-      timerDone = true;
-      tryComplete();
-    });
-
-    // Request Adexium interstitial ad — fresh instance each time
+    // تشغيل الإعلان — مستقل عن العداد، لا ينتظر إغلاقه
     const widget = createAdexiumInstance();
     if (widget) {
       const onReceived = (ad) => {
         widget.displayAd(ad);
         widget.off('adReceived', onReceived);
       };
-      const onClosed = () => {
-        adClosed = true;
-        widget.off('adClosed', onClosed);
-        widget.off('adPlaybackCompleted', onClosed);
-        widget.off('noAdFound', onNoAd);
+      const onDone = () => {
+        widget.off('adClosed', onDone);
+        widget.off('adPlaybackCompleted', onDone);
+        widget.off('noAdFound', onDone);
         if (widget.destroy) widget.destroy();
-        tryComplete();
-      };
-      const onNoAd = () => {
-        adClosed = true;
-        widget.off('adReceived', onReceived);
-        widget.off('adClosed', onClosed);
-        widget.off('adPlaybackCompleted', onClosed);
-        widget.off('noAdFound', onNoAd);
-        if (widget.destroy) widget.destroy();
-        tryComplete();
       };
       widget.on('adReceived', onReceived);
-      widget.on('adClosed', onClosed);
-      widget.on('adPlaybackCompleted', onClosed);
-      widget.on('noAdFound', onNoAd);
+      widget.on('adClosed', onDone);
+      widget.on('adPlaybackCompleted', onDone);
+      widget.on('noAdFound', onDone);
       widget.requestAd('interstitial');
-    } else {
-      // Widget script not loaded — just rely on the timer
-      adClosed = true;
     }
   }
 
