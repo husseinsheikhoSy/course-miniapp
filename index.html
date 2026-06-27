@@ -580,19 +580,64 @@ function showTadsFullscreen(stepN) {
   });
 }
 
+// ── اعتراض روابط t.me داخل إعلانات adsbitvex ─────────────────
+// المشكلة: إعلانات adsbitvex قد تحتوي روابط t.me (بوتات تيليجرام).
+// عند النقر عليها في Desktop يُغلق Telegram التطبيق المصغر.
+// الحل: نعترض كل نقر على الصفحة، وإذا كان الرابط t.me
+//        نُوجّهه عبر tg.openTelegramLink() بدلاً من فتحه مباشرة.
+let _tmeInterceptActive = false;
+
+function enableTmeIntercept() {
+  if (_tmeInterceptActive) return;
+  _tmeInterceptActive = true;
+  document.addEventListener('click', _tmeInterceptHandler, true); // capture phase
+}
+
+function disableTmeIntercept() {
+  _tmeInterceptActive = false;
+  document.removeEventListener('click', _tmeInterceptHandler, true);
+}
+
+function _tmeInterceptHandler(e) {
+  // ابحث عن أقرب <a> في سلسلة النقر
+  const anchor = e.target.closest('a[href]');
+  if (!anchor) return;
+
+  const href = anchor.href || '';
+  // اعترض أي رابط t.me أو telegram.me أو tg://
+  if (/^https?:\/\/(t\.me|telegram\.me)\//i.test(href) || /^tg:\/\//i.test(href)) {
+    e.preventDefault();
+    e.stopPropagation();
+    // افتح عبر Telegram API بدون إغلاق التطبيق
+    if (tg?.openTelegramLink) {
+      tg.openTelegramLink(href);
+    } else if (tg?.openLink) {
+      tg.openLink(href);
+    }
+    // لا نُغلق التطبيق ولا نتابع النقر الافتراضي
+  }
+}
+
 // ── adsbitvex fallback ───────────────────────────────────────
 function showAdsBitvexSafe() {
   return new Promise((resolve) => {
+    // فعّل اعتراض روابط t.me قبل عرض الإعلان
+    enableTmeIntercept();
     if (tg?.enableClosingConfirmation) tg.enableClosingConfirmation();
+
+    const cleanup = () => {
+      disableTmeIntercept();
+      if (tg?.disableClosingConfirmation) tg.disableClosingConfirmation();
+    };
 
     const tryShow = () => {
       if (typeof window.showadsbitvex !== 'function') {
-        if (tg?.disableClosingConfirmation) tg.disableClosingConfirmation();
+        cleanup();
         return resolve(false);
       }
       window.showadsbitvex()
-        .then(() => { if (tg?.disableClosingConfirmation) tg.disableClosingConfirmation(); resolve(true); })
-        .catch(() => { if (tg?.disableClosingConfirmation) tg.disableClosingConfirmation(); resolve(false); });
+        .then(() => { cleanup(); resolve(true); })
+        .catch(() => { cleanup(); resolve(false); });
     };
 
     if (typeof window.showadsbitvex === 'function') {
@@ -603,7 +648,7 @@ function showAdsBitvexSafe() {
         if (typeof window.showadsbitvex === 'function') { clearInterval(iv); tryShow(); }
         else if (performance.now() - start > 5000) {
           clearInterval(iv);
-          if (tg?.disableClosingConfirmation) tg.disableClosingConfirmation();
+          cleanup();
           resolve(false);
         }
       }, 100);
