@@ -7,9 +7,6 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
-  <!-- adsbitvex SDK (fallback) -->
-  <script src="https://sdk.adsbitvex.com/functions/v1/ad-script?appid=000166"></script>
-
   <!-- tads.me SDK (primary) -->
   <script src="https://w.tads.me/widget.js"></script>
 
@@ -580,33 +577,44 @@ function showTadsFullscreen(stepN) {
   });
 }
 
-// ── adsbitvex fallback ──────────────────────────────────────
-function waitForAdsBitvex(timeout = 6000) {
-  return new Promise((resolve, reject) => {
-    if (typeof window.showadsbitvex === 'function') return resolve();
-    const start = performance.now();
-    const iv = setInterval(() => {
-      if (typeof window.showadsbitvex === 'function') {
-        clearInterval(iv); resolve();
-      } else if (performance.now() - start > timeout) {
-        clearInterval(iv); reject(new Error('adsbitvex timeout'));
-      }
-    }, 50);
-  });
-}
+// ── adsbitvex fallback — يفتح رابط الإعلان عبر tg.openLink ──
+// لا نستدعي window.showadsbitvex() داخل الـ WebApp أبداً
+// لأنها تُفتح كـ overlay خارجي يُغلق التطبيق المصغر.
+// بدلاً منها: نفتح صفحة الإعلان المباشرة عبر Telegram browser
+// ونرصد عودة المستخدم بـ visibilitychange.
+const ADSBITVEX_APP_ID = '000166';
+const ADSBITVEX_URL    = `https://adsbitvex.com/?appid=${ADSBITVEX_APP_ID}`;
 
-// يحاول عرض إعلان adsbitvex (reward — 15 ثانية)
-// يُرجع Promise<boolean>
-function showAdsBitvex() {
-  return new Promise(async (resolve) => {
-    try {
-      await waitForAdsBitvex(5000);
-      window.showadsbitvex()
-        .then(() => resolve(true))
-        .catch(() => resolve(false));
-    } catch (e) {
-      resolve(false);
+function showAdsBitvexSafe() {
+  return new Promise((resolve) => {
+    // افتح رابط الإعلان بدون إغلاق الـ Mini App
+    if (tg?.openLink) {
+      tg.openLink(ADSBITVEX_URL);
+    } else {
+      window.open(ADSBITVEX_URL, '_blank');
     }
+
+    // عند عودة المستخدم للتطبيق (التبويب يصبح مرئياً مجدداً) → اكتمل
+    let resolved = false;
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && !resolved) {
+        resolved = true;
+        document.removeEventListener('visibilitychange', onVisible);
+        clearTimeout(safetyTimer);
+        resolve(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+
+    // حارس أمان: بعد 30 ثانية نكمل حتى لو لم يعد المستخدم
+    const safetyTimer = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        document.removeEventListener('visibilitychange', onVisible);
+        resolve(false);
+      }
+    }, 30000);
   });
 }
 
@@ -812,7 +820,7 @@ function startStep(n) {
       if (sub) sub.textContent = 'loading alternate ad…';
       startTimer(); // نبدأ المؤقت موازياً
 
-      showAdsBitvex().then((bitvexShown) => {
+      showAdsBitvexSafe().then(() => {
         // سواء عُرض الإعلان أم لا → نكمل
         adHandled = true;
         tryComplete();
