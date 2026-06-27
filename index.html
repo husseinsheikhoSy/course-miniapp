@@ -535,6 +535,92 @@
     });
   }
 
+  // ── Universal safe-link opener ───────────────────────────────
+  window.__origOpen = window.open;
+
+  function openLinkSafely(url) {
+    if (!url || typeof url !== 'string') return;
+    if (tg && tg.openLink) {
+      tg.openLink(url);
+    } else {
+      window.__origOpen.call(window, url, '_blank');
+    }
+  }
+
+  // Installs a guard that intercepts ALL ways an ad can open a link.
+  // Returns a cleanup function to remove the guard.
+  function installLinkGuard(onLinkOpened) {
+    // 1) window.open
+    window.open = function(url, target, features) {
+      if (url && typeof url === 'string' && url.startsWith('http')) {
+        openLinkSafely(url);
+        onLinkOpened(url);
+        return null;
+      }
+      return window.__origOpen.call(window, url, target, features);
+    };
+
+    // 2) window.location.assign / replace / href
+    const _assign  = window.location.assign.bind(window.location);
+    const _replace = window.location.replace.bind(window.location);
+    window.location.assign = function(url) {
+      if (url && String(url).startsWith('http')) { openLinkSafely(url); onLinkOpened(url); }
+      else { _assign(url); }
+    };
+    window.location.replace = function(url) {
+      if (url && String(url).startsWith('http')) { openLinkSafely(url); onLinkOpened(url); }
+      else { _replace(url); }
+    };
+    try {
+      Object.defineProperty(window.location, 'href', {
+        set(url) { if (url && String(url).startsWith('http')) { openLinkSafely(url); onLinkOpened(url); } },
+        get() { return location.href; },
+        configurable: true
+      });
+    } catch(e) {}
+
+    // 3) <a href> clicks inside ad overlays
+    function clickGuard(e) {
+      const a = e.target.closest && e.target.closest('a[href]');
+      if (!a) return;
+      const href = a.getAttribute('href');
+      if (href && href.startsWith('http')) {
+        e.preventDefault(); e.stopPropagation();
+        openLinkSafely(href);
+        onLinkOpened(href);
+      }
+    }
+    document.addEventListener('click', clickGuard, true);
+
+    return function removeLinkGuard() {
+      window.open = window.__origOpen;
+      try {
+        window.location.assign  = _assign;
+        window.location.replace = _replace;
+        Object.defineProperty(window.location, 'href', {
+          set(v) { _assign(v); }, get() { return location.href; }, configurable: true
+        });
+      } catch(e) {}
+      document.removeEventListener('click', clickGuard, true);
+    };
+  }
+
+  // Waits for the user to return after ad link opens
+  function waitForUserReturn(onReturn) {
+    let done = false;
+    function ret() {
+      if (done) return; done = true;
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('focus', onFocus);
+      onReturn();
+    }
+    function onVis()   { if (!document.hidden) ret(); }
+    function onFocus() { ret(); }
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('focus', onFocus);
+    setTimeout(ret, (AD_DURATION_SEC + 6) * 1000);
+  }
+
   // Returns promise: resolves true if ad shown, false if no ad
   function showTadsFullscreen(stepN) {
     return new Promise(async (resolve) => {
@@ -542,65 +628,30 @@
         await waitForTads();
         const widgetId = TADS_FULLSCREEN_IDS[stepN];
 
-        let adShown   = false;
-        let resolved  = false;
-
+        let resolved = false;
         function done(val) {
-          if (resolved) return;
-          resolved = true;
-          // Restore window.open before resolving
-          window.open = _tadsOrigOpen;
+          if (resolved) return; resolved = true;
+          removeLinkGuard();
           resolve(val);
         }
 
-        // ── Intercept window.open so tads links don't close the WebApp ──
-        const _tadsOrigOpen = window.open;
-        window.open = function(url, target, features) {
-          window.open = _tadsOrigOpen; // restore immediately
-          if (url && typeof url === 'string' && url.startsWith('http')) {
-            // Open safely via Telegram so WebApp stays alive on desktop
-            if (tg && tg.openLink) {
-              tg.openLink(url);
-            } else {
-              _tadsOrigOpen.call(window, url, '_blank');
-            }
-
-            // Detect when user returns
-            function onReturn() {
-              document.removeEventListener('visibilitychange', onVisibility);
-              window.removeEventListener('focus', onReturn);
-              done(true);
-            }
-            function onVisibility() { if (!document.hidden) onReturn(); }
-            document.addEventListener('visibilitychange', onVisibility);
-            window.addEventListener('focus', onReturn);
-
-            // Safety net
-            setTimeout(() => done(true), (AD_DURATION_SEC + 5) * 1000);
-            return null;
-          }
-          return _tadsOrigOpen.call(window, url, target, features);
-        };
+        const removeLinkGuard = installLinkGuard((url) => {
+          // Link intercepted — wait for user return then resolve
+          waitForUserReturn(() => done(true));
+        });
 
         const ctrl = window.tads.init({
           widgetId: widgetId,
           type: 'fullscreen',
           debug: false,
-          onShowReward: () => {
-            adShown = true;
-            done(true);
-          },
-          onAdsNotFound: () => {
-            if (!adShown) done(false);
-          }
+          onShowReward:   () => done(true),
+          onAdsNotFound:  () => done(false),
         });
 
         tadsControllers[stepN] = ctrl;
 
         if (ctrl && typeof ctrl.showAd === 'function') {
-          ctrl.showAd().catch(() => {
-            if (!resolved) done(false);
-          });
+          ctrl.showAd().catch(() => { if (!resolved) done(false); });
         } else {
           done(false);
         }
@@ -824,69 +875,29 @@
     // ── Try AdsBitVex first, with full fallback coverage ──────────
     //
     // Cases we handle:
-    //  A) Ad shown + link opened (normal)        → intercept link, open safely, wait return
-    //  B) Ad shown + no link (promise resolves)  → start timer, mark done
-    //  C) No ad available (promise rejects)      → fallback to tads.me
-    //  D) Frequency cap / warning message shown  → promise resolves quickly (<2s) without
-    //                                              a link opening → detected & fallback
+    //  A) Ad shown + link opened (normal)        → guard intercepts, opens safely, waits return
+    //  B) Ad shown + no link (reward promise)    → start timer, mark done
+    //  C) No ad / promise rejects                → fallback to tads.me
+    //  D) Frequency-cap / warning resolves fast  → elapsed < MIN_AD_DURATION_MS → fallback
     //  E) Script never loads                     → fallback to tads.me
     //
-    const _origOpen = window.open;
-    let adsBitVexLinkOpened = false;   // true if a real ad link was intercepted
-    let adsBitVexStartTime  = 0;       // when showadsbitvex() was called
-    const MIN_AD_DURATION_MS = 2000;   // real ad takes at least 2s; freq-cap message resolves faster
+    const MIN_AD_DURATION_MS = 2000;
+    let adsBitVexLinkOpened = false;
+    let adsBitVexStartTime  = 0;
+    let removeBvGuard       = null;
 
-    // Intercept window.open so we can use tg.openLink on desktop
-    function patchWindowOpen() {
-      window.open = function(url, target, features) {
-        window.open = _origOpen; // restore immediately
-        if (url && typeof url === 'string' && url.startsWith('http')) {
-          adsBitVexLinkOpened = true;
-          startTimer();
-
-          // Use Telegram's openLink so the WebApp stays alive on desktop
-          if (tg && tg.openLink) {
-            tg.openLink(url);
-          } else {
-            _origOpen.call(window, url, '_blank');
-          }
-
-          // Detect when user comes back (visibilitychange / focus)
-          function onReturn() {
-            document.removeEventListener('visibilitychange', onVisibility);
-            window.removeEventListener('focus', onReturn);
-            adHandled = true;
-            tryComplete();
-          }
-          function onVisibility() { if (!document.hidden) onReturn(); }
-          document.addEventListener('visibilitychange', onVisibility);
-          window.addEventListener('focus', onReturn);
-
-          // Safety net: complete after timer + 3s in case events never fire
-          setTimeout(() => {
-            if (!adHandled) { adHandled = true; tryComplete(); }
-          }, (AD_DURATION_SEC + 3) * 1000);
-
-          return null;
-        }
-        return _origOpen.call(window, url, target, features);
-      };
-    }
-
-    // Watch DOM for AdsBitVex overlay disappearing (frequency-cap / error message)
+    // Watch DOM for AdsBitVex overlay disappearing quickly (freq-cap / error)
     let domObserver = null;
     function watchForAdsBitVexOverlay() {
       domObserver = new MutationObserver(() => {
-        // If an overlay was added then removed quickly → likely freq-cap message
         const overlay = document.querySelector(
           '[class*="adsbitvex"],[id*="adsbitvex"],[class*="adsbv"],[id*="adsbv"]'
         );
         if (!overlay && adsBitVexStartTime > 0) {
           const elapsed = Date.now() - adsBitVexStartTime;
           if (elapsed < MIN_AD_DURATION_MS && !adsBitVexLinkOpened) {
-            // Closed too fast without a link → freq-cap or error → fallback
             domObserver.disconnect();
-            window.open = _origOpen;
+            if (removeBvGuard) removeBvGuard();
             tryTadsFallback(n);
           }
         }
@@ -895,33 +906,29 @@
     }
 
     waitForAdsBitVex(5000).then(() => {
-      patchWindowOpen();
+      removeBvGuard = installLinkGuard((url) => {
+        adsBitVexLinkOpened = true;
+        startTimer();
+        waitForUserReturn(() => { adHandled = true; tryComplete(); });
+      });
       watchForAdsBitVexOverlay();
       adsBitVexStartTime = Date.now();
       return showAdsBitVexAd();
     }).then(() => {
-      // Promise resolved — check if it was a real ad or a freq-cap/no-ad
       if (domObserver) domObserver.disconnect();
-      window.open = _origOpen;
+      if (removeBvGuard) removeBvGuard();
+
+      if (adsBitVexLinkOpened) return; // already handled via waitForUserReturn
 
       const elapsed = Date.now() - adsBitVexStartTime;
-      if (adsBitVexLinkOpened) {
-        // Real ad was opened — already handled inside interceptAndOpenSafely
-        return;
-      }
       if (elapsed < MIN_AD_DURATION_MS) {
-        // Resolved too fast without opening a link → freq-cap or no ad → fallback
-        tryTadsFallback(n);
+        tryTadsFallback(n); // freq-cap or no-ad → fallback
       } else {
-        // Reward ad resolved normally (e.g. 15s countdown finished)
-        startTimer();
-        adHandled = true;
-        tryComplete();
+        startTimer(); adHandled = true; tryComplete(); // reward ad finished normally
       }
     }).catch(() => {
-      // AdsBitVex rejected (no ad, error, script issue) → fallback
       if (domObserver) domObserver.disconnect();
-      window.open = _origOpen;
+      if (removeBvGuard) removeBvGuard();
       tryTadsFallback(n);
     });
 
@@ -929,11 +936,7 @@
     function tryTadsFallback(stepN) {
       if (sub) sub.textContent = 'loading alternate ad…';
       startTimer();
-
-      showTadsFullscreen(stepN).then(() => {
-        adHandled = true;
-        tryComplete();
-      });
+      showTadsFullscreen(stepN).then(() => { adHandled = true; tryComplete(); });
     }
   }
 
