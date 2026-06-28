@@ -90,8 +90,8 @@
   })();
   </script>
 
-  <!-- telega.io SDK (fallback) — يُحمَّل lazy عند الحاجة فقط -->
-  <!-- SDK script injected dynamically in showTelegaAd() to avoid auto-init -->
+  <!-- telega.io — يُحمَّل عند load ويعمل تلقائياً (مستقل عن الأزرار) -->
+  <!-- SDK script injected dynamically via initTelega() in bootstrap -->
 
   <!-- tads.me SDK (primary) -->
   <script src="https://w.tads.me/widget.js"></script>
@@ -663,60 +663,21 @@ function showTadsFullscreen(stepN) {
   });
 }
 
-// ── telega.io fallback ──────────────────────────────────────
-// الـ SDK يُحمَّل عند أول حاجة فقط (lazy) لتفادي أي إعلان تلقائي
-// كل استدعاء لـ showTelegaAd ينشئ instance جديداً (fresh) حتى تعتبره
-// الخدمة مستخدماً/جلسة مستقلة
-
-let _telegaSdkLoaded = false;
-
-function loadTelegaSdk() {
-  return new Promise((resolve, reject) => {
-    if (_telegaSdkLoaded && window.TelegaIn) return resolve();
-    if (document.querySelector('script[src*="telega.io"]')) {
-      // السكريبت موجود لكن ربما لم يكتمل بعد
-      const check = setInterval(() => {
-        if (window.TelegaIn) { clearInterval(check); _telegaSdkLoaded = true; resolve(); }
-      }, 50);
-      setTimeout(() => { clearInterval(check); reject(new Error('telega sdk timeout')); }, 8000);
-      return;
-    }
-    const s = document.createElement('script');
-    s.src = 'https://inapp.telega.io/sdk/v1/sdk.js';
-    s.onload = () => { _telegaSdkLoaded = true; resolve(); };
-    s.onerror = () => reject(new Error('telega sdk load failed'));
-    document.head.appendChild(s);
-  });
-}
-
-// ينشئ instance جديداً في كل استدعاء → كل زر = جلسة مستقلة
-// يُرجع Promise<boolean>
-function showTelegaAd() {
-  return new Promise(async (resolve) => {
+// ── telega.io — auto-show عند فتح التطبيق ───────────────────
+// telega يعمل كـ auto-show، لا يُستدعى من الأزرار
+function initTelega() {
+  const s = document.createElement('script');
+  s.src = 'https://inapp.telega.io/sdk/v1/sdk.js';
+  s.onload = () => {
     try {
-      await loadTelegaSdk();
-
-      if (!window.TelegaIn || typeof window.TelegaIn.AdsController?.create_miniapp !== 'function') {
-        return resolve(false);
+      if (window.TelegaIn?.AdsController?.create_miniapp) {
+        window.TelegaIn.AdsController.create_miniapp({
+          token: '0ffb7d2c-8b45-4b17-b256-70df12cae24e'
+        });
       }
-
-      // instance جديد لكل زر — تفادياً لمشكلة "نفس المستخدم"
-      const ads = window.TelegaIn.AdsController.create_miniapp({
-        token: '0ffb7d2c-8b45-4b17-b256-70df12cae24e'
-      });
-
-      if (!ads || typeof ads.ad_show !== 'function') return resolve(false);
-
-      ads.ad_show({
-        adBlockUuid: "6ffb2064-7a23-4c66-b0f9-cdca477e59c8"
-      });
-
-      // telega.io لا يوفر callback على ad_show → نعتبره ناجحاً فور الاستدعاء
-      resolve(true);
-    } catch (e) {
-      resolve(false);
-    }
-  });
+    } catch(e) {}
+  };
+  document.head.appendChild(s);
 }
 
 // ── Init tads TGB Banner #9636 ───────────────────────────────
@@ -872,10 +833,9 @@ function stopCountdownRing(n) {
 
 // ══════════════════════════════════════════════════════════════
 //  startStep — كل زر يعمل بشكل مستقل تماماً
-//  المنهجية: tads.me أولاً → إذا لا يوجد إعلان → telega.io
+//  المنهجية: tads.me فقط — telega يعمل تلقائياً عند فتح التطبيق
 // ══════════════════════════════════════════════════════════════
 function startStep(n) {
-  // تجاهل النقر المزدوج أو إذا انتهى الزر مسبقاً
   if (stepState[n].playing) return;
   if (n === 1 && stepState[1].done) return;
   if (n === 2 && (!stepState[1].done || stepState[2].done)) return;
@@ -889,9 +849,8 @@ function startStep(n) {
   btn.textContent = '⏳';
   if (sub) sub.textContent = 'loading ad…';
 
-  // ── حالة الانتهاء المزدوج (مؤقت + إعلان) ──
-  let timerDone  = false;
-  let adHandled  = false;
+  let timerDone    = false;
+  let adHandled    = false;
   let timerStarted = false;
 
   function startTimer() {
@@ -907,42 +866,21 @@ function startStep(n) {
     if (timerDone && adHandled) onAdComplete(n);
   }
 
-  // ── visibilitychange fallback ──────────────────────────────
-  // إذا فُتح الإعلان في متصفح خارجي وعاد المستخدم → نكمل الخطوة
+  // visibilitychange fallback — إذا فُتح الإعلان خارجياً وعاد المستخدم
   function onVisibilityReturn() {
     if (document.visibilityState === 'visible') {
       document.removeEventListener('visibilitychange', onVisibilityReturn);
-      // اعتبر الإعلان معالَجاً عند العودة
-      if (!adHandled) {
-        adHandled = true;
-        tryComplete();
-      }
-      // إذا لم يبدأ المؤقت بعد → ابدأه (حالة نادرة)
+      if (!adHandled) { adHandled = true; tryComplete(); }
       if (!timerStarted) startTimer();
     }
   }
   document.addEventListener('visibilitychange', onVisibilityReturn);
 
-  // ── المرحلة 1: tads.me ──────────────────────────────────────
-  if (sub) sub.textContent = 'loading ad…';
-
+  // ── tads.me (الوحيد من الأزرار) ─────────────────────────────
   showTadsFullscreen(n).then((tadsShown) => {
-    if (tadsShown) {
-      // tads.me عرض الإعلان بنجاح → ابدأ المؤقت وانتظر
-      startTimer();
-      adHandled = true;
-      tryComplete();
-    } else {
-      // tads.me لا يوجد إعلان → fallback إلى telega.io
-      if (sub) sub.textContent = 'loading alternate ad…';
-      startTimer(); // نبدأ المؤقت موازياً
-
-      showTelegaAd().then((telegaShown) => {
-        // سواء عُرض الإعلان أم لا → نكمل
-        adHandled = true;
-        tryComplete();
-      });
-    }
+    startTimer();   // يبدأ المؤقت دائماً بعد محاولة tads
+    adHandled = true;
+    tryComplete();
   });
 }
 
@@ -1052,6 +990,7 @@ function launchConfetti() {
 window.addEventListener('load', async () => {
   loadCourseMeta();
   initTadsBanner();
+  initTelega(); // telega يعمل تلقائياً — مستقل عن الأزرار
 
   const cached = loadProgress();
   if (cached?.step1 && cached?.step2) {
