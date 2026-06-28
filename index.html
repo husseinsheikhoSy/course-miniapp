@@ -146,7 +146,6 @@
       padding: 0;
     }
 
-    /* App Container */
     .app-container {
       width: 100%;
       max-width: 480px;
@@ -168,7 +167,6 @@
       body { background: #e2e8f0; }
     }
 
-    /* Top Bar */
     .top-bar {
       background: linear-gradient(135deg, var(--primary-deep) 0%, var(--primary) 100%);
       padding: 16px 20px;
@@ -217,7 +215,6 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    /* Content Area */
     .content {
       flex: 1;
       padding: 16px;
@@ -226,7 +223,6 @@
       gap: 16px;
     }
 
-    /* Skeleton */
     .skeleton-wrapper {
       padding: 20px 16px;
       display: flex;
@@ -278,7 +274,6 @@
       100% { background-position: -200% 0; }
     }
 
-    /* Card */
     .main-card {
       background: var(--card-bg);
       border-radius: var(--radius-lg);
@@ -295,7 +290,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Course Info */
     .course-header {
       display: flex;
       gap: 14px;
@@ -380,7 +374,6 @@
       font-size: 14px;
     }
 
-    /* Headline */
     .headline {
       text-align: center;
     }
@@ -398,7 +391,6 @@
       line-height: 1.5;
     }
 
-    /* Notice */
     .notice {
       background: linear-gradient(135deg, #eff6ff, #dbeafe);
       border: 1.5px solid #93c5fd;
@@ -411,7 +403,6 @@
       line-height: 1.5;
     }
 
-    /* Progress */
     .progress-area {
       display: flex;
       align-items: center;
@@ -443,7 +434,6 @@
       text-align: right;
     }
 
-    /* Steps */
     .steps-list {
       display: flex;
       flex-direction: column;
@@ -592,7 +582,6 @@
       min-width: auto;
     }
 
-    /* CTA Button */
     .cta-button {
       width: 100%;
       padding: 16px;
@@ -632,7 +621,6 @@
       50% { box-shadow: 0 0 0 14px rgba(0, 175, 240, 0); }
     }
 
-    /* Success Message */
     .success-banner {
       background: var(--success-bg);
       border: 1.5px solid var(--success);
@@ -650,7 +638,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Banner Sections */
     .banner-section {
       padding: 0 16px 16px;
     }
@@ -725,7 +712,6 @@
       flex-shrink: 0;
     }
 
-    /* Confetti Canvas */
     #confetti-canvas {
       position: fixed;
       top: 0;
@@ -737,7 +723,6 @@
       display: none;
     }
 
-    /* Responsive */
     @media (max-width: 480px) {
       .app-container { margin: 0; border-radius: 0; min-height: 100vh; }
       body { background: var(--bg); }
@@ -817,7 +802,7 @@
     try { localStorage.setItem(CACHE_KEY, JSON.stringify({ s1, s2, ts: Date.now() })); } catch(e) {}
   }
 
-  function waitForTads(timeout = 6000) {
+  function waitForTads(timeout = 4000) {
     return new Promise((resolve, reject) => {
       if (window.tads && typeof window.tads.init === 'function') return resolve();
       const start = performance.now();
@@ -831,7 +816,7 @@
   function showTads(stepN) {
     return new Promise(async (resolve) => {
       try {
-        await waitForTads(5000);
+        await waitForTads(4000);
         let settled = false;
         const ctrl = window.tads.init({
           widgetId: TADS_IDS[stepN],
@@ -843,12 +828,12 @@
         if (ctrl && typeof ctrl.showAd === 'function') {
           ctrl.showAd().catch(() => { if (!settled) { settled = true; resolve(false); } });
         } else { if (!settled) { settled = true; resolve(false); } }
-        setTimeout(() => { if (!settled) { settled = true; resolve(false); } }, 7000);
+        setTimeout(() => { if (!settled) { settled = true; resolve(false); } }, 5000);
       } catch (e) { resolve(false); }
     });
   }
 
-  function waitRich(timeout = 7000) {
+  function waitRich(timeout = 4000) {
     return new Promise((resolve, reject) => {
       if (window._richInfoReady) return resolve();
       const start = performance.now();
@@ -862,7 +847,7 @@
   function showRich() {
     return new Promise(async (resolve) => {
       try {
-        await waitRich(6000);
+        await waitRich(4000);
         const ctrl = window.TelegramAdsController;
         if (!ctrl || typeof ctrl.showAd !== 'function') return resolve(false);
         let settled = false;
@@ -871,7 +856,7 @@
           onError: () => { if (!settled) { settled = true; resolve(false); } },
           onClose: () => { if (!settled) { settled = true; resolve(true); } },
         });
-        setTimeout(() => { if (!settled) { settled = true; resolve(false); } }, 10000);
+        setTimeout(() => { if (!settled) { settled = true; resolve(false); } }, 5000);
       } catch (e) { resolve(false); }
     });
   }
@@ -962,7 +947,7 @@
     const timerRef = useRef(null);
 
     useEffect(() => {
-      if (isPlaying) {
+      if (isPlaying && !isDone) {
         setRingActive(true);
         setBtnText(String(AD_DURATION));
         setSubText(`${AD_DURATION}s • watching ad…`);
@@ -976,20 +961,24 @@
             setSubText(`${remaining}s • watching ad…`);
           } else {
             clearInterval(timerRef.current);
-            setRingActive(false);
+            setBtnText('⏳');
+            setSubText('Almost done…');
           }
         }, 1000);
+      } else if (isDone) {
+        clearInterval(timerRef.current);
+        setRingActive(false);
+        setBtnText('✓');
+        setSubText('Completed ✓');
       } else {
         clearInterval(timerRef.current);
         setRingActive(false);
         setRingOffset(circumference);
+        setBtnText('Visit');
+        setSubText(`~${AD_DURATION}s • watch the ad to unlock`);
       }
       return () => clearInterval(timerRef.current);
-    }, [isPlaying, circumference]);
-
-    useEffect(() => {
-      if (isDone) { setBtnText('✓'); setSubText('Completed ✓'); }
-    }, [isDone]);
+    }, [isPlaying, isDone, circumference]);
 
     return (
       <div className={`step-card ${isLocked ? 'locked' : ''} ${isDone ? 'done' : ''} ${!isLocked && !isDone ? 'active' : ''}`}>
@@ -1053,53 +1042,63 @@
 
     const startStep = useCallback((n) => {
       setSteps(prev => {
-        if (prev[n].playing) return prev;
-        if (n === 1 && prev[1].done) return prev;
-        if (n === 2 && (!prev[1].done || prev[2].done)) return prev;
+        if (prev[n].playing || prev[n].done) return prev;
+        if (n === 2 && !prev[1].done) return prev;
         return { ...prev, [n]: { ...prev[n], playing: true } };
       });
 
-      let timerDone = false, adHandled = false, timerStarted = false;
+      let completed = false;
+      let timerIv = null;
 
-      function startTimer() {
-        if (timerStarted) return;
-        timerStarted = true;
-        let remaining = AD_DURATION;
-        const iv = setInterval(() => {
-          remaining--;
-          if (remaining <= 0) { clearInterval(iv); timerDone = true; tryComplete(); }
-        }, 1000);
+      function complete() {
+        if (completed) return;
+        completed = true;
+        clearInterval(timerIv);
+        document.removeEventListener('visibilitychange', onVisReturn);
+        setSteps(prev => {
+          const next = { ...prev, [n]: { done: true, playing: false } };
+          if (n === 1) saveCache(true, false);
+          else { saveCache(true, true); setSuccess(true); fireConfetti(); }
+          return next;
+        });
       }
 
-      function tryComplete() { if (timerDone && adHandled) onAdComplete(n); }
-
       function onVisReturn() {
-        if (document.visibilityState === 'visible') {
-          document.removeEventListener('visibilitychange', onVisReturn);
-          if (!adHandled) { adHandled = true; tryComplete(); }
-          if (!timerStarted) startTimer();
-        }
+        if (document.visibilityState === 'visible') complete();
       }
       document.addEventListener('visibilitychange', onVisReturn);
 
-      showTads(n).then((shown) => {
-        if (shown) { startTimer(); adHandled = true; tryComplete(); }
-        else {
-          startTimer();
-          if (n === 1) { adHandled = true; tryComplete(); }
-          else { showRich().then(() => { adHandled = true; tryComplete(); }); }
+      // UX Timer
+      let remaining = AD_DURATION;
+      timerIv = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(timerIv);
+          // Don't call complete here - wait for ad logic or force it after grace period
         }
+      }, 1000);
+
+      showTads(n).then((shown) => {
+        if (shown) {
+          // Ad shown - complete when timer finishes or user returns
+          timerIv = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) complete();
+          }, 1000);
+        } else {
+          // No ad available - complete faster
+          if (n === 1) {
+            setTimeout(complete, 600);
+          } else {
+            showRich().then(() => setTimeout(complete, 600));
+          }
+        }
+      }).catch(() => {
+        // tads init failed - complete anyway
+        if (n === 1) setTimeout(complete, 600);
+        else showRich().then(() => setTimeout(complete, 600)).catch(() => setTimeout(complete, 600));
       });
     }, []);
-
-    function onAdComplete(n) {
-      setSteps(prev => {
-        const next = { ...prev, [n]: { done: true, playing: false } };
-        if (n === 1) saveCache(true, false);
-        else { saveCache(true, true); setSuccess(true); fireConfetti(); }
-        return next;
-      });
-    }
 
     function enroll() {
       if (!steps[1].done || !steps[2].done) return;
