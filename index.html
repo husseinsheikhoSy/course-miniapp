@@ -90,18 +90,8 @@
   })();
   </script>
 
-  <!-- telega.io SDK (fallback) -->
-  <script src="https://inapp.telega.io/sdk/v1/sdk.js"></script>
-  <script>
-    window._telegaAds = null;
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        window._telegaAds = window.TelegaIn.AdsController.create_miniapp({
-          token: '0ffb7d2c-8b45-4b17-b256-70df12cae24e'
-        });
-      } catch(e) {}
-    });
-  </script>
+  <!-- telega.io SDK (fallback) — يُحمَّل lazy عند الحاجة فقط -->
+  <!-- SDK script injected dynamically in showTelegaAd() to avoid auto-init -->
 
   <!-- tads.me SDK (primary) -->
   <script src="https://w.tads.me/widget.js"></script>
@@ -674,30 +664,54 @@ function showTadsFullscreen(stepN) {
 }
 
 // ── telega.io fallback ──────────────────────────────────────
-function waitForTelega(timeout = 6000) {
+// الـ SDK يُحمَّل عند أول حاجة فقط (lazy) لتفادي أي إعلان تلقائي
+// كل استدعاء لـ showTelegaAd ينشئ instance جديداً (fresh) حتى تعتبره
+// الخدمة مستخدماً/جلسة مستقلة
+
+let _telegaSdkLoaded = false;
+
+function loadTelegaSdk() {
   return new Promise((resolve, reject) => {
-    if (window._telegaAds) return resolve();
-    const start = performance.now();
-    const iv = setInterval(() => {
-      if (window._telegaAds) {
-        clearInterval(iv); resolve();
-      } else if (performance.now() - start > timeout) {
-        clearInterval(iv); reject(new Error('telega timeout'));
-      }
-    }, 50);
+    if (_telegaSdkLoaded && window.TelegaIn) return resolve();
+    if (document.querySelector('script[src*="telega.io"]')) {
+      // السكريبت موجود لكن ربما لم يكتمل بعد
+      const check = setInterval(() => {
+        if (window.TelegaIn) { clearInterval(check); _telegaSdkLoaded = true; resolve(); }
+      }, 50);
+      setTimeout(() => { clearInterval(check); reject(new Error('telega sdk timeout')); }, 8000);
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = 'https://inapp.telega.io/sdk/v1/sdk.js';
+    s.onload = () => { _telegaSdkLoaded = true; resolve(); };
+    s.onerror = () => reject(new Error('telega sdk load failed'));
+    document.head.appendChild(s);
   });
 }
 
-// يحاول عرض إعلان telega.io (fallback)
+// ينشئ instance جديداً في كل استدعاء → كل زر = جلسة مستقلة
 // يُرجع Promise<boolean>
 function showTelegaAd() {
   return new Promise(async (resolve) => {
     try {
-      await waitForTelega(5000);
-      window._telegaAds.ad_show({
+      await loadTelegaSdk();
+
+      if (!window.TelegaIn || typeof window.TelegaIn.AdsController?.create_miniapp !== 'function') {
+        return resolve(false);
+      }
+
+      // instance جديد لكل زر — تفادياً لمشكلة "نفس المستخدم"
+      const ads = window.TelegaIn.AdsController.create_miniapp({
+        token: '0ffb7d2c-8b45-4b17-b256-70df12cae24e'
+      });
+
+      if (!ads || typeof ads.ad_show !== 'function') return resolve(false);
+
+      ads.ad_show({
         adBlockUuid: "6ffb2064-7a23-4c66-b0f9-cdca477e59c8"
       });
-      // telega لا يوفر callback → نعتبره ناجحاً فور الاستدعاء
+
+      // telega.io لا يوفر callback على ad_show → نعتبره ناجحاً فور الاستدعاء
       resolve(true);
     } catch (e) {
       resolve(false);
