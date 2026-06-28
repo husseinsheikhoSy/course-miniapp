@@ -933,15 +933,22 @@ function startStep(n) {
       adHandled = true;
       tryComplete();
     } else {
-      // tads.me لا يوجد إعلان → fallback إلى richinfo
-      if (sub) sub.textContent = 'loading alternate ad…';
-      startTimer(); // نبدأ المؤقت موازياً
+      // tads.me لا يوجد إعلان
+      startTimer(); // نبدأ المؤقت في كلتا الحالتين
 
-      showRichInfoAd().then((richShown) => {
-        // سواء عُرض الإعلان أم لا → نكمل
+      if (n === 1) {
+        // زر 1: لا يوجد إعلان بديل — أكمل الخطوة مباشرة
+        if (sub) sub.textContent = 'no ad available…';
         adHandled = true;
         tryComplete();
-      });
+      } else {
+        // زر 2: جرّب richinfo كخدمة بديلة
+        if (sub) sub.textContent = 'loading alternate ad…';
+        showRichInfoAd().then(() => {
+          adHandled = true;
+          tryComplete();
+        });
+      }
     }
   });
 }
