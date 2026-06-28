@@ -670,11 +670,17 @@ function initTelega() {
   s.src = 'https://inapp.telega.io/sdk/v1/sdk.js';
   s.onload = () => {
     try {
-      if (window.TelegaIn?.AdsController?.create_miniapp) {
-        window.TelegaIn.AdsController.create_miniapp({
-          token: '0ffb7d2c-8b45-4b17-b256-70df12cae24e'
-        });
-      }
+      if (!window.TelegaIn?.AdsController?.create_miniapp) return;
+
+      const ads = window.TelegaIn.AdsController.create_miniapp({
+        token: '0ffb7d2c-8b45-4b17-b256-70df12cae24e'
+      });
+
+      if (!ads || typeof ads.ad_show !== 'function') return;
+
+      // الإعلان الأول — telega يختار التوقيت تلقائياً
+      ads.ad_show({ adBlockUuid: '6ffb2064-7a23-4c66-b0f9-cdca477e59c8' });
+
     } catch(e) {}
   };
   document.head.appendChild(s);
