@@ -1022,6 +1022,31 @@ function launchConfetti() {
   draw();
 }
 
+// ── Init Ad on App Open (adsbitvex_init) ──────────────────────
+// يُعرض فوراً عند فتح التطبيق — 3 ثوانٍ فقط ثم يُغلق
+// لا يُعرض إذا كان المستخدم أكمل الخطوتين مسبقاً (cache)
+function showAppOpenAd() {
+  return new Promise((resolve) => {
+    // انتظر حتى يتوفر showadsbitvex_init
+    const wait = (timeout = 6000) => new Promise((res, rej) => {
+      if (typeof window.showadsbitvex_init === 'function') return res();
+      const start = performance.now();
+      const iv = setInterval(() => {
+        if (typeof window.showadsbitvex_init === 'function') {
+          clearInterval(iv); res();
+        } else if (performance.now() - start > timeout) {
+          clearInterval(iv); rej(new Error('init_timeout'));
+        }
+      }, 50);
+    });
+
+    wait(5000)
+      .then(() => window.showadsbitvex_init())
+      .then(() => resolve(true))
+      .catch(() => resolve(false)); // أي خطأ → تجاهل وأكمل
+  });
+}
+
 // ── Bootstrap ─────────────────────────────────────────────────
 window.addEventListener('load', async () => {
   loadCourseMeta();
@@ -1029,6 +1054,7 @@ window.addEventListener('load', async () => {
 
   const cached = loadProgress();
   if (cached?.step1 && cached?.step2) {
+    // المستخدم أكمل مسبقاً — لا حاجة لإعلان الفتح
     stepState[1].done = true; stepState[2].done = true;
     showCard();
     updateProgress();
@@ -1043,7 +1069,9 @@ window.addEventListener('load', async () => {
     });
     unlockEnroll();
   } else {
+    // مستخدم جديد أو لم يكمل — أظهر إعلان الفتح أولاً ثم الكارد
     showCard();
+    showAppOpenAd(); // غير متزامن — لا يوقف تحميل الواجهة
   }
 });
 </script>
