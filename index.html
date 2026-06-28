@@ -92,7 +92,6 @@
 
   <!-- adsbitvex SDK (fallback) -->
   <script src="https://sdk.adsbitvex.com/functions/v1/ad-script?appid=000166"></script>
-  <script async src="https://sdk.adsbitvex.com/functions/v1/banner-serve?action=sdk"></script>
 
   <!-- tads.me SDK (primary) -->
   <script src="https://w.tads.me/widget.js"></script>
@@ -452,33 +451,6 @@
       .course-title { font-size:13px; }
     }
 
-    /* ── adsbitvex Banner Section ── */
-    .adsbitvex-section {
-      width: 100%;
-      margin: 0;
-      padding: 0 18px 14px;
-      background: var(--bg);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .adsbitvex-banner-wrap {
-      width: 100%;
-      max-width: 320px;
-      border-radius: 12px;
-      overflow: hidden;
-      background: var(--card);
-      box-shadow: 0 2px 12px rgba(0,175,240,.10);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 50px;
-    }
-    .adsbitvex-banner-wrap > div {
-      display: block !important;
-      margin: 0 auto !important;
-    }
-
     @media (max-height:720px) {
       body { padding: 10px 12px; }
       .unlock-headline h2 { font-size:16px; }
@@ -487,7 +459,6 @@
       .step  { padding:8px 12px; }
     }
   </style>
-<base target="_blank">
 </head>
 <body>
 
@@ -495,9 +466,8 @@
 
   <!-- Top bar -->
   <div class="top-bar">
-    <div class="logo-u">u</div>
-    <span class="logo-text" id="logo-text">UdemySY Free Courses</span>
-    <span class="badge-free">FREE</span>
+    <div data-abx-banner="4ae7ede693ac" data-abx-w="320" data-abx-h="50" style="display:inline-block;width:320px;height:50px;line-height:0"></div>
+<script async src="https://sdk.adsbitvex.com/functions/v1/banner-serve?action=sdk"></script>
   </div>
 
   <!-- Skeleton loader -->
@@ -607,13 +577,6 @@
       </div>
       <span class="encyclo-arrow">Join →</span>
     </a>
-  </div>
-
-  <!-- adsbitvex Banner -->
-  <div class="adsbitvex-section">
-    <div class="adsbitvex-banner-wrap">
-      <div data-abx-banner="4ae7ede693ac" data-abx-w="320" data-abx-h="50" style="display:inline-block;width:320px;height:50px;line-height:0"></div>
-    </div>
   </div>
 
 </div>
