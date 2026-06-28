@@ -563,8 +563,8 @@
 
   </div>
 
-  <!-- tads.me TGB Banner #9636 -->
-  <div class="tads-banner-section">
+  <!-- tads.me TGB Banner #9636 / adsbitvex fallback banner -->
+  <div class="tads-banner-section" id="tads-banner-section">
     <div id="tads-container-9636"></div>
   </div>
 
@@ -693,17 +693,47 @@ function showAdsBitvex() {
   });
 }
 
+// ── adsbitvex Banner Fallback ────────────────────────────────
+function showAdsbitvexBanner() {
+  const section = document.getElementById('tads-banner-section');
+  if (!section) return;
+  section.innerHTML = `
+    <div style="display:flex;justify-content:center;padding:0 18px 14px;">
+      <div data-abx-banner="4ae7ede693ac" data-abx-w="320" data-abx-h="50"
+           style="display:inline-block;width:320px;height:50px;line-height:0"></div>
+    </div>`;
+  // تحميل سكريبت banner adsbitvex إذا لم يكن محملاً بعد
+  if (!document.querySelector('script[src*="banner-serve"]')) {
+    const s = document.createElement('script');
+    s.async = true;
+    s.src   = 'https://sdk.adsbitvex.com/functions/v1/banner-serve?action=sdk';
+    document.body.appendChild(s);
+  }
+}
+
 // ── Init tads TGB Banner #9636 ───────────────────────────────
+// إذا لم يجد tads.me إعلاناً → يعرض banner الـ adsbitvex بدلاً منه
 function initTadsBanner() {
   waitForTads().then(() => {
     const ctrl = window.tads.init({
       widgetId: TADS_TGB_ID,
       type: 'static',
       debug: false,
-      onAdsNotFound: () => {}
+      onAdsNotFound: () => {
+        // لا يوجد إعلان tads → عرض adsbitvex banner
+        showAdsbitvexBanner();
+      }
     });
-    ctrl.loadAd().then(() => ctrl.showAd()).catch(() => {});
-  }).catch(() => {});
+    ctrl.loadAd()
+      .then(() => ctrl.showAd())
+      .catch(() => {
+        // خطأ في تحميل tads banner → عرض adsbitvex banner
+        showAdsbitvexBanner();
+      });
+  }).catch(() => {
+    // tads غير متاح → عرض adsbitvex banner
+    showAdsbitvexBanner();
+  });
 }
 
 // ── start_param decode ──────────────────────────────────────────
@@ -897,26 +927,14 @@ function startStep(n) {
   }
   document.addEventListener('visibilitychange', onVisibilityReturn);
 
-  // ── المرحلة 1: tads.me ──────────────────────────────────────
+  // ── tads.me فقط — بدون fallback إلى adsbitvex في الأزرار ──
   if (sub) sub.textContent = 'loading ad…';
 
   showTadsFullscreen(n).then((tadsShown) => {
-    if (tadsShown) {
-      // tads.me عرض الإعلان بنجاح → ابدأ المؤقت وانتظر
-      startTimer();
-      adHandled = true;
-      tryComplete();
-    } else {
-      // tads.me لا يوجد إعلان → fallback إلى adsbitvex
-      if (sub) sub.textContent = 'loading alternate ad…';
-      startTimer(); // نبدأ المؤقت موازياً
-
-      showAdsBitvex().then((bitvexShown) => {
-        // سواء عُرض الإعلان أم لا → نكمل
-        adHandled = true;
-        tryComplete();
-      });
-    }
+    // سواء عُرض إعلان tads.me أم لا → نكمل الخطوة مباشرة
+    startTimer();
+    adHandled = true;
+    tryComplete();
   });
 }
 
@@ -1022,26 +1040,26 @@ function launchConfetti() {
   draw();
 }
 
-// ── Init Ad on App Open (adsbitvex_init) ──────────────────────
-// يُعرض فوراً عند فتح التطبيق — 3 ثوانٍ فقط ثم يُغلق
+// ── App Open Ad (adsbitvex reward — 15 ثانية) ─────────────────
+// يُعرض فوراً عند فتح التطبيق — إعلان مكافأة كامل 15 ثانية
 // لا يُعرض إذا كان المستخدم أكمل الخطوتين مسبقاً (cache)
 function showAppOpenAd() {
   return new Promise((resolve) => {
-    // انتظر حتى يتوفر showadsbitvex_init
+    // انتظر حتى يتوفر showadsbitvex (reward — 15s)
     const wait = (timeout = 6000) => new Promise((res, rej) => {
-      if (typeof window.showadsbitvex_init === 'function') return res();
+      if (typeof window.showadsbitvex === 'function') return res();
       const start = performance.now();
       const iv = setInterval(() => {
-        if (typeof window.showadsbitvex_init === 'function') {
+        if (typeof window.showadsbitvex === 'function') {
           clearInterval(iv); res();
         } else if (performance.now() - start > timeout) {
-          clearInterval(iv); rej(new Error('init_timeout'));
+          clearInterval(iv); rej(new Error('reward_timeout'));
         }
       }, 50);
     });
 
     wait(5000)
-      .then(() => window.showadsbitvex_init())
+      .then(() => window.showadsbitvex())
       .then(() => resolve(true))
       .catch(() => resolve(false)); // أي خطأ → تجاهل وأكمل
   });
