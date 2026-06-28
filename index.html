@@ -775,7 +775,7 @@ const COURSE_URL = resolveCourseUrl();
 
 // ── localStorage progress cache (5 min) ──────────────────────
 const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
-const CACHE_TTL = 5 * 60 * 1000;
+const CACHE_TTL = 2 * 60 * 1000;
 
 function loadProgress() {
   try {
