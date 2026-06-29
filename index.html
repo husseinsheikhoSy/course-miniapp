@@ -90,8 +90,15 @@
   })();
   </script>
 
-  <!-- adsbitvex SDK (fallback) -->
-  <script src="https://sdk.adsbitvex.com/functions/v1/ad-script?appid=000166"></script>
+  <!-- richads SDK -->
+  <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
+  <script>
+    window.TelegramAdsController = new TelegramAdsController();
+    window.TelegramAdsController.initialize({
+      pubId: "1006337",
+      appId: "6751",
+    });
+  </script>
 
   <!-- tads.me SDK (primary) -->
   <script src="https://w.tads.me/widget.js"></script>
@@ -563,7 +570,7 @@
 
   </div>
 
-  <!-- tads.me TGB Banner #9636 / adsbitvex fallback banner -->
+  <!-- tads.me TGB Banner #9636 / richads fallback banner -->
   <div class="tads-banner-section" id="tads-banner-section">
     <div id="tads-container-9636"></div>
   </div>
@@ -663,28 +670,28 @@ function showTadsFullscreen(stepN) {
   });
 }
 
-// ── adsbitvex fallback ──────────────────────────────────────
-function waitForAdsBitvex(timeout = 6000) {
+// ── richads fallback ─────────────────────────────────────────
+function waitForRichAds(timeout = 6000) {
   return new Promise((resolve, reject) => {
-    if (typeof window.showadsbitvex === 'function') return resolve();
+    if (window.TelegramAdsController && typeof window.TelegramAdsController.showAd === 'function') return resolve();
     const start = performance.now();
     const iv = setInterval(() => {
-      if (typeof window.showadsbitvex === 'function') {
+      if (window.TelegramAdsController && typeof window.TelegramAdsController.showAd === 'function') {
         clearInterval(iv); resolve();
       } else if (performance.now() - start > timeout) {
-        clearInterval(iv); reject(new Error('adsbitvex timeout'));
+        clearInterval(iv); reject(new Error('richads timeout'));
       }
     }, 50);
   });
 }
 
-// يحاول عرض إعلان adsbitvex (reward — 15 ثانية)
+// يحاول عرض إعلان richads (reward — 15 ثانية)
 // يُرجع Promise<boolean>
-function showAdsBitvex() {
+function showRichAds() {
   return new Promise(async (resolve) => {
     try {
-      await waitForAdsBitvex(5000);
-      window.showadsbitvex()
+      await waitForRichAds(5000);
+      window.TelegramAdsController.showAd()
         .then(() => resolve(true))
         .catch(() => resolve(false));
     } catch (e) {
@@ -693,26 +700,30 @@ function showAdsBitvex() {
   });
 }
 
-// ── adsbitvex Banner Fallback ────────────────────────────────
-function showAdsbitvexBanner() {
+// ── richads Banner Fallback ──────────────────────────────────
+function showRichAdsBanner() {
   const section = document.getElementById('tads-banner-section');
   if (!section) return;
   section.innerHTML = `
     <div style="display:flex;justify-content:center;padding:0 18px 14px;">
-      <div data-abx-banner="4ae7ede693ac" data-abx-w="320" data-abx-h="50"
-           style="display:inline-block;width:320px;height:50px;line-height:0"></div>
+      <div id="richads-banner-fallback" style="display:inline-block;width:320px;height:50px;line-height:0"></div>
     </div>`;
-  // تحميل سكريبت banner adsbitvex إذا لم يكن محملاً بعد
-  if (!document.querySelector('script[src*="banner-serve"]')) {
-    const s = document.createElement('script');
-    s.async = true;
-    s.src   = 'https://sdk.adsbitvex.com/functions/v1/banner-serve?action=sdk';
-    document.body.appendChild(s);
-  }
+  // عرض الإعلان عبر richads controller
+  try {
+    if (window.TelegramAdsController && typeof window.TelegramAdsController.showBanner === 'function') {
+      window.TelegramAdsController.showBanner({ containerId: 'richads-banner-fallback' });
+    } else {
+      waitForRichAds(5000).then(() => {
+        if (typeof window.TelegramAdsController.showBanner === 'function') {
+          window.TelegramAdsController.showBanner({ containerId: 'richads-banner-fallback' });
+        }
+      }).catch(() => {});
+    }
+  } catch(e) {}
 }
 
 // ── Init tads TGB Banner #9636 ───────────────────────────────
-// إذا لم يجد tads.me إعلاناً → يعرض banner الـ adsbitvex بدلاً منه
+// إذا لم يجد tads.me إعلاناً → يعرض banner الـ richads بدلاً منه
 function initTadsBanner() {
   waitForTads().then(() => {
     const ctrl = window.tads.init({
@@ -720,19 +731,19 @@ function initTadsBanner() {
       type: 'static',
       debug: false,
       onAdsNotFound: () => {
-        // لا يوجد إعلان tads → عرض adsbitvex banner
-        showAdsbitvexBanner();
+        // لا يوجد إعلان tads → عرض richads banner
+        showRichAdsBanner();
       }
     });
     ctrl.loadAd()
       .then(() => ctrl.showAd())
       .catch(() => {
-        // خطأ في تحميل tads banner → عرض adsbitvex banner
-        showAdsbitvexBanner();
+        // خطأ في تحميل tads banner → عرض richads banner
+        showRichAdsBanner();
       });
   }).catch(() => {
-    // tads غير متاح → عرض adsbitvex banner
-    showAdsbitvexBanner();
+    // tads غير متاح → عرض richads banner
+    showRichAdsBanner();
   });
 }
 
@@ -876,7 +887,7 @@ function stopCountdownRing(n) {
 
 // ══════════════════════════════════════════════════════════════
 //  startStep — كل زر يعمل بشكل مستقل تماماً
-//  المنهجية: tads.me أولاً → إذا لا يوجد إعلان → adsbitvex
+//  المنهجية: tads.me أولاً → إذا لا يوجد إعلان → richads
 // ══════════════════════════════════════════════════════════════
 function startStep(n) {
   // تجاهل النقر المزدوج أو إذا انتهى الزر مسبقاً
@@ -927,7 +938,7 @@ function startStep(n) {
   }
   document.addEventListener('visibilitychange', onVisibilityReturn);
 
-  // ── tads.me فقط — بدون fallback إلى adsbitvex في الأزرار ──
+  // ── tads.me فقط — بدون fallback إلى richads في الأزرار ──
   if (sub) sub.textContent = 'loading ad…';
 
   showTadsFullscreen(n).then((tadsShown) => {
@@ -1040,26 +1051,13 @@ function launchConfetti() {
   draw();
 }
 
-// ── App Open Ad (adsbitvex reward — 15 ثانية) ─────────────────
+// ── App Open Ad (richads reward — 15 ثانية) ──────────────────
 // يُعرض فوراً عند فتح التطبيق — إعلان مكافأة كامل 15 ثانية
 // لا يُعرض إذا كان المستخدم أكمل الخطوتين مسبقاً (cache)
 function showAppOpenAd() {
   return new Promise((resolve) => {
-    // انتظر حتى يتوفر showadsbitvex (reward — 15s)
-    const wait = (timeout = 6000) => new Promise((res, rej) => {
-      if (typeof window.showadsbitvex === 'function') return res();
-      const start = performance.now();
-      const iv = setInterval(() => {
-        if (typeof window.showadsbitvex === 'function') {
-          clearInterval(iv); res();
-        } else if (performance.now() - start > timeout) {
-          clearInterval(iv); rej(new Error('reward_timeout'));
-        }
-      }, 50);
-    });
-
-    wait(5000)
-      .then(() => window.showadsbitvex())
+    waitForRichAds(5000)
+      .then(() => window.TelegramAdsController.showAd())
       .then(() => resolve(true))
       .catch(() => resolve(false)); // أي خطأ → تجاهل وأكمل
   });
