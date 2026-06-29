@@ -5,32 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Udemy Free Course Access</title>
 
-  <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js?62"></script>
 
   <!-- ══ INTERCEPTORS — يجب أن تكون قبل أي SDK إعلانات ══ -->
   <script>
   (function() {
     // حفظ النسخ الأصلية
-    var _origOpen    = window.open;
-    var _origAssign  = window.location ? window.location.assign.bind(window.location) : null;
+    var _origOpen   = window.open;
+    var _origAssign = window.location ? window.location.assign.bind(window.location) : null;
     var _origReplace = window.location ? window.location.replace.bind(window.location) : null;
 
-    // النطاقات المستثناة من الاعتراض — تُسمح بالعمل بشكل طبيعي لأنها SDKs إعلانية
-    function isAdSdkUrl(url) {
-      if (!url || typeof url !== 'string') return false;
-      return url.indexOf('adsbitvex.com') !== -1 ||
-             url.indexOf('sdk.adsbitvex') !== -1 ||
-             url.indexOf('tads.me')       !== -1;
-    }
-
     // منع window.open من إغلاق التطبيق — نستخدم tg.openLink بدلاً منه
-    // استثناء: نطاقات SDKs الإعلانية تعمل بشكل طبيعي
     window.open = function(url, target, features) {
       if (url && typeof url === 'string' && url.indexOf('http') === 0) {
-        // استثناء adsbitvex و tads.me — يجب أن يعملا بشكل طبيعي لعرض الإعلانات
-        if (isAdSdkUrl(url)) {
-          return _origOpen.call(window, url, target || '_blank', features);
-        }
         var tgApp = window.Telegram && window.Telegram.WebApp;
         if (tgApp && typeof tgApp.openLink === 'function') {
           try {
@@ -45,7 +32,6 @@
     };
 
     // منع location.href من إغلاق التطبيق
-    // استثناء: نطاقات SDKs الإعلانية تعمل بشكل طبيعي
     try {
       var _hrefDescriptor = Object.getOwnPropertyDescriptor(window.location, 'href');
       if (_hrefDescriptor && _hrefDescriptor.set) {
@@ -54,11 +40,6 @@
           get: _hrefDescriptor.get,
           set: function(url) {
             if (url && typeof url === 'string' && url.indexOf('http') === 0) {
-              // استثناء adsbitvex و tads.me
-              if (isAdSdkUrl(url)) {
-                _origHrefSet.call(window.location, url);
-                return;
-              }
               var tgApp = window.Telegram && window.Telegram.WebApp;
               if (tgApp && typeof tgApp.openLink === 'function') {
                 try {
@@ -75,15 +56,9 @@
     } catch(e) {}
 
     // منع location.assign
-    // استثناء: نطاقات SDKs الإعلانية تعمل بشكل طبيعي
     if (_origAssign) {
       window.location.assign = function(url) {
         if (url && typeof url === 'string' && url.indexOf('http') === 0) {
-          // استثناء adsbitvex و tads.me
-          if (isAdSdkUrl(url)) {
-            _origAssign(url);
-            return;
-          }
           var tgApp = window.Telegram && window.Telegram.WebApp;
           if (tgApp && typeof tgApp.openLink === 'function') {
             try {
@@ -97,15 +72,9 @@
     }
 
     // منع location.replace
-    // استثناء: نطاقات SDKs الإعلانية تعمل بشكل طبيعي
     if (_origReplace) {
       window.location.replace = function(url) {
         if (url && typeof url === 'string' && url.indexOf('http') === 0) {
-          // استثناء adsbitvex و tads.me
-          if (isAdSdkUrl(url)) {
-            _origReplace(url);
-            return;
-          }
           var tgApp = window.Telegram && window.Telegram.WebApp;
           if (tgApp && typeof tgApp.openLink === 'function') {
             try {
@@ -1076,8 +1045,8 @@ function launchConfetti() {
 // لا يُعرض إذا كان المستخدم أكمل الخطوتين مسبقاً (cache)
 function showAppOpenAd() {
   return new Promise((resolve) => {
-    // انتظر حتى يتوفر showadsbitvex في الـ DOM (reward — 15s)
-    const wait = (timeout = 8000) => new Promise((res, rej) => {
+    // انتظر حتى يتوفر showadsbitvex (reward — 15s)
+    const wait = (timeout = 6000) => new Promise((res, rej) => {
       if (typeof window.showadsbitvex === 'function') return res();
       const start = performance.now();
       const iv = setInterval(() => {
@@ -1089,10 +1058,10 @@ function showAppOpenAd() {
       }, 50);
     });
 
-    wait(8000)
+    wait(5000)
       .then(() => window.showadsbitvex())
       .then(() => resolve(true))
-      .catch(() => resolve(false)); // أي خطأ أو timeout → تجاهل وأكمل
+      .catch(() => resolve(false)); // أي خطأ → تجاهل وأكمل
   });
 }
 
@@ -1118,12 +1087,9 @@ window.addEventListener('load', async () => {
     });
     unlockEnroll();
   } else {
-    // مستخدم جديد أو لم يكمل:
-    // 1) أظهر إعلان الفتح (15 ثانية) — ننتظره بشكل async ولا نوقف الواجهة
-    // 2) أظهر الكارد بعد انتهاء الإعلان أو فشله
-    showAppOpenAd().finally(() => {
-      showCard();
-    });
+    // مستخدم جديد أو لم يكمل — أظهر إعلان الفتح أولاً ثم الكارد
+    showCard();
+    showAppOpenAd(); // غير متزامن — لا يوقف تحميل الواجهة
   }
 });
 </script>
