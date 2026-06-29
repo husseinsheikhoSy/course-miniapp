@@ -11,13 +11,26 @@
   <script>
   (function() {
     // حفظ النسخ الأصلية
-    var _origOpen   = window.open;
-    var _origAssign = window.location ? window.location.assign.bind(window.location) : null;
+    var _origOpen    = window.open;
+    var _origAssign  = window.location ? window.location.assign.bind(window.location) : null;
     var _origReplace = window.location ? window.location.replace.bind(window.location) : null;
 
+    // النطاقات المستثناة من الاعتراض — تُسمح بالعمل بشكل طبيعي لأنها SDKs إعلانية
+    function isAdSdkUrl(url) {
+      if (!url || typeof url !== 'string') return false;
+      return url.indexOf('adsbitvex.com') !== -1 ||
+             url.indexOf('sdk.adsbitvex') !== -1 ||
+             url.indexOf('tads.me')       !== -1;
+    }
+
     // منع window.open من إغلاق التطبيق — نستخدم tg.openLink بدلاً منه
+    // استثناء: نطاقات SDKs الإعلانية تعمل بشكل طبيعي
     window.open = function(url, target, features) {
       if (url && typeof url === 'string' && url.indexOf('http') === 0) {
+        // استثناء adsbitvex و tads.me — يجب أن يعملا بشكل طبيعي لعرض الإعلانات
+        if (isAdSdkUrl(url)) {
+          return _origOpen.call(window, url, target || '_blank', features);
+        }
         var tgApp = window.Telegram && window.Telegram.WebApp;
         if (tgApp && typeof tgApp.openLink === 'function') {
           try {
@@ -32,6 +45,7 @@
     };
 
     // منع location.href من إغلاق التطبيق
+    // استثناء: نطاقات SDKs الإعلانية تعمل بشكل طبيعي
     try {
       var _hrefDescriptor = Object.getOwnPropertyDescriptor(window.location, 'href');
       if (_hrefDescriptor && _hrefDescriptor.set) {
@@ -40,6 +54,11 @@
           get: _hrefDescriptor.get,
           set: function(url) {
             if (url && typeof url === 'string' && url.indexOf('http') === 0) {
+              // استثناء adsbitvex و tads.me
+              if (isAdSdkUrl(url)) {
+                _origHrefSet.call(window.location, url);
+                return;
+              }
               var tgApp = window.Telegram && window.Telegram.WebApp;
               if (tgApp && typeof tgApp.openLink === 'function') {
                 try {
@@ -56,9 +75,15 @@
     } catch(e) {}
 
     // منع location.assign
+    // استثناء: نطاقات SDKs الإعلانية تعمل بشكل طبيعي
     if (_origAssign) {
       window.location.assign = function(url) {
         if (url && typeof url === 'string' && url.indexOf('http') === 0) {
+          // استثناء adsbitvex و tads.me
+          if (isAdSdkUrl(url)) {
+            _origAssign(url);
+            return;
+          }
           var tgApp = window.Telegram && window.Telegram.WebApp;
           if (tgApp && typeof tgApp.openLink === 'function') {
             try {
@@ -72,9 +97,15 @@
     }
 
     // منع location.replace
+    // استثناء: نطاقات SDKs الإعلانية تعمل بشكل طبيعي
     if (_origReplace) {
       window.location.replace = function(url) {
         if (url && typeof url === 'string' && url.indexOf('http') === 0) {
+          // استثناء adsbitvex و tads.me
+          if (isAdSdkUrl(url)) {
+            _origReplace(url);
+            return;
+          }
           var tgApp = window.Telegram && window.Telegram.WebApp;
           if (tgApp && typeof tgApp.openLink === 'function') {
             try {
@@ -693,7 +724,23 @@ function showAdsBitvex() {
   });
 }
 
-
+// ── adsbitvex Banner Fallback ────────────────────────────────
+function showAdsbitvexBanner() {
+  const section = document.getElementById('tads-banner-section');
+  if (!section) return;
+  section.innerHTML = `
+    <div style="display:flex;justify-content:center;padding:0 18px 14px;">
+      <div data-abx-banner="4ae7ede693ac" data-abx-w="320" data-abx-h="50"
+           style="display:inline-block;width:320px;height:50px;line-height:0"></div>
+    </div>`;
+  // تحميل سكريبت banner adsbitvex إذا لم يكن محملاً بعد
+  if (!document.querySelector('script[src*="banner-serve"]')) {
+    const s = document.createElement('script');
+    s.async = true;
+    s.src   = 'https://sdk.adsbitvex.com/functions/v1/banner-serve?action=sdk';
+    document.body.appendChild(s);
+  }
+}
 
 // ── Init tads TGB Banner #9636 ───────────────────────────────
 // إذا لم يجد tads.me إعلاناً → يعرض banner الـ adsbitvex بدلاً منه
@@ -1029,8 +1076,8 @@ function launchConfetti() {
 // لا يُعرض إذا كان المستخدم أكمل الخطوتين مسبقاً (cache)
 function showAppOpenAd() {
   return new Promise((resolve) => {
-    // انتظر حتى يتوفر showadsbitvex (reward — 15s)
-    const wait = (timeout = 6000) => new Promise((res, rej) => {
+    // انتظر حتى يتوفر showadsbitvex في الـ DOM (reward — 15s)
+    const wait = (timeout = 8000) => new Promise((res, rej) => {
       if (typeof window.showadsbitvex === 'function') return res();
       const start = performance.now();
       const iv = setInterval(() => {
@@ -1042,10 +1089,10 @@ function showAppOpenAd() {
       }, 50);
     });
 
-    wait(5000)
+    wait(8000)
       .then(() => window.showadsbitvex())
       .then(() => resolve(true))
-      .catch(() => resolve(false)); // أي خطأ → تجاهل وأكمل
+      .catch(() => resolve(false)); // أي خطأ أو timeout → تجاهل وأكمل
   });
 }
 
@@ -1071,9 +1118,12 @@ window.addEventListener('load', async () => {
     });
     unlockEnroll();
   } else {
-    // مستخدم جديد أو لم يكمل — أظهر إعلان الفتح أولاً ثم الكارد
-    showCard();
-    showAppOpenAd(); // غير متزامن — لا يوقف تحميل الواجهة
+    // مستخدم جديد أو لم يكمل:
+    // 1) أظهر إعلان الفتح (15 ثانية) — ننتظره بشكل async ولا نوقف الواجهة
+    // 2) أظهر الكارد بعد انتهاء الإعلان أو فشله
+    showAppOpenAd().finally(() => {
+      showCard();
+    });
   }
 });
 </script>
