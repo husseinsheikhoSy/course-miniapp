@@ -693,47 +693,19 @@ function showAdsBitvex() {
   });
 }
 
-// ── adsbitvex Banner Fallback ────────────────────────────────
-function showAdsbitvexBanner() {
-  const section = document.getElementById('tads-banner-section');
-  if (!section) return;
-  section.innerHTML = `
-    <div style="display:flex;justify-content:center;padding:0 18px 14px;">
-      <div data-abx-banner="4ae7ede693ac" data-abx-w="320" data-abx-h="50"
-           style="display:inline-block;width:320px;height:50px;line-height:0"></div>
-    </div>`;
-  // تحميل سكريبت banner adsbitvex إذا لم يكن محملاً بعد
-  if (!document.querySelector('script[src*="banner-serve"]')) {
-    const s = document.createElement('script');
-    s.async = true;
-    s.src   = 'https://sdk.adsbitvex.com/functions/v1/banner-serve?action=sdk';
-    document.body.appendChild(s);
-  }
-}
-
 // ── Init tads TGB Banner #9636 ───────────────────────────────
-// إذا لم يجد tads.me إعلاناً → يعرض banner الـ adsbitvex بدلاً منه
 function initTadsBanner() {
   waitForTads().then(() => {
     const ctrl = window.tads.init({
       widgetId: TADS_TGB_ID,
       type: 'static',
       debug: false,
-      onAdsNotFound: () => {
-        // لا يوجد إعلان tads → عرض adsbitvex banner
-        showAdsbitvexBanner();
-      }
+      onAdsNotFound: () => {}
     });
     ctrl.loadAd()
       .then(() => ctrl.showAd())
-      .catch(() => {
-        // خطأ في تحميل tads banner → عرض adsbitvex banner
-        showAdsbitvexBanner();
-      });
-  }).catch(() => {
-    // tads غير متاح → عرض adsbitvex banner
-    showAdsbitvexBanner();
-  });
+      .catch(() => {});
+  }).catch(() => {});
 }
 
 // ── start_param decode ──────────────────────────────────────────
