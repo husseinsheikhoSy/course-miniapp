@@ -90,17 +90,11 @@
   })();
   </script>
 
-  <!-- Adexium SDK -->
-  <script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
-  <script type="text/javascript">
-      document.addEventListener('DOMContentLoaded', () => {
-          const adexiumWidget = new AdexiumWidget({wid: 'ce45e384-0fb7-4198-b3ba-477584913169', adFormat: 'interstitial'});
-          adexiumWidget.autoMode();
-      });
-  </script>
-
   <!-- tads.me SDK (primary) -->
   <script src="https://w.tads.me/widget.js"></script>
+
+  <!-- monetixads SDK (replaced adsbitvex) -->
+  <script src="https://www.monetixads.online/ads.js" data-mxid="MX-ECB7714F"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -669,6 +663,40 @@ function showTadsFullscreen(stepN) {
   });
 }
 
+// ── monetixads helper (replaced adsbitvex) ──────────────────
+function waitForMonetix(timeout = 6000) {
+  return new Promise((resolve, reject) => {
+    if (typeof window.showRewardAd === 'function') return resolve();
+    const start = performance.now();
+    const iv = setInterval(() => {
+      if (typeof window.showRewardAd === 'function') {
+        clearInterval(iv); resolve();
+      } else if (performance.now() - start > timeout) {
+        clearInterval(iv); reject(new Error('monetix timeout'));
+      }
+    }, 50);
+  });
+}
+
+// يعرض إعلان monetixads reward
+// يُرجع Promise<boolean> — true إذا اكتمل/أُغلق، false إذا فشل
+function showMonetixReward() {
+  return new Promise(async (resolve) => {
+    try {
+      await waitForMonetix(5000);
+      window.showRewardAd(function(res) {
+        if (res && (res.status === 'completed' || res.status === 'closed')) {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      });
+    } catch (e) {
+      resolve(false);
+    }
+  });
+}
+
 // ── Init tads TGB Banner #9636 ───────────────────────────────
 function initTadsBanner() {
   waitForTads().then(() => {
@@ -679,8 +707,12 @@ function initTadsBanner() {
     });
     ctrl.loadAd()
       .then(() => ctrl.showAd())
-      .catch(() => {});
-  }).catch(() => {});
+      .catch(() => {
+        // لا يوجد fallback إعلاني — المحتوى يبقى فارغاً
+      });
+  }).catch(() => {
+    // tads غير متاح — لا يوجد fallback
+  });
 }
 
 // ── start_param decode ──────────────────────────────────────────
@@ -822,8 +854,8 @@ function stopCountdownRing(n) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  startStep — كل زر يعمل بشكل مستقل تماماُ
-//  المنهجية: tads.me fullscreen فقط
+//  startStep — كل زر يعمل بشكل مستقل تماماً
+//  المنهجية: tads.me أولاً → إذا لا يوجد إعلان → monetixads
 // ══════════════════════════════════════════════════════════════
 function startStep(n) {
   // تجاهل النقر المزدوج أو إذا انتهى الزر مسبقاً
@@ -874,14 +906,24 @@ function startStep(n) {
   }
   document.addEventListener('visibilitychange', onVisibilityReturn);
 
-  // ── tads.me fullscreen فقط ──
+  // ── tads.me أولاً → monetixads fallback ──
   if (sub) sub.textContent = 'loading ad…';
 
   showTadsFullscreen(n).then((tadsShown) => {
-    // سواء عُرض إعلان tads.me أم لا → نكمل الخطوة مباشرة
-    startTimer();
-    adHandled = true;
-    tryComplete();
+    if (tadsShown) {
+      // tads.me عرض الإعلان بنجاح
+      startTimer();
+      adHandled = true;
+      tryComplete();
+    } else {
+      // لا يوجد إعلان tads.me → جرب monetixads
+      if (sub) sub.textContent = 'loading monetix…';
+      showMonetixReward().then((monetixDone) => {
+        startTimer();
+        adHandled = true;
+        tryComplete();
+      });
+    }
   });
 }
 
@@ -987,6 +1029,15 @@ function launchConfetti() {
   draw();
 }
 
+// ── App Open Ad (monetixads reward) ───────────────────────────
+// يُعرض فوراً عند فتح التطبيق — إعلان مكافأة كامل
+// لا يُعرض إذا كان المستخدم أكمل الخطوتين مسبقاً (cache)
+function showAppOpenAd() {
+  return new Promise((resolve) => {
+    showMonetixReward().then((done) => resolve(done));
+  });
+}
+
 // ── Bootstrap ─────────────────────────────────────────────────
 window.addEventListener('load', async () => {
   loadCourseMeta();
@@ -994,7 +1045,7 @@ window.addEventListener('load', async () => {
 
   const cached = loadProgress();
   if (cached?.step1 && cached?.step2) {
-    // المستخدم أكمل مسبقاً
+    // المستخدم أكمل مسبقاً — لا حاجة لإعلان الفتح
     stepState[1].done = true; stepState[2].done = true;
     showCard();
     updateProgress();
@@ -1009,8 +1060,9 @@ window.addEventListener('load', async () => {
     });
     unlockEnroll();
   } else {
-    // مستخدم جديد أو لم يكمل — Adexium autoMode() يتولى الإعلان التلقائي عند الفتح
+    // مستخدم جديد أو لم يكمل — أظهر إعلان الفتح أولاً ثم الكارد
     showCard();
+    showAppOpenAd(); // غير متزامن — لا يوقف تحميل الواجهة
   }
 });
 </script>
