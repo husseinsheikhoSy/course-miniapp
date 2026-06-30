@@ -7,31 +7,24 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
-  <!-- ══ INTERCEPTORS — يجب أن تكون قبل أي SDK إعلانات ══ -->
+  <!-- ══ INTERCEPTORS ══ -->
   <script>
   (function() {
-    // حفظ النسخ الأصلية
     var _origOpen   = window.open;
     var _origAssign = window.location ? window.location.assign.bind(window.location) : null;
     var _origReplace = window.location ? window.location.replace.bind(window.location) : null;
 
-    // منع window.open من إغلاق التطبيق — نستخدم tg.openLink بدلاً منه
     window.open = function(url, target, features) {
       if (url && typeof url === 'string' && url.indexOf('http') === 0) {
         var tgApp = window.Telegram && window.Telegram.WebApp;
         if (tgApp && typeof tgApp.openLink === 'function') {
-          try {
-            tgApp.openLink(url, { try_instant_view: false });
-            return null;
-          } catch(e) {}
+          try { tgApp.openLink(url, { try_instant_view: false }); return null; } catch(e) {}
         }
-        // fallback: استخدم target=_blank
         return _origOpen.call(window, url, '_blank', features);
       }
       return _origOpen.apply(window, arguments);
     };
 
-    // منع location.href من إغلاق التطبيق
     try {
       var _hrefDescriptor = Object.getOwnPropertyDescriptor(window.location, 'href');
       if (_hrefDescriptor && _hrefDescriptor.set) {
@@ -42,10 +35,7 @@
             if (url && typeof url === 'string' && url.indexOf('http') === 0) {
               var tgApp = window.Telegram && window.Telegram.WebApp;
               if (tgApp && typeof tgApp.openLink === 'function') {
-                try {
-                  tgApp.openLink(url, { try_instant_view: false });
-                  return;
-                } catch(e) {}
+                try { tgApp.openLink(url, { try_instant_view: false }); return; } catch(e) {}
               }
             }
             _origHrefSet.call(window.location, url);
@@ -55,52 +45,37 @@
       }
     } catch(e) {}
 
-    // منع location.assign
     if (_origAssign) {
       window.location.assign = function(url) {
         if (url && typeof url === 'string' && url.indexOf('http') === 0) {
           var tgApp = window.Telegram && window.Telegram.WebApp;
           if (tgApp && typeof tgApp.openLink === 'function') {
-            try {
-              tgApp.openLink(url, { try_instant_view: false });
-              return;
-            } catch(e) {}
+            try { tgApp.openLink(url, { try_instant_view: false }); return; } catch(e) {}
           }
         }
         _origAssign(url);
       };
     }
 
-    // منع location.replace
     if (_origReplace) {
       window.location.replace = function(url) {
         if (url && typeof url === 'string' && url.indexOf('http') === 0) {
           var tgApp = window.Telegram && window.Telegram.WebApp;
           if (tgApp && typeof tgApp.openLink === 'function') {
-            try {
-              tgApp.openLink(url, { try_instant_view: false });
-              return;
-            } catch(e) {}
+            try { tgApp.openLink(url, { try_instant_view: false }); return; } catch(e) {}
           }
         }
         _origReplace(url);
       };
     }
-
   })();
   </script>
 
-  <!-- Adexium SDK -->
-  <script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
-  <script type="text/javascript">
-      document.addEventListener('DOMContentLoaded', () => {
-          const adexiumWidget = new AdexiumWidget({wid: 'ce45e384-0fb7-4198-b3ba-477584913169', adFormat: 'interstitial'});
-          adexiumWidget.autoMode();
-      });
-  </script>
-
-  <!-- tads.me SDK (primary) -->
+  <!-- tads.me SDK -->
   <script src="https://w.tads.me/widget.js"></script>
+
+  <!-- monetixads SDK — data-format="miniapp" مهم جداً -->
+  <script src="https://www.monetixads.online/ads.js" data-mxid="MX-ECB7714F" data-format="miniapp" data-strict="true"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -116,7 +91,6 @@
       --of-accent:      #00aff0;
       --of-accent-dk:   #008ecf;
       --of-teal:        #00c6ff;
-
       --bg:             #f4fbff;
       --card:           #ffffff;
       --text:           #0a2233;
@@ -128,9 +102,7 @@
       --radius-btn:     10px;
       --shadow-card:    0 4px 24px rgba(0,175,240,.13);
     }
-
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-
     body {
       font-family: 'Mulish', sans-serif;
       background: var(--bg);
@@ -143,7 +115,6 @@
       padding: 18px 12px;
       overflow-x: hidden;
     }
-
     .app-shell {
       width: 100%;
       max-width: 440px;
@@ -157,8 +128,6 @@
       body { padding: 0; justify-content: flex-start; }
       .app-shell { border-radius: 0; box-shadow: none; max-width: 100%; }
     }
-
-    /* ── Top bar ── */
     .top-bar {
       width: 100%;
       background: linear-gradient(135deg, var(--of-navy-deep), var(--of-navy));
@@ -184,8 +153,6 @@
       font-size: 11px; font-weight: 800;
       padding: 4px 10px; border-radius: 20px;
     }
-
-    /* ── Loading skeleton ── */
     .skeleton {
       display: none;
       width: 100%;
@@ -209,8 +176,6 @@
     .skel-thumb { width: 64px; height: 64px; border-radius: 10px; flex-shrink: 0; }
     .skel-row { display: flex; gap: 12px; margin-bottom: 18px; }
     .skel-lines { flex: 1; }
-
-    /* ── Main card ── */
     .card {
       width: 100%;
       margin: 0;
@@ -226,8 +191,6 @@
       from { opacity:0; transform:translateY(18px); }
       to   { opacity:1; transform:translateY(0); }
     }
-
-    /* ── Course info ── */
     .course-info {
       display: flex; gap: 12px;
       margin-bottom: 14px; padding-bottom: 14px;
@@ -257,13 +220,9 @@
     .course-price { font-size: 12px; font-weight: 800; margin-top: 6px; color: var(--text-muted); }
     .course-price s { color: #8099aa; font-weight: 600; }
     .course-price .free { color: var(--of-navy-deep); font-size: 14px; margin-left: 4px; }
-
-    /* ── Headline ── */
     .unlock-headline { text-align: center; margin-bottom: 6px; }
     .unlock-headline h2 { font-size: 17px; font-weight: 900; color: var(--text); line-height: 1.3; }
     .unlock-headline p  { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
-
-    /* ── Ad notice ── */
     .ad-notice {
       background: var(--of-pale);
       border: 1.5px solid var(--of-navy);
@@ -276,8 +235,6 @@
       text-align: center;
       line-height: 1.45;
     }
-
-    /* ── Progress bar ── */
     .progress-wrap { margin: 12px 0; display: flex; align-items: center; gap: 10px; }
     .progress-bar-bg { flex:1; height:7px; background:var(--border); border-radius:10px; overflow:hidden; }
     .progress-bar-fill {
@@ -287,8 +244,6 @@
       transition: width .5s ease;
     }
     .progress-label { font-size:12px; font-weight:800; color:var(--of-navy-deep); min-width:30px; text-align:right; }
-
-    /* ── Steps ── */
     .steps { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
     .step {
       display: flex; align-items: center; gap: 10px;
@@ -298,7 +253,6 @@
     }
     .step.locked { opacity:.5; pointer-events:none; }
     .step.done   { border-color: var(--of-navy); background: var(--step-done-bg); }
-
     .step-num {
       width: 32px; height: 32px; border-radius: 50%;
       background: var(--of-pale); color: var(--of-navy-deep);
@@ -308,8 +262,6 @@
       position: relative;
     }
     .step.done .step-num { background: var(--of-navy); color:#fff; font-size:16px; }
-
-    /* countdown ring */
     .countdown-ring {
       position: absolute; top: 0; left: 0;
       width: 32px; height: 32px;
@@ -326,12 +278,10 @@
       stroke-linecap: round;
       transition: stroke-dashoffset .95s linear;
     }
-
     .step-body { flex:1; min-width:0; }
     .step-title { font-size:14px; font-weight:800; color:var(--text); }
     .step.done .step-title { color: var(--of-navy-deep); }
     .step-sub   { font-size:11px; color:var(--text-muted); margin-top:2px; }
-
     .step-btn {
       background: linear-gradient(135deg, var(--of-navy), var(--of-navy-dk));
       color: #fff; border: none;
@@ -348,8 +298,6 @@
       background: transparent; color: var(--of-navy-deep);
       font-size: 20px; pointer-events: none; padding: 0 12px;
     }
-
-    /* ── CTA ── */
     .cta-btn {
       width: 100%; padding: 14px; border-radius: 14px; border: none;
       font-size: 15px; font-weight: 900; cursor: pointer;
@@ -368,8 +316,6 @@
       60% { box-shadow: 0 0 0 12px rgba(0,175,240,0);  }
       100%{ box-shadow: 0 0 0 0   rgba(0,175,240,0);   }
     }
-
-    /* ── tads.me TGB Banner ── */
     .tads-banner-section {
       width: 100%;
       padding: 0 18px 14px;
@@ -380,8 +326,6 @@
       border-radius: 12px;
       overflow: hidden;
     }
-
-    /* ── HelloEncyclo banner ── */
     .encyclo-section {
       width: 100%;
       margin: 0;
@@ -424,8 +368,6 @@
       font-weight: 900;
       flex-shrink: 0;
     }
-
-    /* ── Confetti canvas ── */
     #confetti-canvas {
       position: fixed; top:0; left:0;
       width:100%; height:100%;
@@ -433,8 +375,6 @@
       z-index: 999;
       display: none;
     }
-
-    /* ── Success message ── */
     .success-msg {
       display: none;
       text-align: center;
@@ -449,14 +389,12 @@
     }
     .success-msg.visible { display: block; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
-
     @media (max-width:380px) {
       .card { padding:16px 14px; }
       .step-btn { padding:6px 10px; font-size:11.5px; min-width:52px; }
       .cta-btn { font-size:14px; padding:13px; }
       .course-title { font-size:13px; }
     }
-
     @media (max-height:720px) {
       body { padding: 10px 12px; }
       .unlock-headline h2 { font-size:16px; }
@@ -470,14 +408,12 @@
 
 <div class="app-shell">
 
-  <!-- Top bar -->
   <div class="top-bar">
     <div class="logo-u">u</div>
     <span class="logo-text" id="logo-text">UdemySY Free Courses</span>
     <span class="badge-free">FREE</span>
   </div>
 
-  <!-- Skeleton loader -->
   <div class="skeleton visible" id="skeleton">
     <div class="skel-row">
       <div class="skel-line skel-thumb"></div>
@@ -494,7 +430,6 @@
     <div class="skel-line" style="height:52px;border-radius:14px;margin-top:4px;"></div>
   </div>
 
-  <!-- Main card -->
   <div class="card" id="main-card">
 
     <div class="course-info">
@@ -528,7 +463,6 @@
     </div>
 
     <div class="steps">
-      <!-- Step 1 -->
       <div class="step" id="step-1">
         <div class="step-num" id="num-1">
           1
@@ -543,7 +477,6 @@
         <button class="step-btn" id="btn-1" onclick="startStep(1)">Visit</button>
       </div>
 
-      <!-- Step 2 -->
       <div class="step locked" id="step-2">
         <div class="step-num" id="num-2">
           2
@@ -569,12 +502,10 @@
 
   </div>
 
-  <!-- tads.me TGB Banner #9636 -->
   <div class="tads-banner-section" id="tads-banner-section">
     <div id="tads-container-9636"></div>
   </div>
 
-  <!-- HelloEncyclo Grant Banner -->
   <div class="encyclo-section">
     <a class="encyclo-banner" href="https://helloencyclo.com/?ref=HUSSEINSHEIKHO" target="_blank" rel="noopener">
       <div class="encyclo-icon">🎓</div>
@@ -588,7 +519,6 @@
 
 </div>
 
-<!-- Confetti canvas -->
 <canvas id="confetti-canvas"></canvas>
 
 <script>
@@ -597,14 +527,10 @@ const tg = window.Telegram?.WebApp || null;
 if (tg) {
   tg.ready();
   tg.expand();
-  // منع إغلاق التطبيق عند فتح روابط خارجية
   if (tg.disableClosingConfirmation) tg.disableClosingConfirmation();
 }
 
-// ── Ad config ───────────────────────────────────────────────
-const AD_DURATION_SEC = 5;
-
-// tads.me widget IDs — أساسي لكل زر
+// ── tads.me widget IDs ──────────────────────────────────────
 const TADS_FULLSCREEN_IDS = { 1: 9579, 2: 9966 };
 const TADS_TGB_ID = 9636;
 
@@ -629,9 +555,8 @@ function waitForTads(timeout = 6000) {
   });
 }
 
-// يحاول عرض إعلان tads.me الـ fullscreen للخطوة n
-// يُرجع Promise<boolean> — true إذا عُرض الإعلان، false إذا لا يوجد
-function showTadsFullscreen(stepN) {
+// إنشاء Instance جديد لكل خطوة
+function createTadsInstance(stepN) {
   return new Promise(async (resolve) => {
     try {
       await waitForTads(5000);
@@ -658,12 +583,47 @@ function showTadsFullscreen(stepN) {
         if (!settled) { settled = true; resolve(false); }
       }
 
-      // حارس: إذا لم يستجب tads خلال 7 ثوانٍ → اعتبره فاشلاً
       setTimeout(() => {
         if (!settled) { settled = true; resolve(false); }
       }, 7000);
 
     } catch (e) {
+      resolve(false);
+    }
+  });
+}
+
+// ── monetixads helper — مُحسّن ──────────────────────────────
+function waitForMonetix(timeout = 10000) {
+  return new Promise((resolve, reject) => {
+    // نتحقق من وجود الدالة أو كائن MonetiX
+    if (typeof window.showRewardAd === 'function' && window.MonetiX) return resolve();
+    const start = performance.now();
+    const iv = setInterval(() => {
+      if (typeof window.showRewardAd === 'function' && window.MonetiX) {
+        clearInterval(iv); resolve();
+      } else if (performance.now() - start > timeout) {
+        clearInterval(iv); reject(new Error('monetix timeout'));
+      }
+    }, 100);
+  });
+}
+
+function showMonetixReward() {
+  return new Promise(async (resolve) => {
+    try {
+      await waitForMonetix(10000);
+      window.showRewardAd(function(res) {
+        // Monetix يُرجع {status: 'completed'} أو {status: 'closed'}
+        // نمنح المكافأة في كلتا الحالتين
+        if (res && (res.status === 'completed' || res.status === 'closed')) {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      });
+    } catch (e) {
+      console.warn('[Monetix] failed:', e.message);
       resolve(false);
     }
   });
@@ -750,7 +710,7 @@ function loadCourseMeta() {
 
 const COURSE_URL = resolveCourseUrl();
 
-// ── localStorage progress cache (5 min) ──────────────────────
+// ── localStorage progress cache ──────────────────────────────
 const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
 const CACHE_TTL = 2 * 60 * 1000;
 
@@ -788,7 +748,7 @@ function startCountdownRing(n, onDone) {
   circle.style.strokeDashoffset = circumference;
   ring.classList.add('active');
 
-  let remaining = AD_DURATION_SEC;
+  let remaining = 5;
   let finished  = false;
   btn.textContent = remaining;
 
@@ -802,7 +762,7 @@ function startCountdownRing(n, onDone) {
 
   const iv = setInterval(() => {
     remaining--;
-    const progress = (AD_DURATION_SEC - remaining) / AD_DURATION_SEC;
+    const progress = (5 - remaining) / 5;
     circle.style.strokeDashoffset = circumference * (1 - progress);
     if (remaining > 0) {
       btn.textContent = remaining;
@@ -822,11 +782,9 @@ function stopCountdownRing(n) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  startStep — كل زر يعمل بشكل مستقل تماماُ
-//  المنهجية: tads.me fullscreen فقط
+//  startStep — كل زر يستدعي tads.me بـ Instance جديد
 // ══════════════════════════════════════════════════════════════
 function startStep(n) {
-  // تجاهل النقر المزدوج أو إذا انتهى الزر مسبقاً
   if (stepState[n].playing) return;
   if (n === 1 && stepState[1].done) return;
   if (n === 2 && (!stepState[1].done || stepState[2].done)) return;
@@ -840,7 +798,6 @@ function startStep(n) {
   btn.textContent = '⏳';
   if (sub) sub.textContent = 'loading ad…';
 
-  // ── حالة الانتهاء المزدوج (مؤقت + إعلان) ──
   let timerDone  = false;
   let adHandled  = false;
   let timerStarted = false;
@@ -858,27 +815,21 @@ function startStep(n) {
     if (timerDone && adHandled) onAdComplete(n);
   }
 
-  // ── visibilitychange fallback ──────────────────────────────
-  // إذا فُتح الإعلان في متصفح خارجي وعاد المستخدم → نكمل الخطوة
   function onVisibilityReturn() {
     if (document.visibilityState === 'visible') {
       document.removeEventListener('visibilitychange', onVisibilityReturn);
-      // اعتبر الإعلان معالَجاً عند العودة
       if (!adHandled) {
         adHandled = true;
         tryComplete();
       }
-      // إذا لم يبدأ المؤقت بعد → ابدأه (حالة نادرة)
       if (!timerStarted) startTimer();
     }
   }
   document.addEventListener('visibilitychange', onVisibilityReturn);
 
-  // ── tads.me fullscreen فقط ──
   if (sub) sub.textContent = 'loading ad…';
 
-  showTadsFullscreen(n).then((tadsShown) => {
-    // سواء عُرض إعلان tads.me أم لا → نكمل الخطوة مباشرة
+  createTadsInstance(n).then((success) => {
     startTimer();
     adHandled = true;
     tryComplete();
@@ -994,7 +945,6 @@ window.addEventListener('load', async () => {
 
   const cached = loadProgress();
   if (cached?.step1 && cached?.step2) {
-    // المستخدم أكمل مسبقاً
     stepState[1].done = true; stepState[2].done = true;
     showCard();
     updateProgress();
@@ -1009,8 +959,14 @@ window.addEventListener('load', async () => {
     });
     unlockEnroll();
   } else {
-    // مستخدم جديد أو لم يكمل — Adexium autoMode() يتولى الإعلان التلقائي عند الفتح
+    // عرض الكارد أولاً ثم إعلان monetixads
     showCard();
+    // ننتظر قليلاً حتى يُحمل SDK ثم نعرض الإعلان
+    setTimeout(() => {
+      showMonetixReward().then((ok) => {
+        console.log('[AppOpen] Monetix result:', ok);
+      });
+    }, 1500);
   }
 });
 </script>
