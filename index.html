@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Udemy Free Course Access</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+
+  <!-- ══ INTERCEPTORS ══ -->
+  <script>
+  (function() {
+    var _origOpen   = window.open;
+    var _origAssign = window.location ? window.location.assign.bind(window.location) : null;
+    var _origReplace = window.location ? window.location.replace.bind(window.location) : null;
+
+    window.open = function(url, target, features) {
+      if (url && typeof url === 'string' && url.indexOf('http') === 0) {
+        var tgApp = window.Telegram && window.Telegram.WebApp;
+        if (tgApp && typeof tgApp.openLink === 'function') {
+          try { tgApp.openLink(url, { try_instant_view: false }); return null; } catch(e) {}
+        }
+        return _origOpen.call(window, url, '_blank', features);
+      }
+      return _origOpen.apply(window, arguments);
+    };
+
+    try {
+      var _hrefDescriptor = Object.getOwnPropertyDescriptor(window.location, 'href');
+      if (_hrefDescriptor && _hrefDescriptor.set) {
+        var _origHrefSet = _hrefDescriptor.set;
+        Object.defineProperty(window.location, 'href', {
+          get: _hrefDescriptor.get,
+          set: function(url) {
+            if (url && typeof url === 'string' && url.indexOf('http') === 0) {
+              var tgApp = window.Telegram && window.Telegram.WebApp;
+              if (tgApp && typeof tgApp.openLink === 'function') {
+                try { tgApp.openLink(url, { try_instant_view: false }); return; } catch(e) {}
+              }
+            }
+            _origHrefSet.call(window.location, url);
+          },
+          configurable: true
+        });
+      }
+    } catch(e) {}
+
+    if (_origAssign) {
+      window.location.assign = function(url) {
+        if (url && typeof url === 'string' && url.indexOf('http') === 0) {
+          var tgApp = window.Telegram && window.Telegram.WebApp;
+          if (tgApp && typeof tgApp.openLink === 'function') {
+            try { tgApp.openLink(url, { try_instant_view: false }); return; } catch(e) {}
+          }
+        }
+        _origAssign(url);
+      };
+    }
+
+    if (_origReplace) {
+      window.location.replace = function(url) {
+        if (url && typeof url === 'string' && url.indexOf('http') === 0) {
+          var tgApp = window.Telegram && window.Telegram.WebApp;
+          if (tgApp && typeof tgApp.openLink === 'function') {
+            try { tgApp.openLink(url, { try_instant_view: false }); return; } catch(e) {}
+          }
+        }
+        _origReplace(url);
+      };
+    }
+  })();
+  </script>
+
+  <!-- tads.me Vanilla SDK (required by react-tads-widget under the hood) -->
+  <script src="https://w.tads.me/widget.js"></script>
+
+  <!-- React 18 + Babel for JSX -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --of-navy:        #00aff0;
+      --of-navy-dk:     #008ecf;
+      --of-navy-deep:   #005f8e;
+      --of-pale:        #e0f5fd;
+      --of-white:       #ffffff;
+      --of-accent:      #00aff0;
+      --of-accent-dk:   #008ecf;
+      --of-teal:        #00c6ff;
+      --bg:             #f4fbff;
+      --card:           #ffffff;
+      --text:           #0a2233;
+      --text-muted:     #4a6a80;
+      --border:         #bde8f8;
+      --step-done-bg:   #e0f5fd;
+      --step-done-text: #005f8e;
+      --radius-card:    20px;
+      --radius-btn:     10px;
+      --shadow-card:    0 4px 24px rgba(0,175,240,.13);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'Mulish', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 12px;
+      overflow-x: hidden;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+      background: var(--bg);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 12px 44px rgba(0,175,240,.18);
+    }
+    @media (max-width: 480px) {
+      body { padding: 0; justify-content: flex-start; }
+      .app-shell { border-radius: 0; box-shadow: none; max-width: 100%; }
+    }
+
+    .top-bar {
+      width: 100%;
+      background: linear-gradient(135deg, var(--of-navy-deep), var(--of-navy));
+      padding: 14px 20px 12px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 4px solid var(--of-teal);
+    }
+    .logo-u {
+      width: 32px; height: 32px; border-radius: 6px;
+      background: var(--of-white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 900; color: var(--of-navy-deep);
+      flex-shrink: 0;
+    }
+    .logo-text {
+      font-size: 14px; font-weight: 800; color: #fff;
+      flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .badge-free {
+      margin-left: auto;
+      background: var(--of-teal); color: #003d55;
+      font-size: 11px; font-weight: 800;
+      padding: 4px 10px; border-radius: 20px;
+    }
+
+    .skeleton {
+      display: none;
+      width: 100%;
+      margin: 0;
+      background: var(--card);
+      border-radius: 0;
+      box-shadow: none;
+      padding: 22px 20px;
+    }
+    .skeleton.visible { display: block; }
+    .skel-line {
+      background: linear-gradient(90deg, #d0eefa 25%, #eaf7ff 50%, #d0eefa 75%);
+      background-size: 200% 100%;
+      border-radius: 6px; margin-bottom: 10px;
+      animation: shimmer 1.4s infinite;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .skel-thumb { width: 64px; height: 64px; border-radius: 10px; flex-shrink: 0; }
+    .skel-row { display: flex; gap: 12px; margin-bottom: 18px; }
+    .skel-lines { flex: 1; }
+
+    .card {
+      width: 100%;
+      margin: 0;
+      background: var(--card);
+      border-radius: 0;
+      box-shadow: none;
+      padding: 20px 18px 18px;
+      animation: slideUp .45s cubic-bezier(.22,.61,.36,1) both;
+      display: none;
+    }
+    .card.visible { display: block; }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .course-info {
+      display: flex; gap: 12px;
+      margin-bottom: 14px; padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .course-thumb {
+      width: 64px; height: 64px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--of-navy-deep), var(--of-navy));
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; overflow: hidden;
+    }
+    .course-thumb img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
+    .course-meta { flex:1; min-width:0; }
+    .course-title {
+      font-size: 14px; font-weight: 800; color: var(--text);
+      white-space: normal; word-break: break-word; line-height: 1.35;
+      margin-bottom: 6px;
+    }
+    .course-tags { display:flex; gap:6px; flex-wrap:wrap; }
+    .tag {
+      font-size: 11px; font-weight: 700;
+      padding: 3px 8px; border-radius: 5px;
+      background: var(--of-pale); color: var(--of-navy-deep);
+    }
+    .tag.free-tag { background: var(--of-teal); color: #003d55; }
+    .course-price { font-size: 12px; font-weight: 800; margin-top: 6px; color: var(--text-muted); }
+    .course-price s { color: #8099aa; font-weight: 600; }
+    .course-price .free { color: var(--of-navy-deep); font-size: 14px; margin-left: 4px; }
+
+    .unlock-headline { text-align: center; margin-bottom: 6px; }
+    .unlock-headline h2 { font-size: 17px; font-weight: 900; color: var(--text); line-height: 1.3; }
+    .unlock-headline p  { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+
+    .ad-notice {
+      background: var(--of-pale);
+      border: 1.5px solid var(--of-navy);
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      font-size: 11.5px;
+      color: var(--of-navy-deep);
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    .progress-wrap { margin: 12px 0; display: flex; align-items: center; gap: 10px; }
+    .progress-bar-bg { flex:1; height:7px; background:var(--border); border-radius:10px; overflow:hidden; }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--of-navy-deep), var(--of-teal));
+      border-radius: 10px; width: 0%;
+      transition: width .5s ease;
+    }
+    .progress-label { font-size:12px; font-weight:800; color:var(--of-navy-deep); min-width:30px; text-align:right; }
+
+    .steps { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+    .step {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 10px 12px;
+      transition: border-color .3s, background .3s;
+    }
+    .step.locked { opacity:.5; pointer-events:none; }
+    .step.done   { border-color: var(--of-navy); background: var(--step-done-bg); }
+
+    .step-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--of-pale); color: var(--of-navy-deep);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 900; flex-shrink: 0;
+      transition: background .3s, color .3s;
+      position: relative;
+    }
+    .step.done .step-num { background: var(--of-navy); color:#fff; font-size:16px; }
+
+    .countdown-ring {
+      position: absolute; top: 0; left: 0;
+      width: 32px; height: 32px;
+      transform: rotate(-90deg);
+      pointer-events: none;
+      opacity: 0; transition: opacity .2s;
+    }
+    .countdown-ring.active { opacity: 1; }
+    .countdown-ring circle {
+      fill: none; stroke: var(--of-teal);
+      stroke-width: 3;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      stroke-linecap: round;
+      transition: stroke-dashoffset .95s linear;
+    }
+
+    .step-body { flex:1; min-width:0; }
+    .step-title { font-size:14px; font-weight:800; color:var(--text); }
+    .step.done .step-title { color: var(--of-navy-deep); }
+    .step-sub   { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+    .step-btn {
+      background: linear-gradient(135deg, var(--of-navy), var(--of-navy-dk));
+      color: #fff; border: none;
+      border-radius: var(--radius-btn); padding: 7px 14px;
+      font-size: 12.5px; font-weight: 800;
+      cursor: pointer; flex-shrink: 0;
+      transition: background .2s, transform .1s;
+      min-width: 60px; text-align: center;
+    }
+    .step-btn:active  { transform: scale(.96); }
+    .step-btn:disabled { background: #a8cfe0; cursor: not-allowed; }
+    .step-btn.watching { background: #0099cc; pointer-events: none; }
+    .step-btn.done-mark {
+      background: transparent; color: var(--of-navy-deep);
+      font-size: 20px; pointer-events: none; padding: 0 12px;
+    }
+
+    .cta-btn {
+      width: 100%; padding: 14px; border-radius: 14px; border: none;
+      font-size: 15px; font-weight: 900; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all .3s;
+    }
+    .cta-btn.locked  { background:var(--border); color:var(--text-muted); cursor:not-allowed; }
+    .cta-btn.unlocked {
+      background: linear-gradient(135deg, var(--of-navy), var(--of-teal));
+      color: #fff;
+      box-shadow: 0 6px 18px -4px rgba(0,175,240,.55);
+      animation: pulseBlue 2.2s infinite;
+    }
+    @keyframes pulseBlue {
+      0%  { box-shadow: 0 0 0 0   rgba(0,175,240,.45); }
+      60% { box-shadow: 0 0 0 12px rgba(0,175,240,0);  }
+      100%{ box-shadow: 0 0 0 0   rgba(0,175,240,0);   }
+    }
+
+    .tads-banner-section {
+      width: 100%;
+      padding: 0 18px 14px;
+      background: var(--bg);
+    }
+    #tads-container-9639 {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      min-height: 80px;
+    }
+
+    .encyclo-section {
+      width: 100%;
+      margin: 0;
+      padding: 14px 18px 18px;
+      background: var(--bg);
+    }
+    .encyclo-banner {
+      background: linear-gradient(135deg, var(--of-navy-deep), var(--of-navy));
+      border-radius: 16px;
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(0,175,240,.25);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .encyclo-banner:active { transform: scale(.98); }
+    .encyclo-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--of-white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; flex-shrink: 0;
+    }
+    .encyclo-text { flex: 1; }
+    .encyclo-title {
+      font-size: 13px; font-weight: 900; color: #fff;
+      margin-bottom: 3px;
+    }
+    .encyclo-sub {
+      font-size: 11px; color: rgba(255,255,255,.85);
+      font-weight: 600; line-height: 1.4;
+    }
+    .encyclo-arrow {
+      background: var(--of-teal);
+      color: #003d55;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    #confetti-canvas {
+      position: fixed; top:0; left:0;
+      width:100%; height:100%;
+      pointer-events: none;
+      z-index: 999;
+      display: none;
+    }
+
+    .success-msg {
+      display: none;
+      text-align: center;
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: var(--step-done-bg);
+      border: 1.5px solid var(--of-navy);
+      border-radius: 12px;
+      font-size: 13px; font-weight: 700;
+      color: var(--of-navy-deep);
+      animation: fadeIn .4s ease;
+    }
+    .success-msg.visible { display: block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+
+    @media (max-width:380px) {
+      .card { padding:16px 14px; }
+      .step-btn { padding:6px 10px; font-size:11.5px; min-width:52px; }
+      .cta-btn { font-size:14px; padding:13px; }
+      .course-title { font-size:13px; }
+    }
+    @media (max-height:720px) {
+      body { padding: 10px 12px; }
+      .unlock-headline h2 { font-size:16px; }
+      .unlock-headline p  { font-size:11.5px; margin-top:3px; }
+      .steps { gap:6px; margin-bottom:12px; }
+      .step  { padding:8px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<canvas id="confetti-canvas"></canvas>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, createContext, useContext } = React;
+
+// ═══════════════════════════════════════════════════════════
+//  TADS Context & Hook (React-style wrapper around tads.me)
+// ═══════════════════════════════════════════════════════════
+const TadsContext = createContext(null);
+
+function TadsProvider({ children }) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      if (window.tads && typeof window.tads.init === 'function') {
+        setReady(true);
+        return true;
+      }
+      return false;
+    };
+    if (!check()) {
+      const iv = setInterval(() => { if (check()) clearInterval(iv); }, 100);
+      return () => clearInterval(iv);
+    }
+  }, []);
+
+  const showFullscreen = useCallback((widgetId) => {
+    return new Promise((resolve) => {
+      if (!window.tads || typeof window.tads.init !== 'function') {
+        resolve({ status: 'error', reason: 'tads_not_ready' });
+        return;
+      }
+      let settled = false;
+      const ctrl = window.tads.init({
+        widgetId: widgetId,
+        type: 'fullscreen',
+        debug: false,
+        onShowReward: () => {
+          if (!settled) { settled = true; resolve({ status: 'reward', controller: ctrl }); }
+        },
+        onAdsNotFound: () => {
+          if (!settled) { settled = true; resolve({ status: 'notfound', controller: ctrl }); }
+        }
+      });
+      if (ctrl && typeof ctrl.showAd === 'function') {
+        ctrl.showAd().catch(() => {
+          if (!settled) { settled = true; resolve({ status: 'error', controller: ctrl }); }
+        });
+      } else {
+        if (!settled) { settled = true; resolve({ status: 'error', controller: ctrl }); }
+      }
+      setTimeout(() => {
+        if (!settled) { settled = true; resolve({ status: 'timeout', controller: ctrl }); }
+      }, 7000);
+    });
+  }, []);
+
+  const destroyWidget = useCallback((controller) => {
+    if (controller && typeof controller.destroy === 'function') {
+      try { controller.destroy(); } catch(e) {}
+    }
+  }, []);
+
+  const initBanner = useCallback((widgetId, containerId) => {
+    return new Promise((resolve) => {
+      if (!window.tads || typeof window.tads.init !== 'function') {
+        resolve(null);
+        return;
+      }
+      const container = document.getElementById(containerId);
+      if (!container) { resolve(null); return; }
+      const ctrl = window.tads.init({
+        widgetId: widgetId,
+        type: 'static',
+        debug: false,
+        container: container
+      });
+      if (ctrl && typeof ctrl.loadAd === 'function') {
+        ctrl.loadAd()
+          .then(() => { if (ctrl.showAd) ctrl.showAd(); })
+          .catch(() => {})
+          .finally(() => resolve(ctrl));
+      } else {
+        resolve(ctrl);
+      }
+    });
+  }, []);
+
+  return (
+    <TadsContext.Provider value={{ ready, showFullscreen, destroyWidget, initBanner }}>
+      {children}
+    </TadsContext.Provider>
+  );
+}
+
+function useTads() {
+  return useContext(TadsContext);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Confetti
+// ═══════════════════════════════════════════════════════════
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.style.display = 'block';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#00aff0','#ffffff','#00c6ff','#005f8e','#008ecf','#e0f5fd'];
+  const pieces = Array.from({length: 90}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    r: Math.random() * 5 + 3,
+    d: Math.random() * 2 + 1,
+    color: colors[Math.floor(Math.random()*colors.length)],
+    tilt: Math.random()*10-5,
+    tiltSpeed: (Math.random()*.07+.03) * (Math.random()<.5?1:-1),
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p => {
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.ellipse(p.x, p.y, p.r, p.r*0.4, p.tilt, 0, Math.PI*2);
+      ctx.fill();
+      p.y += p.d + frame/80;
+      p.tilt += p.tiltSpeed;
+      p.x += Math.sin(frame/20) * 0.5;
+      if (p.y > canvas.height) { p.y = -10; p.x = Math.random()*canvas.width; }
+    });
+    frame++;
+    if (frame < 160) requestAnimationFrame(draw);
+    else { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }
+  }
+  draw();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Utilities
+// ═══════════════════════════════════════════════════════════
+function b64urlDecode(str) {
+  const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
+  const binary = atob(padded);
+  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+function getStartParam() {
+  const tg = window.Telegram?.WebApp;
+  return tg?.initDataUnsafe?.start_param
+      || new URLSearchParams(window.location.search).get('startapp')
+      || new URLSearchParams(window.location.search).get('tgWebAppStartParam')
+      || null;
+}
+
+function resolveCourseUrl() {
+  const raw = getStartParam();
+  if (!raw) return 'https://www.udemy.com/';
+  try {
+    const text = b64urlDecode(raw);
+    const parsed = JSON.parse(text);
+    if (parsed && typeof parsed === 'object' && parsed.u) return parsed.u;
+  } catch (e) {}
+  try {
+    const decoded = b64urlDecode(raw);
+    if (decoded.startsWith('http')) return decoded;
+  } catch (e) {}
+  return 'https://www.udemy.com/';
+}
+
+function parseCourseData() {
+  const raw = getStartParam();
+  if (!raw) return null;
+  try {
+    const text = b64urlDecode(raw);
+    const parsed = JSON.parse(text);
+    if (parsed && typeof parsed === 'object' && parsed.u) return parsed;
+  } catch (e) {}
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Components
+// ═══════════════════════════════════════════════════════════
+
+function Skeleton() {
+  return (
+    <div className="skeleton visible" id="skeleton">
+      <div className="skel-row">
+        <div className="skel-line skel-thumb"></div>
+        <div className="skel-lines">
+          <div className="skel-line" style={{height:14, width:'80%'}}></div>
+          <div className="skel-line" style={{height:11, width:'55%', marginTop:6}}></div>
+          <div className="skel-line" style={{height:11, width:'40%', marginTop:6}}></div>
+        </div>
+      </div>
+      <div className="skel-line" style={{height:16, width:'60%', margin:'0 auto 10px'}}></div>
+      <div className="skel-line" style={{height:10, width:'90%', margin:'0 auto 18px'}}></div>
+      <div className="skel-line" style={{height:56, borderRadius:14}}></div>
+      <div className="skel-line" style={{height:56, borderRadius:14}}></div>
+      <div className="skel-line" style={{height:52, borderRadius:14, marginTop:4}}></div>
+    </div>
+  );
+}
+
+function Step({ num, title, sub, done, locked, playing, remaining, onClick, btnText }) {
+  const circumference = 2 * Math.PI * 13;
+  const progress = done ? 1 : (5 - remaining) / 5;
+  const offset = circumference * (1 - progress);
+
+  return (
+    <div className={`step ${locked ? 'locked' : ''} ${done ? 'done' : ''}`} id={`step-${num}`}>
+      <div className="step-num" id={`num-${num}`}>
+        {done ? '✓' : num}
+        {!done && (
+          <svg className={`countdown-ring ${playing ? 'active' : ''}`} id={`ring-${num}`} viewBox="0 0 32 32">
+            <circle cx="16" cy="16" r="13" id={`ring-circle-${num}`}
+              style={{
+                strokeDasharray: circumference,
+                strokeDashoffset: offset
+              }} />
+          </svg>
+        )}
+      </div>
+      <div className="step-body">
+        <div className="step-title">{title}</div>
+        <div className="step-sub" id={`sub-${num}`}>{sub}</div>
+      </div>
+      <button
+        className={`step-btn ${done ? 'done-mark' : ''} ${playing ? 'watching' : ''}`}
+        id={`btn-${num}`}
+        onClick={onClick}
+        disabled={locked || playing || done}
+      >
+        {done ? '✓' : (playing ? (remaining > 0 ? remaining : '⏳') : btnText)}
+      </button>
+    </div>
+  );
+}
+
+function App() {
+  const { ready, showFullscreen, destroyWidget, initBanner } = useTads();
+  const [loading, setLoading] = useState(true);
+  const [cardVisible, setCardVisible] = useState(false);
+  const [step1Done, setStep1Done] = useState(false);
+  const [step2Done, setStep2Done] = useState(false);
+  const [step1Playing, setStep1Playing] = useState(false);
+  const [step2Playing, setStep2Playing] = useState(false);
+  const [step1Rem, setStep1Rem] = useState(5);
+  const [step2Rem, setStep2Rem] = useState(5);
+  const [enrollUnlocked, setEnrollUnlocked] = useState(false);
+  const [successVisible, setSuccessVisible] = useState(false);
+  const [courseMeta, setCourseMeta] = useState({ title: 'Udemy Free Course', img: null, cat: 'Udemy', price: '', left: '' });
+
+  const autoInstanceRef = useRef(null);
+  const step1InstanceRef = useRef(null);
+  const step2InstanceRef = useRef(null);
+  const bannerInstanceRef = useRef(null);
+  const timer1Ref = useRef(null);
+  const timer2Ref = useRef(null);
+  const countdown1Ref = useRef(null);
+  const countdown2Ref = useRef(null);
+
+  const COURSE_URL = useRef(resolveCourseUrl());
+  const courseData = useRef(parseCourseData());
+
+  // ── Load course meta ──
+  useEffect(() => {
+    let title, img, cat, price, left;
+    if (courseData.current) {
+      ({ t: title, i: img, c: cat, p: price, l: left } = courseData.current);
+    } else {
+      const p = new URLSearchParams(window.location.search);
+      const get = k => p.get(k) ? decodeURIComponent(p.get(k)) : null;
+      title = get('title'); img = get('img'); cat = get('cat'); price = get('price'); left = get('left');
+    }
+    setCourseMeta(prev => ({
+      ...prev,
+      title: title || prev.title,
+      img: img || prev.img,
+      cat: cat || prev.cat,
+      price: price || prev.price,
+      left: left || prev.left
+    }));
+  }, []);
+
+  // ── Telegram WebApp ──
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      if (tg.disableClosingConfirmation) tg.disableClosingConfirmation();
+    }
+  }, []);
+
+  // ── Show card after short delay ──
+  useEffect(() => {
+    const t = setTimeout(() => { setLoading(false); setCardVisible(true); }, 1200);
+    return () => clearTimeout(t);
+  }, []);
+
+  // ── Auto fullscreen on load (#10306) ──
+  useEffect(() => {
+    if (!ready || !cardVisible) return;
+    let settled = false;
+    showFullscreen(10306).then((res) => {
+      if (!settled) {
+        settled = true;
+        autoInstanceRef.current = res.controller;
+        // destroy after ad completes
+        setTimeout(() => {
+          if (autoInstanceRef.current) {
+            destroyWidget(autoInstanceRef.current);
+            autoInstanceRef.current = null;
+          }
+        }, 500);
+      }
+    });
+    return () => {
+      if (autoInstanceRef.current) {
+        destroyWidget(autoInstanceRef.current);
+        autoInstanceRef.current = null;
+      }
+    };
+  }, [ready, cardVisible, showFullscreen, destroyWidget]);
+
+  // ── TGB Banner (#9639) ──
+  useEffect(() => {
+    if (!ready || !cardVisible) return;
+    initBanner(9639, 'tads-container-9639').then((ctrl) => {
+      bannerInstanceRef.current = ctrl;
+    });
+    return () => {
+      if (bannerInstanceRef.current) {
+        destroyWidget(bannerInstanceRef.current);
+        bannerInstanceRef.current = null;
+      }
+    };
+  }, [ready, cardVisible, initBanner, destroyWidget]);
+
+  // ── Step 1 handler (#9966) ──
+  const handleStep1 = useCallback(() => {
+    if (step1Done || step1Playing || step2Playing) return;
+    setStep1Playing(true);
+    setStep1Rem(5);
+
+    let timerDone = false;
+    let adHandled = false;
+
+    function tryComplete() {
+      if (timerDone && adHandled) {
+        clearInterval(countdown1Ref.current);
+        setStep1Playing(false);
+        setStep1Done(true);
+        if (step1InstanceRef.current) {
+          destroyWidget(step1InstanceRef.current);
+          step1InstanceRef.current = null;
+        }
+      }
+    }
+
+    countdown1Ref.current = setInterval(() => {
+      setStep1Rem(prev => {
+        if (prev <= 1) {
+          clearInterval(countdown1Ref.current);
+          timerDone = true;
+          tryComplete();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    showFullscreen(9966).then((res) => {
+      step1InstanceRef.current = res.controller;
+      adHandled = true;
+      tryComplete();
+    });
+  }, [step1Done, step1Playing, step2Playing, showFullscreen, destroyWidget]);
+
+  // ── Step 2 handler (#9579) ──
+  const handleStep2 = useCallback(() => {
+    if (!step1Done || step2Done || step2Playing) return;
+    setStep2Playing(true);
+    setStep2Rem(5);
+
+    let timerDone = false;
+    let adHandled = false;
+
+    function tryComplete() {
+      if (timerDone && adHandled) {
+        clearInterval(countdown2Ref.current);
+        setStep2Playing(false);
+        setStep2Done(true);
+        if (step2InstanceRef.current) {
+          destroyWidget(step2InstanceRef.current);
+          step2InstanceRef.current = null;
+        }
+        setEnrollUnlocked(true);
+        setSuccessVisible(true);
+        launchConfetti();
+      }
+    }
+
+    countdown2Ref.current = setInterval(() => {
+      setStep2Rem(prev => {
+        if (prev <= 1) {
+          clearInterval(countdown2Ref.current);
+          timerDone = true;
+          tryComplete();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    showFullscreen(9579).then((res) => {
+      step2InstanceRef.current = res.controller;
+      adHandled = true;
+      tryComplete();
+    });
+  }, [step1Done, step2Done, step2Playing, showFullscreen, destroyWidget]);
+
+  // ── Enroll ──
+  const handleEnroll = useCallback(() => {
+    if (!step1Done || !step2Done) return;
+    const tg = window.Telegram?.WebApp;
+    if (tg && typeof tg.openLink === 'function') {
+      tg.openLink(COURSE_URL.current, { try_instant_view: false });
+    } else {
+      const a = document.createElement('a');
+      a.href = COURSE_URL.current;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.click();
+    }
+  }, [step1Done, step2Done]);
+
+  // ── Cleanup on unmount ──
+  useEffect(() => {
+    return () => {
+      clearInterval(countdown1Ref.current);
+      clearInterval(countdown2Ref.current);
+      clearTimeout(timer1Ref.current);
+      clearTimeout(timer2Ref.current);
+      if (autoInstanceRef.current) destroyWidget(autoInstanceRef.current);
+      if (step1InstanceRef.current) destroyWidget(step1InstanceRef.current);
+      if (step2InstanceRef.current) destroyWidget(step2InstanceRef.current);
+      if (bannerInstanceRef.current) destroyWidget(bannerInstanceRef.current);
+    };
+  }, [destroyWidget]);
+
+  const progress = (step1Done ? 1 : 0) + (step2Done ? 1 : 0);
+
+  return (
+    <div className="app-shell">
+      <div className="top-bar">
+        <div className="logo-u">u</div>
+        <span className="logo-text" id="logo-text">{courseMeta.title}</span>
+        <span className="badge-free">FREE</span>
+      </div>
+
+      {loading && <Skeleton />}
+
+      <div className={`card ${cardVisible ? 'visible' : ''}`} id="main-card">
+        <div className="course-info">
+          <div className="course-thumb" id="course-thumb">
+            {courseMeta.img ? (
+              <img src={courseMeta.img} alt="course" onError={(e) => { e.target.parentElement.innerHTML = '🎓'; }} />
+            ) : '🎓'}
+          </div>
+          <div className="course-meta">
+            <div className="course-title" id="course-title">{courseMeta.title}</div>
+            <div className="course-tags">
+              <span className="tag free-tag">100% FREE</span>
+              <span className="tag" id="course-cat">{courseMeta.cat}</span>
+            </div>
+            <div className="course-price">
+              {courseMeta.price && <s id="course-price-original">{courseMeta.price}</s>}
+              <span className="free" id="free-label">
+                {courseMeta.left ? `🔥 ${courseMeta.left} left` : (courseMeta.price ? '→ FREE with coupon' : '🆓 FREE with coupon')}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="unlock-headline">
+          <h2>🔓 Unlock Your Free Course</h2>
+        </div>
+
+        <div className="ad-notice" id="ad-notice" style={{display: successVisible ? 'none' : 'block'}}>
+          📋 <strong>How it works:</strong> Click <strong>Visit</strong> → watch the ad for a few seconds → the next step unlocks <strong>automatically</strong>.
+        </div>
+
+        <div className="progress-wrap">
+          <div className="progress-bar-bg">
+            <div className="progress-bar-fill" id="progress-fill" style={{width: `${progress*50}%`}}></div>
+          </div>
+          <span className="progress-label" id="progress-label">{progress}/2</span>
+        </div>
+
+        <div className="steps">
+          <Step
+            num={1}
+            title="Visit Sponsor Page #1"
+            sub={step1Playing ? `${step1Rem}s • watching ad…` : (step1Done ? 'Completed ✓' : '~5 seconds • watch the ad to unlock')}
+            done={step1Done}
+            locked={false}
+            playing={step1Playing}
+            remaining={step1Rem}
+            onClick={handleStep1}
+            btnText="Visit"
+          />
+          <Step
+            num={2}
+            title="Visit Sponsor Page #2"
+            sub={step2Playing ? `${step2Rem}s • watching ad…` : (step2Done ? 'Completed ✓' : '~5 seconds • watch the ad to unlock')}
+            done={step2Done}
+            locked={!step1Done}
+            playing={step2Playing}
+            remaining={step2Rem}
+            onClick={handleStep2}
+            btnText="Visit"
+          />
+        </div>
+
+        <button
+          className={`cta-btn ${enrollUnlocked ? 'unlocked' : 'locked'}`}
+          id="btn-enroll"
+          onClick={handleEnroll}
+          disabled={!enrollUnlocked}
+        >
+          {enrollUnlocked ? '🚀 Enroll Free Now' : '🔒 Complete both steps to enroll'}
+        </button>
+
+        <div className={`success-msg ${successVisible ? 'visible' : ''}`} id="success-msg">
+          🎉 You're all set! Click above to enroll for free.
+        </div>
+      </div>
+
+      <div className="tads-banner-section" id="tads-banner-section">
+        <div id="tads-container-9639"></div>
+      </div>
+
+      <div className="encyclo-section">
+        <a className="encyclo-banner" href="https://helloencyclo.com/?ref=HUSSEINSHEIKHO" target="_blank" rel="noopener">
+          <div className="encyclo-icon">🎓</div>
+          <div className="encyclo-text">
+            <div className="encyclo-title">Join HelloEncyclo Grant</div>
+            <div className="encyclo-sub">Free scholarship to learn Programming &amp; AI</div>
+          </div>
+          <span className="encyclo-arrow">Join →</span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Mount
+// ═══════════════════════════════════════════════════════════
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <TadsProvider>
+    <App />
+  </TadsProvider>
+);
+</script>
+
+</body>
+</html>
