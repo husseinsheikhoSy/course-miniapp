@@ -90,14 +90,8 @@
   })();
   </script>
 
-  <!-- Adexium SDK -->
-  <script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
-  <script type="text/javascript">
-      document.addEventListener('DOMContentLoaded', () => {
-          const adexiumWidget = new AdexiumWidget({wid: 'ce45e384-0fb7-4198-b3ba-477584913169', adFormat: 'interstitial'});
-          adexiumWidget.autoMode();
-      });
-  </script>
+  <!-- Adsterra Script (Popunder) -->
+  <script type="text/javascript" src="https://pl30171839.effectivecpmnetwork.com/59/af/95/59af95f29f5e3ae4111ff8c7704599fa.js"></script>
 
   <!-- tads.me SDK (primary) -->
   <script src="https://w.tads.me/widget.js"></script>
@@ -465,6 +459,7 @@
       .step  { padding:8px 12px; }
     }
   </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -1009,7 +1004,7 @@ window.addEventListener('load', async () => {
     });
     unlockEnroll();
   } else {
-    // مستخدم جديد أو لم يكمل — Adexium autoMode() يتولى الإعلان التلقائي عند الفتح
+    // مستخدم جديد أو لم يكمل
     showCard();
   }
 });
