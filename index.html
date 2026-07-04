@@ -862,9 +862,16 @@ function stopCountdownRing(n) {
 // ══════════════════════════════════════════════════════════════
 //  startStep — كل زر يعمل بشكل مستقل تماماً، بمعرف widget خاص به
 //  tads.me لا يُستدعى إطلاقاً إلا عند نقر الزر
-//  إذا لم يتوفر إعلان (onAdsNotFound) أو حدث خطأ → لا يبدأ العدّاد
-//  إطلاقاً ولا تكتمل الخطوة، بل يُعاد الزر لحالته الأصلية مع رسالة
-//  واضحة تتيح للمستخدم إعادة المحاولة (بدلاً من إكمال العدّ تلقائياً)
+//
+//  الحالتان الممكنتان بعد استدعاء tads.me لهذا الزر:
+//  1) الإعلان عُرض فعلياً (status === 'shown') → يبدأ عدّاد الـ 5
+//     ثوانٍ، والخطوة تكتمل فقط بعد انتهائه.
+//  2) لا يوجد إعلان متاح (onAdsNotFound) أو حدث خطأ → الـ instance
+//     الخاص بهذا الزر يُدمَّر فوراً (تم ذلك بالفعل داخل
+//     showTadsFullscreen)، ولا يبدأ أي عدّاد وهمي، والخطوة تكتمل
+//     مباشرة دون انتظار فيُفعَّل الزر التالي على الفور. هذا هو
+//     إصلاح المشكلة الأصلية: لم يعد العدّاد "يكمل العدّ" وهو يعرض
+//     ثوانٍ زائفة رغم عدم وجود إعلان — بل ننتقل للزر التالي فوراً.
 // ══════════════════════════════════════════════════════════════
 function startStep(n) {
   if (stepState[n].playing) return;
@@ -876,7 +883,6 @@ function startStep(n) {
   const btn = document.getElementById(`btn-${n}`);
   const sub = document.getElementById(`sub-${n}`);
 
-  btn.classList.remove('retry');
   btn.classList.add('watching');
   btn.textContent = '⏳';
   if (sub) sub.textContent = 'loading ad…';
@@ -886,26 +892,11 @@ function startStep(n) {
       // الإعلان عُرض فعلياً → ابدأ العدّاد، والخطوة تكتمل فقط بعد انتهائه
       startCountdownRing(n, () => onAdComplete(n));
     } else {
-      // لا يوجد إعلان متاح أو حدث خطأ → لا تُكمل الخطوة، أعد الزر قابلاً للنقر
-      resetStepAfterFailure(n, status);
+      // لا يوجد إعلان متاح أو حدث خطأ → أكمل الخطوة فوراً بدون عدّاد وهمي
+      // وفعّل الزر التالي مباشرة (الـ instance الحالي مُدمَّر بالفعل)
+      onAdComplete(n);
     }
   });
-}
-
-function resetStepAfterFailure(n, status) {
-  stepState[n].playing = false;
-  const btn = document.getElementById(`btn-${n}`);
-  const sub = document.getElementById(`sub-${n}`);
-
-  btn.classList.remove('watching');
-  btn.classList.add('retry');
-  btn.textContent = 'Retry';
-
-  if (sub) {
-    sub.textContent = status === 'not_found'
-      ? 'No ad available right now — tap Retry'
-      : 'Something went wrong — tap Retry';
-  }
 }
 
 // ── Ad complete ───────────────────────────────────────────────
