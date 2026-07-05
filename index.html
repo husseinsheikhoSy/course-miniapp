@@ -927,7 +927,7 @@ function onAdComplete(n) {
 }
 
 function updateProgress() {
-  const done = (stepState[1].done?1:0) + (stepState[2].done?1:0) + (stepState[3].done?1:0);
+  const done = (stepState[1].done?1:0) + (stepState[2].done?1:0);
   document.getElementById('progress-fill').style.width  = `${(done / STEP_COUNT) * 100}%`;
   document.getElementById('progress-label').textContent = `${done}/${STEP_COUNT}`;
 }
@@ -945,7 +945,7 @@ function unlockEnroll() {
 
 // ── Enroll ────────────────────────────────────────────────────
 function enrollNow() {
-  if (!stepState[1].done || !stepState[2].done || !stepState[3].done) return;
+  if (!stepState[1].done || !stepState[2].done) return;
   if (tg && typeof tg.openLink === 'function') {
     tg.openLink(COURSE_URL, { try_instant_view: false });
   } else {
