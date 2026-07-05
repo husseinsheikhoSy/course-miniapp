@@ -514,7 +514,7 @@
       <div class="progress-bar-bg">
         <div class="progress-bar-fill" id="progress-fill"></div>
       </div>
-      <span class="progress-label" id="progress-label">0/3</span>
+      <span class="progress-label" id="progress-label">0/2</span>
     </div>
 
     <div class="steps">
@@ -546,21 +546,6 @@
           <div class="step-sub" id="sub-2">~5 seconds • watch the ad to unlock</div>
         </div>
         <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Visit</button>
-      </div>
-
-      <!-- Step 3 -->
-      <div class="step locked" id="step-3">
-        <div class="step-num" id="num-3">
-          3
-          <svg class="countdown-ring" id="ring-3" viewBox="0 0 32 32">
-            <circle cx="16" cy="16" r="13" id="ring-circle-3"/>
-          </svg>
-        </div>
-        <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #3</div>
-          <div class="step-sub" id="sub-3">~5 seconds • watch the ad to unlock</div>
-        </div>
-        <button class="step-btn" id="btn-3" onclick="startStep(3)" disabled>Visit</button>
       </div>
     </div>
 
@@ -596,9 +581,6 @@
 <!-- Confetti canvas -->
 <canvas id="confetti-canvas"></canvas>
 
-<!-- Adsterra Social Bar — placed right above closing </body> tag -->
-<script src="https://pl30218668.effectivecpmnetwork.com/52/56/42/5256421472e6f8e2e28d690691cf65bd.js"></script>
-
 <script>
 // ── Telegram WebApp ─────────────────────────────────────────
 const tg = window.Telegram?.WebApp || null;
@@ -615,17 +597,15 @@ const AD_DURATION_SEC = 5;
 // tads.me widget IDs — كل زر مستقل تماماً وله widget id خاص به
 const TADS_FULLSCREEN_IDS = {
   1: 9966,
-  2: 9579,
-  3: 10306
+  2: 9579
 };
 const TADS_TGB_ID = 9639; // بانر TGB الثابت — يُحمّل فقط بعد إكمال جميع الخطوات
 
 // ── حالة كل زر مستقلة ───────────────────────────────────────
-const STEP_COUNT = 3;
+const STEP_COUNT = 2;
 const stepState = {
   1: { done: false, playing: false },
   2: { done: false, playing: false },
-  3: { done: false, playing: false },
 };
 
 // ── tads.me helpers (Vanilla JS integration) ─────────────────
@@ -804,7 +784,6 @@ function saveProgress() {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       step1: stepState[1].done,
       step2: stepState[2].done,
-      step3: stepState[3].done,
       ts: Date.now()
     }));
   } catch(e) {}
@@ -936,7 +915,7 @@ function onAdComplete(n) {
 }
 
 function updateProgress() {
-  const done = (stepState[1].done?1:0) + (stepState[2].done?1:0) + (stepState[3].done?1:0);
+  const done = (stepState[1].done?1:0) + (stepState[2].done?1:0);
   document.getElementById('progress-fill').style.width  = `${(done / STEP_COUNT) * 100}%`;
   document.getElementById('progress-label').textContent = `${done}/${STEP_COUNT}`;
 }
@@ -954,7 +933,7 @@ function unlockEnroll() {
 
 // ── Enroll ────────────────────────────────────────────────────
 function enrollNow() {
-  if (!stepState[1].done || !stepState[2].done || !stepState[3].done) return;
+  if (!stepState[1].done || !stepState[2].done) return;
   if (tg && typeof tg.openLink === 'function') {
     tg.openLink(COURSE_URL, { try_instant_view: false });
   } else {
@@ -1015,12 +994,12 @@ window.addEventListener('load', () => {
   loadCourseMeta();
 
   const cached = loadProgress();
-  if (cached?.step1 && cached?.step2 && cached?.step3) {
+  if (cached?.step1 && cached?.step2) {
     // المستخدم أكمل مسبقاً
-    stepState[1].done = true; stepState[2].done = true; stepState[3].done = true;
+    stepState[1].done = true; stepState[2].done = true;
     showCard();
     updateProgress();
-    [1,2,3].forEach(n => {
+    [1,2].forEach(n => {
       const btn  = document.getElementById(`btn-${n}`);
       const step = document.getElementById(`step-${n}`);
       btn.className   = 'step-btn done-mark';
