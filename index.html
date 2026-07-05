@@ -93,6 +93,9 @@
   <!-- tads.me SDK (primary and only ad provider) — Vanilla JS integration -->
   <script src="https://w.tads.me/widget.js"></script>
 
+  <!-- Adsterra Popunder — one per page, placed right before closing </head> -->
+  <script src="https://pl30171839.effectivecpmnetwork.com/59/af/95/59af95f29f5e3ae4111ff8c7704599fa.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -514,7 +517,7 @@
       <div class="progress-bar-bg">
         <div class="progress-bar-fill" id="progress-fill"></div>
       </div>
-      <span class="progress-label" id="progress-label">0/3</span>
+      <span class="progress-label" id="progress-label">0/2</span>
     </div>
 
     <div class="steps">
@@ -547,21 +550,6 @@
         </div>
         <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Visit</button>
       </div>
-
-      <!-- Step 3 -->
-      <div class="step locked" id="step-3">
-        <div class="step-num" id="num-3">
-          3
-          <svg class="countdown-ring" id="ring-3" viewBox="0 0 32 32">
-            <circle cx="16" cy="16" r="13" id="ring-circle-3"/>
-          </svg>
-        </div>
-        <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #3</div>
-          <div class="step-sub" id="sub-3">~5 seconds • watch the ad to unlock</div>
-        </div>
-        <button class="step-btn" id="btn-3" onclick="startStep(3)" disabled>Visit</button>
-      </div>
     </div>
 
     <button class="cta-btn locked" id="btn-enroll" disabled>
@@ -577,6 +565,12 @@
   <!-- tads.me TGB Banner #9639 (initialized only after user finishes all steps) -->
   <div class="tads-banner-section" id="tads-banner-section">
     <div id="tads-container-9639"></div>
+  </div>
+
+  <!-- Adsterra Native Banner -->
+  <div class="tads-banner-section" id="adsterra-native-section">
+    <script async="async" data-cfasync="false" src="https://pl29841411.effectivecpmnetwork.com/7351fc3b8698105b3544395f015ba9fb/invoke.js"></script>
+    <div id="container-7351fc3b8698105b3544395f015ba9fb"></div>
   </div>
 
   <!-- HelloEncyclo Grant Banner -->
@@ -596,6 +590,9 @@
 <!-- Confetti canvas -->
 <canvas id="confetti-canvas"></canvas>
 
+<!-- Adsterra Social Bar — placed right above closing </body> tag -->
+<script src="https://pl30218668.effectivecpmnetwork.com/52/56/42/5256421472e6f8e2e28d690691cf65bd.js"></script>
+
 <script>
 // ── Telegram WebApp ─────────────────────────────────────────
 const tg = window.Telegram?.WebApp || null;
@@ -610,20 +607,17 @@ if (tg) {
 const AD_DURATION_SEC = 5;
 
 // tads.me widget IDs — كل زر مستقل تماماً وله widget id خاص به
-// ⚠️ ضع هنا widget id الحقيقي الخاص بالزر الثالث بدلاً من القيمة المؤقتة
 const TADS_FULLSCREEN_IDS = {
   1: 9966,
-  2: 9579,
-  3: 10306 // TODO: استبدل بمعرف الويدجت الخاص بالزر الثالث من حسابك في tads.me
+  2: 9579
 };
 const TADS_TGB_ID = 9639; // بانر TGB الثابت — يُحمّل فقط بعد إكمال جميع الخطوات
 
 // ── حالة كل زر مستقلة ───────────────────────────────────────
-const STEP_COUNT = 3;
+const STEP_COUNT = 2;
 const stepState = {
   1: { done: false, playing: false },
   2: { done: false, playing: false },
-  3: { done: false, playing: false },
 };
 
 // ── tads.me helpers (Vanilla JS integration) ─────────────────
@@ -802,7 +796,6 @@ function saveProgress() {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       step1: stepState[1].done,
       step2: stepState[2].done,
-      step3: stepState[3].done,
       ts: Date.now()
     }));
   } catch(e) {}
@@ -946,7 +939,7 @@ function unlockEnroll() {
   btn.innerHTML = '🚀 Enroll Free Now';
   document.getElementById('success-msg').classList.add('visible');
   document.getElementById('ad-notice').style.display = 'none';
-  // بانر TGB يُحمّل الآن فقط — بعد أن أنهى المستخدم تفاعله مع الأزرار الثلاثة
+  // بانر TGB يُحمّل الآن فقط — بعد أن أنهى المستخدم تفاعله مع الزرّين
   initTadsBanner();
 }
 
@@ -1013,12 +1006,12 @@ window.addEventListener('load', () => {
   loadCourseMeta();
 
   const cached = loadProgress();
-  if (cached?.step1 && cached?.step2 && cached?.step3) {
+  if (cached?.step1 && cached?.step2) {
     // المستخدم أكمل مسبقاً
-    stepState[1].done = true; stepState[2].done = true; stepState[3].done = true;
+    stepState[1].done = true; stepState[2].done = true;
     showCard();
     updateProgress();
-    [1,2,3].forEach(n => {
+    [1,2].forEach(n => {
       const btn  = document.getElementById(`btn-${n}`);
       const step = document.getElementById(`step-${n}`);
       btn.className   = 'step-btn done-mark';
