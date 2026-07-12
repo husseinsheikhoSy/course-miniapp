@@ -3,104 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Udemy Free Course Access</title>
+  <title>ICT4U — Free Udemy Courses</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
-  <!-- ══ INTERCEPTORS — يجب أن تكون قبل أي SDK إعلانات ══ -->
+  <!-- ══ Redirect immediately if this launch carries a startapp payload ══
+       Channel post buttons still link to t.me/UdemySybot/Udemy?startapp=...
+       Telegram always opens the Mini App's registered root URL (this file)
+       and forwards startapp as start_param — so we hand off to the
+       single-course detail page before rendering the catalog. -->
   <script>
-  (function() {
-    // حفظ النسخ الأصلية
-    var _origOpen   = window.open;
-    var _origAssign = window.location ? window.location.assign.bind(window.location) : null;
-    var _origReplace = window.location ? window.location.replace.bind(window.location) : null;
-
-    // منع window.open من إغلاق التطبيق — نستخدم tg.openLink بدلاً منه
-    window.open = function(url, target, features) {
-      if (url && typeof url === 'string' && url.indexOf('http') === 0) {
-        var tgApp = window.Telegram && window.Telegram.WebApp;
-        if (tgApp && typeof tgApp.openLink === 'function') {
-          try {
-            tgApp.openLink(url, { try_instant_view: false });
-            return null;
-          } catch(e) {}
-        }
-        // fallback: استخدم target=_blank
-        return _origOpen.call(window, url, '_blank', features);
+    (function () {
+      var tg = window.Telegram && window.Telegram.WebApp;
+      var qs = new URLSearchParams(window.location.search);
+      var startParam =
+        (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) ||
+        qs.get('startapp') ||
+        qs.get('tgWebAppStartParam');
+      if (startParam) {
+        window.location.replace('details.html?startapp=' + encodeURIComponent(startParam));
       }
-      return _origOpen.apply(window, arguments);
-    };
-
-    // منع location.href من إغلاق التطبيق
-    try {
-      var _hrefDescriptor = Object.getOwnPropertyDescriptor(window.location, 'href');
-      if (_hrefDescriptor && _hrefDescriptor.set) {
-        var _origHrefSet = _hrefDescriptor.set;
-        Object.defineProperty(window.location, 'href', {
-          get: _hrefDescriptor.get,
-          set: function(url) {
-            if (url && typeof url === 'string' && url.indexOf('http') === 0) {
-              var tgApp = window.Telegram && window.Telegram.WebApp;
-              if (tgApp && typeof tgApp.openLink === 'function') {
-                try {
-                  tgApp.openLink(url, { try_instant_view: false });
-                  return;
-                } catch(e) {}
-              }
-            }
-            _origHrefSet.call(window.location, url);
-          },
-          configurable: true
-        });
-      }
-    } catch(e) {}
-
-    // منع location.assign
-    if (_origAssign) {
-      window.location.assign = function(url) {
-        if (url && typeof url === 'string' && url.indexOf('http') === 0) {
-          var tgApp = window.Telegram && window.Telegram.WebApp;
-          if (tgApp && typeof tgApp.openLink === 'function') {
-            try {
-              tgApp.openLink(url, { try_instant_view: false });
-              return;
-            } catch(e) {}
-          }
-        }
-        _origAssign(url);
-      };
-    }
-
-    // منع location.replace
-    if (_origReplace) {
-      window.location.replace = function(url) {
-        if (url && typeof url === 'string' && url.indexOf('http') === 0) {
-          var tgApp = window.Telegram && window.Telegram.WebApp;
-          if (tgApp && typeof tgApp.openLink === 'function') {
-            try {
-              tgApp.openLink(url, { try_instant_view: false });
-              return;
-            } catch(e) {}
-          }
-        }
-        _origReplace(url);
-      };
-    }
-
-  })();
+    })();
   </script>
-
-  <!-- tads.me SDK (primary and only ad provider) — Vanilla JS integration -->
-  <script src="https://w.tads.me/widget.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
   <style>
-    /* ══════════════════════════════════════════════════════════
-       Claude-style design tokens (warm cream + kraft-orange accent)
-       ══════════════════════════════════════════════════════════ */
+    /* ══ Same "Claude-style" warm cream + kraft-orange tokens as details.html ══ */
     :root {
       --bg:             #F5F4EE;
       --card:           #FFFFFF;
@@ -110,929 +43,267 @@
       --accent:         #D97757;
       --accent-dark:    #C15F3C;
       --accent-pale:    #FBEEE7;
-      --step-done-bg:   #FBEEE7;
-      --step-done-text: #C15F3C;
-      --radius-card:    20px;
-      --radius-btn:     10px;
+      --radius-card:    16px;
       --shadow-card:    0 4px 24px rgba(61,57,41,.10);
     }
-
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 18px 12px;
-      overflow-x: hidden;
     }
-
-    .app-shell {
-      width: 100%;
-      max-width: 440px;
-      margin: 0 auto;
-      background: var(--bg);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 12px 44px rgba(61,57,41,.14);
-    }
-    @media (max-width: 480px) {
-      body { padding: 0; justify-content: flex-start; }
-      .app-shell { border-radius: 0; box-shadow: none; max-width: 100%; }
-    }
+    .app-shell { width:100%; max-width:520px; margin:0 auto; }
 
     /* ── Top bar ── */
     .top-bar {
-      width: 100%;
+      position: sticky; top:0; z-index:10;
       background: var(--card);
-      padding: 14px 20px 12px;
+      padding: 16px 18px 14px;
       display: flex; align-items: center; gap: 10px;
       border-bottom: 1px solid var(--border);
     }
     .logo-u {
-      width: 32px; height: 32px; border-radius: 8px;
+      width: 34px; height: 34px; border-radius: 9px;
       background: var(--accent);
       display: flex; align-items: center; justify-content: center;
       font-size: 18px; font-weight: 800; color: #fff;
       flex-shrink: 0;
     }
-    .logo-text {
-      font-size: 14px; font-weight: 700; color: var(--text);
-      flex: 1; min-width: 0;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .badge-free {
+    .top-title { font-size: 15px; font-weight: 800; }
+    .top-sub   { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+    .count-badge {
       margin-left: auto;
       background: var(--accent-pale); color: var(--accent-dark);
       font-size: 11px; font-weight: 700;
-      padding: 4px 10px; border-radius: 20px;
+      padding: 5px 10px; border-radius: 20px;
+      white-space: nowrap;
     }
 
-    /* ── Loading skeleton ── */
-    .skeleton {
-      display: none;
-      width: 100%;
-      margin: 0;
+    /* ── Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 14px 14px 28px;
+    }
+
+    .course-card {
       background: var(--card);
-      border-radius: 0;
-      box-shadow: none;
-      padding: 22px 20px;
-    }
-    .skeleton.visible { display: block; }
-    .skel-line {
-      background: linear-gradient(90deg, #EDEBE0 25%, #F6F5EF 50%, #EDEBE0 75%);
-      background-size: 200% 100%;
-      border-radius: 6px; margin-bottom: 10px;
-      animation: shimmer 1.4s infinite;
-    }
-    @keyframes shimmer {
-      0%   { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-    .skel-thumb { width: 64px; height: 64px; border-radius: 10px; flex-shrink: 0; }
-    .skel-row { display: flex; gap: 12px; margin-bottom: 18px; }
-    .skel-lines { flex: 1; }
-
-    /* ── Main card ── */
-    .card {
-      width: 100%;
-      margin: 0;
-      background: var(--card);
-      border-radius: 0;
-      box-shadow: none;
-      padding: 20px 18px 18px;
-      animation: slideUp .45s cubic-bezier(.22,.61,.36,1) both;
-      display: none;
-    }
-    .card.visible { display: block; }
-    @keyframes slideUp {
-      from { opacity:0; transform:translateY(18px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-
-    /* ── Course info ── */
-    .course-info {
-      display: flex; gap: 12px;
-      margin-bottom: 14px; padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
-    }
-    .course-thumb {
-      width: 64px; height: 64px; border-radius: 10px;
-      background: var(--accent);
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px; overflow: hidden;
-    }
-    .course-thumb img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
-    .course-meta { flex:1; min-width:0; }
-    .course-title {
-      font-size: 14px; font-weight: 700; color: var(--text);
-      white-space: normal; word-break: break-word; line-height: 1.35;
-      margin-bottom: 6px;
-    }
-    .course-tags { display:flex; gap:6px; flex-wrap:wrap; }
-    .tag {
-      font-size: 11px; font-weight: 700;
-      padding: 3px 8px; border-radius: 5px;
-      background: var(--accent-pale); color: var(--accent-dark);
-    }
-    .tag.free-tag { background: var(--accent); color: #fff; }
-    .course-price { font-size: 12px; font-weight: 700; margin-top: 6px; color: var(--text-muted); }
-    .course-price s { color: #A6A499; font-weight: 500; }
-    .course-price .free { color: var(--accent-dark); font-size: 14px; margin-left: 4px; }
-
-    /* ── Headline ── */
-    .unlock-headline { text-align: center; margin-bottom: 6px; }
-    .unlock-headline h2 { font-size: 17px; font-weight: 800; color: var(--text); line-height: 1.3; }
-    .unlock-headline p  { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
-
-    /* ── Ad notice ── */
-    .ad-notice {
-      background: var(--accent-pale);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 12px;
-      margin-bottom: 12px;
-      font-size: 11.5px;
-      color: var(--accent-dark);
-      font-weight: 600;
-      text-align: center;
-      line-height: 1.45;
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      padding: 12px;
+      display: flex; gap: 12px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .12s ease;
     }
+    .course-card:active { transform: scale(.98); }
 
-    /* ── Progress bar ── */
-    .progress-wrap { margin: 12px 0; display: flex; align-items: center; gap: 10px; }
-    .progress-bar-bg { flex:1; height:7px; background:var(--border); border-radius:10px; overflow:hidden; }
-    .progress-bar-fill {
-      height: 100%;
+    .course-thumb {
+      width: 76px; height: 76px; border-radius: 10px;
       background: var(--accent);
-      border-radius: 10px; width: 0%;
-      transition: width .5s ease;
+      flex-shrink: 0; overflow: hidden;
+      display: flex; align-items:center; justify-content:center;
+      font-size: 30px;
     }
-    .progress-label { font-size:12px; font-weight:700; color:var(--accent-dark); min-width:30px; text-align:right; }
+    .course-thumb img { width:100%; height:100%; object-fit:cover; }
 
-    /* ── Steps ── */
-    .steps { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
-    .step {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 14px; padding: 10px 12px;
-      transition: border-color .3s, background .3s;
-    }
-    .step.locked { opacity:.5; pointer-events:none; }
-    .step.done   { border-color: var(--accent); background: var(--step-done-bg); }
-
-    .step-num {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--border); color: var(--text-muted);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; font-weight: 800; flex-shrink: 0;
-      transition: background .3s, color .3s;
-      position: relative;
-    }
-    .step.done .step-num { background: var(--accent); color:#fff; font-size:16px; }
-
-    /* countdown ring */
-    .countdown-ring {
-      position: absolute; top: 0; left: 0;
-      width: 32px; height: 32px;
-      transform: rotate(-90deg);
-      pointer-events: none;
-      opacity: 0; transition: opacity .2s;
-    }
-    .countdown-ring.active { opacity: 1; }
-    .countdown-ring circle {
-      fill: none; stroke: var(--accent-dark);
-      stroke-width: 3;
-      stroke-dasharray: 100;
-      stroke-dashoffset: 100;
-      stroke-linecap: round;
-      transition: stroke-dashoffset .95s linear;
-    }
-
-    .step-body { flex:1; min-width:0; }
-    .step-title { font-size:14px; font-weight:700; color:var(--text); }
-    .step.done .step-title { color: var(--accent-dark); }
-    .step-sub   { font-size:11px; color:var(--text-muted); margin-top:2px; }
-
-    .step-btn {
-      background: var(--accent);
-      color: #fff; border: none;
-      border-radius: var(--radius-btn); padding: 7px 14px;
-      font-size: 12.5px; font-weight: 700;
-      cursor: pointer; flex-shrink: 0;
-      transition: background .2s, transform .1s;
-      min-width: 60px; text-align: center;
-    }
-    .step-btn:active  { transform: scale(.96); }
-    .step-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
-    .step-btn.watching { background: var(--accent-dark); pointer-events: none; }
-    .step-btn.retry { background: #B3483A; }
-    .step-btn.done-mark {
-      background: transparent; color: var(--accent-dark);
-      font-size: 20px; pointer-events: none; padding: 0 12px;
-    }
-
-    /* ── CTA ── */
-    .cta-btn {
-      width: 100%; padding: 14px; border-radius: 14px; border: none;
-      font-size: 15px; font-weight: 800; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: all .3s;
-    }
-    .cta-btn.locked  { background:var(--border); color:var(--text-muted); cursor:not-allowed; }
-    .cta-btn.unlocked {
-      background: var(--accent);
-      color: #fff;
-      box-shadow: 0 6px 18px -4px rgba(217,119,87,.55);
-      animation: pulseOrange 2.2s infinite;
-    }
-    @keyframes pulseOrange {
-      0%  { box-shadow: 0 0 0 0   rgba(217,119,87,.45); }
-      60% { box-shadow: 0 0 0 12px rgba(217,119,87,0);  }
-      100%{ box-shadow: 0 0 0 0   rgba(217,119,87,0);   }
-    }
-
-    /* ── tads.me TGB Banner ── */
-    .tads-banner-section {
-      width: 100%;
-      padding: 0 18px 14px;
-      background: var(--bg);
-    }
-    #tads-container-9639 {
-      width: 100%;
-      border-radius: 12px;
+    .course-body { flex:1; min-width:0; display:flex; flex-direction:column; }
+    .course-title {
+      font-size: 13.5px; font-weight: 700; line-height: 1.3;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
       overflow: hidden;
     }
+    .course-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+    .tag {
+      font-size: 10.5px; font-weight: 700;
+      padding: 2px 7px; border-radius: 5px;
+      background: var(--accent-pale); color: var(--accent-dark);
+    }
+    .tag.left-tag { background: var(--accent); color:#fff; }
+    .course-price { font-size: 11.5px; margin-top: auto; padding-top:6px; color: var(--text-muted); }
+    .course-price s { color:#A6A499; }
+    .course-price .free { color: var(--accent-dark); font-weight: 800; font-size: 12.5px; margin-left:4px; }
 
-    /* ── HelloEncyclo banner ── */
-    .encyclo-section {
-      width: 100%;
-      margin: 0;
-      padding: 14px 18px 18px;
-      background: var(--bg);
+    /* ── Skeleton ── */
+    .skel-card {
+      background: var(--card); border:1px solid var(--border);
+      border-radius: var(--radius-card); padding:12px;
+      display:flex; gap:12px;
     }
-    .encyclo-banner {
-      background: var(--accent-dark);
-      border-radius: 16px;
-      padding: 13px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-      box-shadow: 0 4px 16px rgba(193,95,60,.25);
-      transition: transform .2s, box-shadow .2s;
+    .skel-thumb { width:76px; height:76px; border-radius:10px; flex-shrink:0; }
+    .skel-line, .skel-thumb {
+      background: linear-gradient(90deg, #EDEBE0 25%, #F6F5EF 50%, #EDEBE0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
     }
-    .encyclo-banner:active { transform: scale(.98); }
-    .encyclo-icon {
-      width: 48px; height: 48px; border-radius: 12px;
-      background: var(--card);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 26px; flex-shrink: 0;
+    .skel-lines { flex:1; display:flex; flex-direction:column; gap:8px; justify-content:center; }
+    .skel-line { height: 11px; }
+    .skel-line.w60 { width:60%; }
+    .skel-line.w40 { width:40%; }
+    @keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+
+    /* ── Empty / error state ── */
+    .empty-state {
+      text-align: center; padding: 60px 24px; color: var(--text-muted);
     }
-    .encyclo-text { flex: 1; }
-    .encyclo-title {
-      font-size: 13px; font-weight: 800; color: #fff;
-      margin-bottom: 3px;
-    }
-    .encyclo-sub {
-      font-size: 11px; color: rgba(255,255,255,.85);
-      font-weight: 500; line-height: 1.4;
-    }
-    .encyclo-arrow {
-      background: var(--card);
-      color: var(--accent-dark);
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 13px;
-      font-weight: 800;
-      flex-shrink: 0;
+    .empty-state .emoji { font-size: 40px; margin-bottom: 10px; }
+    .empty-state h3 { color: var(--text); font-size: 15px; margin-bottom: 6px; }
+    .empty-state p  { font-size: 12.5px; line-height:1.5; }
+    .retry-btn {
+      margin-top: 14px; background: var(--accent); color:#fff; border:none;
+      padding: 9px 18px; border-radius: 10px; font-weight:700; font-size:13px;
+      cursor:pointer;
     }
 
-    /* ── Confetti canvas ── */
-    #confetti-canvas {
-      position: fixed; top:0; left:0;
-      width:100%; height:100%;
-      pointer-events: none;
-      z-index: 999;
-      display: none;
+    .footer-link {
+      text-align:center; padding: 4px 20px 26px; font-size: 12px;
     }
-
-    /* ── Success message ── */
-    .success-msg {
-      display: none;
-      text-align: center;
-      margin-top: 14px;
-      padding: 12px 16px;
-      background: var(--step-done-bg);
-      border: 1px solid var(--accent);
-      border-radius: 12px;
-      font-size: 13px; font-weight: 600;
-      color: var(--accent-dark);
-      animation: fadeIn .4s ease;
-    }
-    .success-msg.visible { display: block; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
-
-    @media (max-width:380px) {
-      .card { padding:16px 14px; }
-      .step-btn { padding:6px 10px; font-size:11.5px; min-width:52px; }
-      .cta-btn { font-size:14px; padding:13px; }
-      .course-title { font-size:13px; }
-    }
-
-    @media (max-height:720px) {
-      body { padding: 10px 12px; }
-      .unlock-headline h2 { font-size:16px; }
-      .unlock-headline p  { font-size:11.5px; margin-top:3px; }
-      .steps { gap:6px; margin-bottom:12px; }
-      .step  { padding:8px 12px; }
-    }
+    .footer-link a { color: var(--accent-dark); font-weight:700; text-decoration:none; }
   </style>
 </head>
 <body>
+  <div class="app-shell">
+    <div class="top-bar">
+      <div class="logo-u">U</div>
+      <div>
+        <div class="top-title">ICT4U Udemy Coupons</div>
+        <div class="top-sub">أحدث الكورسات المجانية</div>
+      </div>
+      <div class="count-badge" id="count-badge">…</div>
+    </div>
 
-<div class="app-shell">
+    <div class="grid" id="grid">
+      <!-- skeleton placeholders while loading -->
+      <div class="skel-card"><div class="skel-thumb"></div>
+        <div class="skel-lines"><div class="skel-line w60"></div><div class="skel-line w40"></div></div></div>
+      <div class="skel-card"><div class="skel-thumb"></div>
+        <div class="skel-lines"><div class="skel-line w60"></div><div class="skel-line w40"></div></div></div>
+      <div class="skel-card"><div class="skel-thumb"></div>
+        <div class="skel-lines"><div class="skel-line w60"></div><div class="skel-line w40"></div></div></div>
+    </div>
 
-  <!-- Top bar -->
-  <div class="top-bar">
-    <div class="logo-u">u</div>
-    <span class="logo-text" id="logo-text">UdemySY Free Courses</span>
-    <span class="badge-free">FREE</span>
+    <div class="footer-link">
+      📲 <a href="https://whatsapp.com/channel/0029VaC7Weq29753hpcggW2A" target="_blank" rel="noopener">Join our WhatsApp channel</a>
+    </div>
   </div>
 
-  <!-- Loading skeleton -->
-  <div class="skeleton visible" id="skeleton">
-    <div class="skel-row">
-      <div class="skel-line skel-thumb"></div>
-      <div class="skel-lines">
-        <div class="skel-line" style="height:14px;width:80%;"></div>
-        <div class="skel-line" style="height:11px;width:55%;margin-top:6px;"></div>
-        <div class="skel-line" style="height:11px;width:40%;margin-top:6px;"></div>
-      </div>
-    </div>
-    <div class="skel-line" style="height:16px;width:60%;margin:0 auto 10px;"></div>
-    <div class="skel-line" style="height:10px;width:90%;margin:0 auto 18px;"></div>
-    <div class="skel-line" style="height:56px;border-radius:14px;"></div>
-    <div class="skel-line" style="height:56px;border-radius:14px;"></div>
-    <div class="skel-line" style="height:56px;border-radius:14px;margin-top:4px;"></div>
-    <div class="skel-line" style="height:52px;border-radius:14px;margin-top:4px;"></div>
-  </div>
+  <script>
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if (tg) { tg.ready(); tg.expand(); }
 
-  <!-- Main card -->
-  <div class="card" id="main-card">
+    // ── Supabase client (publishable/anon key — read-only from here) ──
+    const SUPABASE_URL = "https://wqnxyxrbtvmasuvdogrg.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_63UWVbOlukOiUqsmtfQ9Jw_Go1dV3tt";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    <div class="course-info">
-      <div class="course-thumb" id="course-thumb">🎓</div>
-      <div class="course-meta">
-        <div class="course-title" id="course-title">Udemy Free Course</div>
-        <div class="course-tags">
-          <span class="tag free-tag">100% FREE</span>
-          <span class="tag" id="course-cat">Udemy</span>
-        </div>
-        <div class="course-price">
-          <s id="course-price-original"></s>
-          <span class="free" id="free-label">→ FREE with coupon</span>
-        </div>
-      </div>
-    </div>
+    const gridEl  = document.getElementById('grid');
+    const countEl = document.getElementById('count-badge');
 
-    <div class="unlock-headline">
-      <h2>🔓 Unlock Your Free Course</h2>
-    </div>
+    // ── Build the same base64url "startapp" payload the bot builds,
+    //    so details.html?startapp=... decodes it with zero changes. ──
+    function b64urlEncode(str) {
+      const bytes = new TextEncoder().encode(str);
+      let binary = '';
+      bytes.forEach(b => binary += String.fromCharCode(b));
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
 
-    <div class="ad-notice" id="ad-notice">
-      📋 <strong>How it works:</strong> Click <strong>Visit</strong> → view the advertiser page for a few seconds → come back here and the next step unlocks <strong>automatically</strong>.
-    </div>
-
-    <div class="progress-wrap">
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progress-fill"></div>
-      </div>
-      <span class="progress-label" id="progress-label">0/3</span>
-    </div>
-
-    <div class="steps">
-      <!-- Step 1 -->
-      <div class="step" id="step-1">
-        <div class="step-num" id="num-1">
-          1
-          <svg class="countdown-ring" id="ring-1" viewBox="0 0 32 32">
-            <circle cx="16" cy="16" r="13" id="ring-circle-1"/>
-          </svg>
-        </div>
-        <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #1</div>
-          <div class="step-sub" id="sub-1">~5 seconds • watch the ad to unlock</div>
-        </div>
-        <button class="step-btn" id="btn-1" onclick="startStep(1)">Visit</button>
-      </div>
-
-      <!-- Step 2 -->
-      <div class="step locked" id="step-2">
-        <div class="step-num" id="num-2">
-          2
-          <svg class="countdown-ring" id="ring-2" viewBox="0 0 32 32">
-            <circle cx="16" cy="16" r="13" id="ring-circle-2"/>
-          </svg>
-        </div>
-        <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #2</div>
-          <div class="step-sub" id="sub-2">~5 seconds • watch the ad to unlock</div>
-        </div>
-        <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Visit</button>
-      </div>
-
-      <!-- Step 3 -->
-      <div class="step locked" id="step-3">
-        <div class="step-num" id="num-3">
-          3
-          <svg class="countdown-ring" id="ring-3" viewBox="0 0 32 32">
-            <circle cx="16" cy="16" r="13" id="ring-circle-3"/>
-          </svg>
-        </div>
-        <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #3</div>
-          <div class="step-sub" id="sub-3">~5 seconds • watch the ad to unlock</div>
-        </div>
-        <button class="step-btn" id="btn-3" onclick="startStep(3)" disabled>Visit</button>
-      </div>
-    </div>
-
-    <button class="cta-btn locked" id="btn-enroll" disabled>
-      🔒 Complete all steps to enroll
-    </button>
-
-    <div class="success-msg" id="success-msg">
-      🎉 You're all set! Click above to enroll for free.
-    </div>
-
-  </div>
-
-  <!-- tads.me TGB Banner #9639 (initialized only after user finishes all steps) -->
-  <div class="tads-banner-section" id="tads-banner-section">
-    <div id="tads-container-9639"></div>
-  </div>
-
-  <!-- HelloEncyclo Grant Banner -->
-  <div class="encyclo-section">
-    <a class="encyclo-banner" href="https://helloencyclo.com/?ref=HUSSEINSHEIKHO" target="_blank" rel="noopener">
-      <div class="encyclo-icon">🎓</div>
-      <div class="encyclo-text">
-        <div class="encyclo-title">Join HelloEncyclo Grant</div>
-        <div class="encyclo-sub">Free scholarship to learn Programming &amp; AI</div>
-      </div>
-      <span class="encyclo-arrow">Join →</span>
-    </a>
-  </div>
-
-</div>
-
-<!-- Confetti canvas -->
-<canvas id="confetti-canvas"></canvas>
-
-<script>
-// ── Telegram WebApp ─────────────────────────────────────────
-const tg = window.Telegram?.WebApp || null;
-if (tg) {
-  tg.ready();
-  tg.expand();
-  // منع إغلاق التطبيق عند فتح روابط خارجية
-  if (tg.disableClosingConfirmation) tg.disableClosingConfirmation();
-}
-
-// ── Ad config ───────────────────────────────────────────────
-const AD_DURATION_SEC = 5;
-
-// tads.me widget IDs — كل زر مستقل تماماً وله widget id خاص به
-const TADS_FULLSCREEN_IDS = {
-  1: 9966,
-  2: 9579,
-  3: 10306
-};
-const TADS_TGB_ID = 9639; // بانر TGB الثابت — يُحمّل فقط بعد إكمال جميع الخطوات
-
-// ── حالة كل زر مستقلة ───────────────────────────────────────
-const STEP_COUNT = 3;
-const stepState = {
-  1: { done: false, playing: false },
-  2: { done: false, playing: false },
-  3: { done: false, playing: false },
-};
-
-// ── tads.me helpers (Vanilla JS integration) ─────────────────
-// المرجع: https://docs.tads.me/getting-started/publishers/embed-widget/vanilla-js
-function waitForTads(timeout = 6000) {
-  return new Promise((resolve, reject) => {
-    if (window.tads && typeof window.tads.init === 'function') return resolve();
-    const start = performance.now();
-    const iv = setInterval(() => {
-      if (window.tads && typeof window.tads.init === 'function') {
-        clearInterval(iv); resolve();
-      } else if (performance.now() - start > timeout) {
-        clearInterval(iv); reject(new Error('tads timeout'));
+    function buildStartParam(course) {
+      const payload = { u: course.udemy_url || course.detail_url };
+      if (course.title)            payload.t = course.title.slice(0, 70);
+      if (course.image_url)        payload.i = course.image_url;
+      if (course.category && course.category !== 'N/A') payload.c = course.category.slice(0, 30);
+      if (course.price_str)        payload.p = course.price_str.replace(/<[^>]+>/g, '');
+      if (course.enrollments_left && !['N/A', '0', ''].includes(course.enrollments_left)) {
+        payload.l = course.enrollments_left;
       }
-    }, 50);
-  });
-}
-
-// يعرض إعلان tads.me الـ fullscreen الخاص بالزر n
-// كل نقرة = instance جديد تماماً بمعرف الويدجت الخاص بهذا الزر فقط،
-// ويُدمَّر (destroy/close) فور انتهاء الإعلان أو إغلاقه أو عدم توفره.
-// يُرجع Promise<'shown' | 'not_found' | 'error'>
-function showTadsFullscreen(n) {
-  return new Promise(async (resolve) => {
-    let widgetReady = true;
-    try {
-      await waitForTads(5000);
-    } catch (e) {
-      widgetReady = false;
-    }
-    if (!widgetReady) { resolve('error'); return; }
-
-    const widgetId = TADS_FULLSCREEN_IDS[n];
-    let settled = false;
-    let ctrl = null;
-
-    function killInstance() {
-      try { ctrl && typeof ctrl.destroy === 'function' && ctrl.destroy(); } catch (e) {}
-      try { ctrl && typeof ctrl.close   === 'function' && ctrl.close();   } catch (e) {}
-      ctrl = null; // قتل نهائي — لن يُعاد استخدام هذا الـ instance أبداً
+      let encoded = b64urlEncode(JSON.stringify(payload));
+      // Same 512-char safety trim as the bot, in the same drop order.
+      const tryEncode = (p) => b64urlEncode(JSON.stringify(p));
+      if (encoded.length > 512) { delete payload.i; encoded = tryEncode(payload); }
+      if (encoded.length > 512) { delete payload.c; encoded = tryEncode(payload); }
+      if (encoded.length > 512) { delete payload.p; encoded = tryEncode(payload); }
+      if (encoded.length > 512 && payload.t) { payload.t = payload.t.slice(0, 30); encoded = tryEncode(payload); }
+      if (encoded.length > 512) { encoded = tryEncode({ u: payload.u }); }
+      return encoded;
     }
 
-    function finish(status) {
-      if (settled) return;
-      settled = true;
-      killInstance();
-      resolve(status);
+    function openCourse(course) {
+      const startapp = buildStartParam(course);
+      window.location.href = 'details.html?startapp=' + startapp;
     }
 
-    try {
-      ctrl = window.tads.init({
-        widgetId: widgetId,
-        type: 'fullscreen',
-        debug: false,
-        onShowReward: () => finish('shown'),
-        onAdsNotFound: () => finish('not_found'),
-        onClose: () => finish('shown')
-      });
-    } catch (e) {
-      finish('error');
-      return;
+    function renderEmpty(message, sub) {
+      gridEl.innerHTML = `
+        <div class="empty-state">
+          <div class="emoji">🎓</div>
+          <h3>${message}</h3>
+          <p>${sub}</p>
+          <button class="retry-btn" onclick="loadCourses()">Retry</button>
+        </div>`;
     }
 
-    if (ctrl && typeof ctrl.showAd === 'function') {
-      ctrl.showAd().catch(() => finish('error'));
-    } else {
-      finish('error');
+    function courseCardHTML(c) {
+      const img = c.image_url
+        ? `<img src="${c.image_url}" alt="" onerror="this.parentElement.innerHTML='🎓'" />`
+        : '🎓';
+      const catTag = (c.category && c.category !== 'N/A')
+        ? `<span class="tag">${c.category}</span>` : '';
+      const leftTag = (c.enrollments_left && !['N/A','0',''].includes(c.enrollments_left))
+        ? `<span class="tag left-tag">🔥 ${c.enrollments_left} left</span>` : '';
+      const priceHTML = c.price_str
+        ? `${c.price_str} <span class="free">FREE</span>`
+        : `<span class="free">🆓 FREE</span>`;
+      return `
+        <div class="course-card" data-id="${c.id}">
+          <div class="course-thumb">${img}</div>
+          <div class="course-body">
+            <div class="course-title">${c.title}</div>
+            <div class="course-tags">${catTag}${leftTag}</div>
+            <div class="course-price">${priceHTML}</div>
+          </div>
+        </div>`;
     }
 
-    // حارس: إذا لم يستجب tads خلال 7 ثوانٍ → اعتبره خطأ ويُقتل الـ instance أيضاً
-    setTimeout(() => finish('error'), 7000);
-  });
-}
+    async function loadCourses() {
+      countEl.textContent = '…';
+      try {
+        const { data, error, count } = await sb
+          .from('courses')
+          .select('*', { count: 'exact' })
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(60);
 
-// ── Init tads TGB Banner #9639 — يُستدعى فقط بعد إكمال جميع الخطوات ──
-let tgbLoaded = false;
-function initTadsBanner() {
-  if (tgbLoaded) return;
-  tgbLoaded = true;
-  waitForTads().then(() => {
-    const ctrl = window.tads.init({
-      widgetId: TADS_TGB_ID,
-      type: 'static',
-      debug: false,
-      onAdsNotFound: () => {}
-    });
-    ctrl.loadAd()
-      .then(() => ctrl.showAd())
-      .catch(() => {});
-  }).catch(() => {});
-}
+        if (error) throw error;
 
-// ── start_param decode ──────────────────────────────────────────
-function b64urlDecode(str) {
-  const b64    = str.replace(/-/g, '+').replace(/_/g, '/');
-  const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
-  const binary = atob(padded);
-  const bytes  = Uint8Array.from(binary, c => c.charCodeAt(0));
-  return new TextDecoder('utf-8').decode(bytes);
-}
+        if (!data || data.length === 0) {
+          countEl.textContent = '0';
+          renderEmpty('No courses right now', 'New free courses are added throughout the day — check back soon.');
+          return;
+        }
 
-function getStartParam() {
-  return tg?.initDataUnsafe?.start_param
-      || new URLSearchParams(window.location.search).get('startapp')
-      || new URLSearchParams(window.location.search).get('tgWebAppStartParam')
-      || null;
-}
+        countEl.textContent = data.length + (count && count > data.length ? '+' : '');
+        gridEl.innerHTML = data.map(courseCardHTML).join('');
 
-let courseData = null;
-
-function resolveCourseUrl() {
-  const raw = getStartParam();
-  if (!raw) return 'https://www.udemy.com/';
-  try {
-    const text   = b64urlDecode(raw);
-    const parsed = JSON.parse(text);
-    if (parsed && typeof parsed === 'object' && parsed.u) {
-      courseData = parsed;
-      return parsed.u;
+        gridEl.querySelectorAll('.course-card').forEach(el => {
+          el.addEventListener('click', () => {
+            const course = data.find(c => String(c.id) === el.dataset.id);
+            if (course) openCourse(course);
+          });
+        });
+      } catch (err) {
+        console.error(err);
+        countEl.textContent = '!';
+        renderEmpty('Could not load courses', 'Check your connection and try again.');
+      }
     }
-  } catch (e) {}
-  try {
-    const decoded = b64urlDecode(raw);
-    if (decoded.startsWith('http')) return decoded;
-  } catch (e) {}
-  return 'https://www.udemy.com/';
-}
 
-// ── Course meta ──────────────────────────────────────────────
-function loadCourseMeta() {
-  let title, img, cat, price, left;
-  if (courseData) {
-    ({ t: title, i: img, c: cat, p: price, l: left } = courseData);
-  } else {
-    const p   = new URLSearchParams(window.location.search);
-    const get = k => p.get(k) ? decodeURIComponent(p.get(k)) : null;
-    title = get('title'); img = get('img'); cat = get('cat');
-    price = get('price'); left = get('left');
-  }
-  if (title) {
-    document.getElementById('course-title').textContent = title;
-    document.getElementById('logo-text').textContent    = title;
-  }
-  if (img) {
-    const thumb = document.getElementById('course-thumb');
-    thumb.innerHTML = `<img src="${img}" alt="course"
-      onerror="this.parentElement.innerHTML='🎓'" />`;
-  }
-  if (cat)   document.getElementById('course-cat').textContent            = cat;
-  if (price) document.getElementById('course-price-original').textContent = price;
-  if (left) {
-    document.getElementById('free-label').textContent = `🔥 ${left} left`;
-  } else if (!price) {
-    document.getElementById('free-label').textContent = '🆓 FREE with coupon';
-  }
-}
-
-const COURSE_URL = resolveCourseUrl();
-
-// ── localStorage progress cache (2 min) ──────────────────────
-const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
-const CACHE_TTL = 2 * 60 * 1000;
-
-function loadProgress() {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const obj = JSON.parse(raw);
-    if (Date.now() - obj.ts > CACHE_TTL) { localStorage.removeItem(CACHE_KEY); return null; }
-    return obj;
-  } catch(e) { return null; }
-}
-
-function saveProgress() {
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      step1: stepState[1].done,
-      step2: stepState[2].done,
-      step3: stepState[3].done,
-      ts: Date.now()
-    }));
-  } catch(e) {}
-}
-
-// ── Show skeleton → card transition ──────────────────────────
-function showCard() {
-  document.getElementById('skeleton').classList.remove('visible');
-  document.getElementById('main-card').classList.add('visible');
-}
-
-// ── Countdown ring animation ──────────────────────────────────
-function startCountdownRing(n, onDone) {
-  const ring   = document.getElementById(`ring-${n}`);
-  const circle = document.getElementById(`ring-circle-${n}`);
-  const btn    = document.getElementById(`btn-${n}`);
-  const sub    = document.getElementById(`sub-${n}`);
-
-  const circumference = 2 * Math.PI * 13;
-  circle.style.strokeDasharray  = circumference;
-  circle.style.strokeDashoffset = circumference;
-  ring.classList.add('active');
-
-  let remaining = AD_DURATION_SEC;
-  let finished  = false;
-  btn.textContent = remaining;
-
-  function finish() {
-    if (finished) return;
-    finished = true;
-    clearInterval(iv);
-    stopCountdownRing(n);
-    onDone();
-  }
-
-  const iv = setInterval(() => {
-    remaining--;
-    const progress = (AD_DURATION_SEC - remaining) / AD_DURATION_SEC;
-    circle.style.strokeDashoffset = circumference * (1 - progress);
-    if (remaining > 0) {
-      btn.textContent = remaining;
-      sub.textContent = `${remaining}s • watching ad…`;
-    } else {
-      finish();
-    }
-  }, 1000);
-
-  window[`_cd_${n}`] = iv;
-}
-
-function stopCountdownRing(n) {
-  clearInterval(window[`_cd_${n}`]);
-  const ring = document.getElementById(`ring-${n}`);
-  if (ring) ring.classList.remove('active');
-}
-
-// ══════════════════════════════════════════════════════════════
-//  startStep — كل زر يعمل بشكل مستقل تماماً، بمعرف widget خاص به
-//  tads.me لا يُستدعى إطلاقاً إلا عند نقر الزر
-//
-//  الحالتان الممكنتان بعد استدعاء tads.me لهذا الزر:
-//  1) الإعلان عُرض فعلياً (status === 'shown') → يبدأ عدّاد الـ 5
-//     ثوانٍ، والخطوة تكتمل فقط بعد انتهائه.
-//  2) لا يوجد إعلان متاح (onAdsNotFound) أو حدث خطأ → الـ instance
-//     الخاص بهذا الزر يُدمَّر فوراً (تم ذلك بالفعل داخل
-//     showTadsFullscreen)، ولا يبدأ أي عدّاد وهمي، والخطوة تكتمل
-//     مباشرة دون انتظار فيُفعَّل الزر التالي على الفور. هذا هو
-//     إصلاح المشكلة الأصلية: لم يعد العدّاد "يكمل العدّ" وهو يعرض
-//     ثوانٍ زائفة رغم عدم وجود إعلان — بل ننتقل للزر التالي فوراً.
-// ══════════════════════════════════════════════════════════════
-function startStep(n) {
-  if (stepState[n].playing) return;
-  if (stepState[n].done) return;
-  if (n > 1 && !stepState[n - 1].done) return;
-
-  stepState[n].playing = true;
-
-  const btn = document.getElementById(`btn-${n}`);
-  const sub = document.getElementById(`sub-${n}`);
-
-  btn.classList.add('watching');
-  btn.textContent = '⏳';
-  if (sub) sub.textContent = 'loading ad…';
-
-  showTadsFullscreen(n).then((status) => {
-    if (status === 'shown') {
-      // الإعلان عُرض فعلياً → ابدأ العدّاد، والخطوة تكتمل فقط بعد انتهائه
-      startCountdownRing(n, () => onAdComplete(n));
-    } else {
-      // لا يوجد إعلان متاح أو حدث خطأ → أكمل الخطوة فوراً بدون عدّاد وهمي
-      // وفعّل الزر التالي مباشرة (الـ instance الحالي مُدمَّر بالفعل)
-      onAdComplete(n);
-    }
-  });
-}
-
-// ── Ad complete ───────────────────────────────────────────────
-function onAdComplete(n) {
-  stopCountdownRing(n);
-  stepState[n].playing = false;
-  stepState[n].done    = true;
-
-  const btn  = document.getElementById(`btn-${n}`);
-  const step = document.getElementById(`step-${n}`);
-  const num  = document.getElementById(`num-${n}`);
-  const sub  = document.getElementById(`sub-${n}`);
-
-  btn.onclick = null;
-  btn.className   = 'step-btn done-mark';
-  btn.textContent = '✓';
-  step.classList.add('done');
-  num.childNodes[0].textContent = '✓';
-  sub.textContent = 'Completed ✓';
-
-  saveProgress();
-  updateProgress();
-
-  if (n < STEP_COUNT) {
-    setTimeout(() => {
-      const nextStep = document.getElementById(`step-${n + 1}`);
-      const nextBtn  = document.getElementById(`btn-${n + 1}`);
-      nextStep.classList.remove('locked');
-      nextBtn.disabled = false;
-    }, 600);
-  } else {
-    unlockEnroll();
-    launchConfetti();
-  }
-}
-
-function updateProgress() {
-  const done = (stepState[1].done?1:0) + (stepState[2].done?1:0) + (stepState[3].done?1:0);
-  document.getElementById('progress-fill').style.width  = `${(done / STEP_COUNT) * 100}%`;
-  document.getElementById('progress-label').textContent = `${done}/${STEP_COUNT}`;
-}
-
-function unlockEnroll() {
-  const btn = document.getElementById('btn-enroll');
-  btn.disabled  = false;
-  btn.className = 'cta-btn unlocked';
-  btn.innerHTML = '🚀 Enroll Free Now';
-  document.getElementById('success-msg').classList.add('visible');
-  document.getElementById('ad-notice').style.display = 'none';
-  // بانر TGB يُحمّل الآن فقط — بعد أن أنهى المستخدم تفاعله مع الزرّين
-  initTadsBanner();
-}
-
-// ── Enroll ────────────────────────────────────────────────────
-function enrollNow() {
-  if (!stepState[1].done || !stepState[2].done || !stepState[3].done) return;
-  if (tg && typeof tg.openLink === 'function') {
-    tg.openLink(COURSE_URL, { try_instant_view: false });
-  } else {
-    var a = document.createElement('a');
-    a.href = COURSE_URL;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    a.click();
-  }
-}
-document.getElementById('btn-enroll').addEventListener('click', enrollNow);
-
-// ── Confetti ──────────────────────────────────────────────────
-function launchConfetti() {
-  const canvas = document.getElementById('confetti-canvas');
-  const ctx    = canvas.getContext('2d');
-  canvas.style.display = 'block';
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  const colors = ['#D97757','#FFFFFF','#C15F3C','#3D3929','#F5F4EE','#EDA98B'];
-  const pieces = Array.from({length: 90}, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height - canvas.height,
-    r: Math.random() * 5 + 3,
-    d: Math.random() * 2 + 1,
-    color: colors[Math.floor(Math.random()*colors.length)],
-    tilt: Math.random()*10-5,
-    tiltSpeed: (Math.random()*.07+.03) * (Math.random()<.5?1:-1),
-  }));
-
-  let frame = 0;
-  function draw() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    pieces.forEach(p => {
-      ctx.beginPath();
-      ctx.fillStyle = p.color;
-      ctx.ellipse(p.x, p.y, p.r, p.r*0.4, p.tilt, 0, Math.PI*2);
-      ctx.fill();
-      p.y += p.d + frame/80;
-      p.tilt += p.tiltSpeed;
-      p.x += Math.sin(frame/20) * 0.5;
-      if (p.y > canvas.height) { p.y = -10; p.x = Math.random()*canvas.width; }
-    });
-    frame++;
-    if (frame < 160) requestAnimationFrame(draw);
-    else { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }
-  }
-  draw();
-}
-
-// ══════════════════════════════════════════════════════════════
-//  Bootstrap — عند تشغيل التطبيق المصغر لا يتم استدعاء tads.me
-//  إطلاقاً هنا. يتم فقط تحميل بيانات الكورس واستعادة أي تقدّم
-//  محفوظ. أول استدعاء لـ tads.me يحدث فقط عند نقر أحد الأزرار.
-// ══════════════════════════════════════════════════════════════
-window.addEventListener('load', () => {
-  loadCourseMeta();
-
-  const cached = loadProgress();
-  if (cached?.step1 && cached?.step2 && cached?.step3) {
-    // المستخدم أكمل مسبقاً
-    stepState[1].done = true; stepState[2].done = true; stepState[3].done = true;
-    showCard();
-    updateProgress();
-    [1,2,3].forEach(n => {
-      const btn  = document.getElementById(`btn-${n}`);
-      const step = document.getElementById(`step-${n}`);
-      btn.className   = 'step-btn done-mark';
-      btn.textContent = '✓';
-      step.classList.add('done');
-      step.classList.remove('locked');
-      document.getElementById(`sub-${n}`).textContent = 'Completed ✓';
-    });
-    unlockEnroll();
-  } else {
-    // مستخدم جديد أو لم يكمل — بلا أي استدعاء لـ tads.me
-    showCard();
-  }
-});
-</script>
-
+    loadCourses();
+  </script>
 </body>
 </html>
