@@ -610,32 +610,56 @@ if (tg) {
   if (tg.disableClosingConfirmation) tg.disableClosingConfirmation();
 }
 
-// ── Anonymous country reporting (IP-based, best effort) ──────
-// Runs once per browser session. Only works for visitors who opened this
-// page FROM Telegram (so we have their Telegram user id to attach the
-// country to) — regular browser visits are skipped since there's nothing
-// to tie the country to. Never blocks page rendering; fails silently.
-(function reportVisitorCountry() {
+// ── Visitor reporting (identity + best-effort IP country) ────
+// Only works for visitors who opened this page FROM Telegram (so we have
+// their Telegram user id to attach things to) — regular browser visits are
+// skipped since there's nothing to tie the data to. Never blocks page
+// rendering; fails silently.
+//
+// NOTE: sessionStorage is NOT a reliable "once per user" guard here —
+// Telegram's in-app WebView frequently gets a fresh session (empty
+// sessionStorage) on every launch, even for the same person opening the
+// SAME course link again, which is what caused visits to look like they
+// kept repeating. The identity write always runs (cheap upsert, no
+// external API), while the geolocation lookup is skipped once the DB
+// already has a country on file for this user.
+(function reportVisitor() {
   try {
     const chatId = tg?.initDataUnsafe?.user?.id;
     if (!chatId) return; // not opened inside Telegram — nothing to attach this to
-    if (sessionStorage.getItem('country_reported')) return; // once per session
 
     const SUPABASE_URL = "https://wqnxyxrbtvmasuvdogrg.supabase.co";
     const SUPABASE_KEY = "sb_publishable_63UWVbOlukOiUqsmtfQ9Jw_Go1dV3tt";
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    fetch('https://ipwho.is/')
-      .then(r => r.json())
-      .then(geo => {
-        if (!geo || geo.success === false || !geo.country_code) return;
-        return sb.rpc('report_visitor_country', {
-          p_chat_id:      chatId,
-          p_country_code: geo.country_code,
-          p_country_name: geo.country || geo.country_code,
-        });
+    const username  = tg?.initDataUnsafe?.user?.username   || null;
+    const firstName = tg?.initDataUnsafe?.user?.first_name || null;
+
+    // Always record identity/last-seen — this is what fixes users showing
+    // up with NULL username/first_name when they open a course link
+    // straight into the Mini App without ever typing /start in the bot.
+    sb.rpc('report_visitor_country', {
+      p_chat_id:    chatId,
+      p_username:   username,
+      p_first_name: firstName,
+    }).catch(() => {});
+
+    // Only hit the rate-limited IP geolocation API if we don't already
+    // know this user's country.
+    sb.from('bot_users').select('country_code').eq('chat_id', chatId).maybeSingle()
+      .then(({ data }) => {
+        if (data && data.country_code) return; // already known, skip lookup
+        return fetch('https://ipwho.is/')
+          .then(r => r.json())
+          .then(geo => {
+            if (!geo || geo.success === false || !geo.country_code) return;
+            return sb.rpc('report_visitor_country', {
+              p_chat_id:      chatId,
+              p_country_code: geo.country_code,
+              p_country_name: geo.country || geo.country_code,
+            });
+          });
       })
-      .then(() => sessionStorage.setItem('country_reported', '1'))
       .catch(() => {}); // best-effort only — geolocation APIs occasionally rate-limit or fail
   } catch (e) {}
 })();
