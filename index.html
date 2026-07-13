@@ -213,54 +213,6 @@
     const SUPABASE_KEY = "sb_publishable_63UWVbOlukOiUqsmtfQ9Jw_Go1dV3tt";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // ── Visitor reporting (identity + best-effort IP country) ────
-    // Runs for anyone opened FROM Telegram (so we have a Telegram user id
-    // to attach things to) — including people who open a course link
-    // straight into the Mini App and never type /start in the bot itself.
-    // Never blocks rendering; fails silently on any error.
-    //
-    // NOTE: sessionStorage is NOT a reliable "once per user" guard here —
-    // Telegram's in-app WebView frequently gets a fresh session (empty
-    // sessionStorage) on every launch, even for the same person, which is
-    // what caused the same visit to look like it kept repeating. So the
-    // identity write always happens (cheap, no external API, and safe to
-    // repeat since it's just an upsert), while the geolocation lookup is
-    // skipped once the DB already has a country on file for this user.
-    (function reportVisitor() {
-      try {
-        const chatId    = tg?.initDataUnsafe?.user?.id;
-        if (!chatId) return;
-        const username  = tg?.initDataUnsafe?.user?.username   || null;
-        const firstName = tg?.initDataUnsafe?.user?.first_name || null;
-
-        // Always record identity/last-seen — cheap, and fixes users
-        // showing up with NULL username/first_name in bot_users.
-        sb.rpc('report_visitor_country', {
-          p_chat_id:    chatId,
-          p_username:   username,
-          p_first_name: firstName,
-        }).catch(() => {});
-
-        // Only hit the rate-limited IP geolocation API if we don't
-        // already know this user's country.
-        sb.from('bot_users').select('country_code').eq('chat_id', chatId).maybeSingle()
-          .then(({ data }) => {
-            if (data && data.country_code) return; // already known, skip lookup
-            return fetch('https://ipwho.is/')
-              .then(r => r.json())
-              .then(geo => {
-                if (!geo || geo.success === false || !geo.country_code) return;
-                return sb.rpc('report_visitor_country', {
-                  p_chat_id:      chatId,
-                  p_country_code: geo.country_code,
-                  p_country_name: geo.country || geo.country_code,
-                });
-              });
-          })
-          .catch(() => {});
-      } catch (e) {}
-    })();
-
     const gridEl  = document.getElementById('grid');
     const countEl = document.getElementById('count-badge');
 
