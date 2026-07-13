@@ -213,6 +213,29 @@
     const SUPABASE_KEY = "sb_publishable_63UWVbOlukOiUqsmtfQ9Jw_Go1dV3tt";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // ── Anonymous country reporting (IP-based, best effort) ──────
+    // Once per session, only for visitors opened FROM Telegram (so we
+    // have a Telegram user id to attach the country to). Never blocks
+    // rendering; fails silently on any error.
+    (function reportVisitorCountry() {
+      try {
+        const chatId = tg?.initDataUnsafe?.user?.id;
+        if (!chatId || sessionStorage.getItem('country_reported')) return;
+        fetch('https://ipwho.is/')
+          .then(r => r.json())
+          .then(geo => {
+            if (!geo || geo.success === false || !geo.country_code) return;
+            return sb.rpc('report_visitor_country', {
+              p_chat_id:      chatId,
+              p_country_code: geo.country_code,
+              p_country_name: geo.country || geo.country_code,
+            });
+          })
+          .then(() => sessionStorage.setItem('country_reported', '1'))
+          .catch(() => {});
+      } catch (e) {}
+    })();
+
     const gridEl  = document.getElementById('grid');
     const countEl = document.getElementById('count-badge');
 
