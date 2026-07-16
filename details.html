@@ -93,6 +93,10 @@
   <!-- tads.me SDK (primary and only ad provider) — Vanilla JS integration -->
   <script src="https://w.tads.me/widget.js"></script>
 
+  <!-- Supabase JS SDK — used to register this visitor (bot_users) and to
+       show the "Latest Courses" section below the enroll button -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -370,49 +374,64 @@
       overflow: hidden;
     }
 
-    /* ── HelloEncyclo banner ── */
-    .encyclo-section {
+    /* ── Latest Courses section ── */
+    .latest-section {
       width: 100%;
-      margin: 0;
-      padding: 14px 18px 18px;
+      padding: 4px 18px 6px;
       background: var(--bg);
     }
-    .encyclo-banner {
-      background: var(--accent-dark);
-      border-radius: 16px;
-      padding: 13px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .latest-heading {
+      font-size: 13px; font-weight: 800; color: var(--text);
+      margin-bottom: 10px;
+    }
+    .latest-list { display: flex; flex-direction: column; gap: 8px; }
+    .latest-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow-card);
+      padding: 10px;
+      display: flex; gap: 10px; align-items: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .12s ease;
+    }
+    .latest-card:active { transform: scale(.98); }
+    .latest-thumb {
+      width: 50px; height: 50px; border-radius: 8px;
+      background: var(--accent);
+      flex-shrink: 0; overflow: hidden;
+      display: flex; align-items:center; justify-content:center;
+      font-size: 22px;
+    }
+    .latest-thumb img { width:100%; height:100%; object-fit:cover; }
+    .latest-body { flex: 1; min-width: 0; }
+    .latest-title {
+      font-size: 12.5px; font-weight: 700; color: var(--text); line-height: 1.3;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .latest-tag {
+      display: inline-block; margin-top: 5px;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 5px;
+      background: var(--accent-pale); color: var(--accent-dark);
+    }
+
+    /* ── WhatsApp Channel button (same style as index.html) ── */
+    .footer-link { padding: 4px 18px 18px; }
+    .whatsapp-btn {
+      display: flex; align-items:center; justify-content:center; gap: 8px;
+      width: 100%;
+      background: var(--accent); color:#fff;
+      font-weight: 800; font-size: 13.5px; letter-spacing: .2px;
       text-decoration: none;
-      box-shadow: 0 4px 16px rgba(193,95,60,.25);
-      transition: transform .2s, box-shadow .2s;
+      padding: 13px 18px; border-radius: 12px;
+      box-shadow: var(--shadow-card);
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .12s ease, background .15s ease;
     }
-    .encyclo-banner:active { transform: scale(.98); }
-    .encyclo-icon {
-      width: 48px; height: 48px; border-radius: 12px;
-      background: var(--card);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 26px; flex-shrink: 0;
-    }
-    .encyclo-text { flex: 1; }
-    .encyclo-title {
-      font-size: 13px; font-weight: 800; color: #fff;
-      margin-bottom: 3px;
-    }
-    .encyclo-sub {
-      font-size: 11px; color: rgba(255,255,255,.85);
-      font-weight: 500; line-height: 1.4;
-    }
-    .encyclo-arrow {
-      background: var(--card);
-      color: var(--accent-dark);
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 13px;
-      font-weight: 800;
-      flex-shrink: 0;
-    }
+    .whatsapp-btn:active { transform: scale(.97); background: var(--accent-dark); }
 
     /* ── Confetti canvas ── */
     #confetti-canvas {
@@ -479,7 +498,6 @@
     <div class="skel-line" style="height:16px;width:60%;margin:0 auto 10px;"></div>
     <div class="skel-line" style="height:10px;width:90%;margin:0 auto 18px;"></div>
     <div class="skel-line" style="height:56px;border-radius:14px;"></div>
-    <div class="skel-line" style="height:56px;border-radius:14px;"></div>
     <div class="skel-line" style="height:56px;border-radius:14px;margin-top:4px;"></div>
     <div class="skel-line" style="height:52px;border-radius:14px;margin-top:4px;"></div>
   </div>
@@ -514,7 +532,7 @@
       <div class="progress-bar-bg">
         <div class="progress-bar-fill" id="progress-fill"></div>
       </div>
-      <span class="progress-label" id="progress-label">0/3</span>
+      <span class="progress-label" id="progress-label">0/2</span>
     </div>
 
     <div class="steps">
@@ -547,21 +565,6 @@
         </div>
         <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Visit</button>
       </div>
-
-      <!-- Step 3 -->
-      <div class="step locked" id="step-3">
-        <div class="step-num" id="num-3">
-          3
-          <svg class="countdown-ring" id="ring-3" viewBox="0 0 32 32">
-            <circle cx="16" cy="16" r="13" id="ring-circle-3"/>
-          </svg>
-        </div>
-        <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #3</div>
-          <div class="step-sub" id="sub-3">~5 seconds • watch the ad to unlock</div>
-        </div>
-        <button class="step-btn" id="btn-3" onclick="startStep(3)" disabled>Visit</button>
-      </div>
     </div>
 
     <button class="cta-btn locked" id="btn-enroll" disabled>
@@ -574,20 +577,21 @@
 
   </div>
 
+  <!-- Latest Courses — shows the newest 5 active courses from the catalog -->
+  <div class="latest-section" id="latest-section" style="display:none;">
+    <div class="latest-heading">🆕 Latest Courses</div>
+    <div class="latest-list" id="latest-list"></div>
+  </div>
+
   <!-- tads.me TGB Banner #9639 (initialized only after user finishes all steps) -->
   <div class="tads-banner-section" id="tads-banner-section">
     <div id="tads-container-9639"></div>
   </div>
 
-  <!-- HelloEncyclo Grant Banner -->
-  <div class="encyclo-section">
-    <a class="encyclo-banner" href="https://helloencyclo.com/?ref=HUSSEINSHEIKHO" target="_blank" rel="noopener">
-      <div class="encyclo-icon">🎓</div>
-      <div class="encyclo-text">
-        <div class="encyclo-title">Join HelloEncyclo Grant</div>
-        <div class="encyclo-sub">Free scholarship to learn Programming &amp; AI</div>
-      </div>
-      <span class="encyclo-arrow">Join →</span>
+  <!-- WhatsApp Channel banner -->
+  <div class="footer-link">
+    <a class="whatsapp-btn" href="https://whatsapp.com/channel/0029VaC7Weq29753hpcggW2A" target="_blank" rel="noopener">
+      📲 Join Our WhatsApp Channel
     </a>
   </div>
 
@@ -606,23 +610,26 @@ if (tg) {
   if (tg.disableClosingConfirmation) tg.disableClosingConfirmation();
 }
 
+// ── Supabase client (publishable/anon key) ────────────────────
+const SUPABASE_URL = "https://wqnxyxrbtvmasuvdogrg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_63UWVbOlukOiUqsmtfQ9Jw_Go1dV3tt";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // ── Ad config ───────────────────────────────────────────────
 const AD_DURATION_SEC = 5;
 
 // tads.me widget IDs — كل زر مستقل تماماً وله widget id خاص به
 const TADS_FULLSCREEN_IDS = {
   1: 9966,
-  2: 9579,
-  3: 10306
+  2: 9579
 };
 const TADS_TGB_ID = 9639; // بانر TGB الثابت — يُحمّل فقط بعد إكمال جميع الخطوات
 
 // ── حالة كل زر مستقلة ───────────────────────────────────────
-const STEP_COUNT = 3;
+const STEP_COUNT = 2;
 const stepState = {
   1: { done: false, playing: false },
   2: { done: false, playing: false },
-  3: { done: false, playing: false },
 };
 
 // ── tads.me helpers (Vanilla JS integration) ─────────────────
@@ -782,6 +789,111 @@ function loadCourseMeta() {
 
 const COURSE_URL = resolveCourseUrl();
 
+// ── Register/refresh this visitor in bot_users ──────────────────
+// Same report_visitor_country() RPC used by index.html, keyed on the
+// visitor's real Telegram chat_id. This is what lets us capture users
+// who land here directly (e.g. tapping "Enroll Now" under a channel
+// post) without ever opening index.html first. The RPC upserts on
+// chat_id, so visiting both pages — in any order, any number of times —
+// still produces exactly one bot_users row, never a duplicate.
+async function registerVisitor() {
+  try {
+    const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+    if (!tgUser || !tgUser.id) return;
+
+    let countryCode = null, countryName = null;
+    try {
+      const geo = await fetch('https://ipapi.co/json/').then(r => r.json());
+      if (geo && !geo.error) {
+        countryCode = geo.country_code || null;
+        countryName = geo.country_name || null;
+      }
+    } catch (e) { /* geolocation lookup is best-effort only */ }
+
+    await sb.rpc('report_visitor_country', {
+      p_chat_id: tgUser.id,
+      p_country_code: countryCode,
+      p_country_name: countryName
+    });
+  } catch (e) {
+    console.warn('registerVisitor failed (non-critical):', e);
+  }
+}
+
+// ── Latest Courses (below the enroll button) ─────────────────────
+// Same base64url payload the catalog (index.html) builds, so tapping a
+// card here reloads this same page with the new course's startapp data.
+function b64urlEncode(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function buildStartParamFromCourse(course) {
+  const payload = { u: course.udemy_url || course.detail_url };
+  if (course.title)     payload.t = course.title.slice(0, 70);
+  if (course.image_url) payload.i = course.image_url;
+  if (course.category && course.category !== 'N/A') payload.c = course.category.slice(0, 30);
+  if (course.price_str) payload.p = course.price_str.replace(/<[^>]+>/g, '');
+  if (course.enrollments_left && !['N/A', '0', ''].includes(course.enrollments_left)) {
+    payload.l = course.enrollments_left;
+  }
+  let encoded = b64urlEncode(JSON.stringify(payload));
+  const tryEncode = (p) => b64urlEncode(JSON.stringify(p));
+  if (encoded.length > 512) { delete payload.i; encoded = tryEncode(payload); }
+  if (encoded.length > 512) { delete payload.c; encoded = tryEncode(payload); }
+  if (encoded.length > 512) { delete payload.p; encoded = tryEncode(payload); }
+  if (encoded.length > 512 && payload.t) { payload.t = payload.t.slice(0, 30); encoded = tryEncode(payload); }
+  if (encoded.length > 512) { encoded = tryEncode({ u: payload.u }); }
+  return encoded;
+}
+
+function latestCardHTML(c) {
+  const img = c.image_url
+    ? `<img src="${c.image_url}" alt="" onerror="this.parentElement.innerHTML='🎓'" />`
+    : '🎓';
+  const catTag = (c.category && c.category !== 'N/A')
+    ? `<span class="latest-tag">${c.category}</span>` : '';
+  return `
+    <div class="latest-card" data-id="${c.id}">
+      <div class="latest-thumb">${img}</div>
+      <div class="latest-body">
+        <div class="latest-title">${c.title}</div>
+        ${catTag}
+      </div>
+    </div>`;
+}
+
+async function loadLatestCourses() {
+  try {
+    const { data, error } = await sb
+      .from('courses')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (error || !data || data.length === 0) return;
+
+    const section = document.getElementById('latest-section');
+    const list    = document.getElementById('latest-list');
+    list.innerHTML = data.map(latestCardHTML).join('');
+    section.style.display = 'block';
+
+    list.querySelectorAll('.latest-card').forEach(el => {
+      el.addEventListener('click', () => {
+        const course = data.find(c => String(c.id) === el.dataset.id);
+        if (!course) return;
+        const startapp = buildStartParamFromCourse(course);
+        window.location.href = 'details.html?startapp=' + startapp;
+      });
+    });
+  } catch (e) {
+    console.warn('loadLatestCourses failed (non-critical):', e);
+  }
+}
+
 // ── localStorage progress cache (2 min) ──────────────────────
 const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
 const CACHE_TTL = 2 * 60 * 1000;
@@ -801,7 +913,6 @@ function saveProgress() {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       step1: stepState[1].done,
       step2: stepState[2].done,
-      step3: stepState[3].done,
       ts: Date.now()
     }));
   } catch(e) {}
@@ -933,7 +1044,7 @@ function onAdComplete(n) {
 }
 
 function updateProgress() {
-  const done = (stepState[1].done?1:0) + (stepState[2].done?1:0) + (stepState[3].done?1:0);
+  const done = (stepState[1].done?1:0) + (stepState[2].done?1:0);
   document.getElementById('progress-fill').style.width  = `${(done / STEP_COUNT) * 100}%`;
   document.getElementById('progress-label').textContent = `${done}/${STEP_COUNT}`;
 }
@@ -951,7 +1062,7 @@ function unlockEnroll() {
 
 // ── Enroll ────────────────────────────────────────────────────
 function enrollNow() {
-  if (!stepState[1].done || !stepState[2].done || !stepState[3].done) return;
+  if (!stepState[1].done || !stepState[2].done) return;
   if (tg && typeof tg.openLink === 'function') {
     tg.openLink(COURSE_URL, { try_instant_view: false });
   } else {
@@ -1010,14 +1121,16 @@ function launchConfetti() {
 // ══════════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
   loadCourseMeta();
+  registerVisitor();
+  loadLatestCourses();
 
   const cached = loadProgress();
-  if (cached?.step1 && cached?.step2 && cached?.step3) {
+  if (cached?.step1 && cached?.step2) {
     // المستخدم أكمل مسبقاً
-    stepState[1].done = true; stepState[2].done = true; stepState[3].done = true;
+    stepState[1].done = true; stepState[2].done = true;
     showCard();
     updateProgress();
-    [1,2,3].forEach(n => {
+    [1,2].forEach(n => {
       const btn  = document.getElementById(`btn-${n}`);
       const step = document.getElementById(`step-${n}`);
       btn.className   = 'step-btn done-mark';
