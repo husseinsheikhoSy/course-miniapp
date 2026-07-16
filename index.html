@@ -216,6 +216,39 @@
     const gridEl  = document.getElementById('grid');
     const countEl = document.getElementById('count-badge');
 
+    // ── Register/refresh this visitor in bot_users ──────────────────
+    // Uses the same report_visitor_country() RPC as details.html, keyed
+    // on the visitor's real Telegram chat_id (tg.initDataUnsafe.user.id).
+    // The RPC does an upsert on chat_id, so a person who opens both
+    // index.html and details.html (in either order, any number of times)
+    // still produces exactly one bot_users row — never a duplicate.
+    // Skipped entirely if the page isn't opened inside Telegram (no tg
+    // user object available), so random web visitors are never logged.
+    async function registerVisitor() {
+      try {
+        const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+        if (!tgUser || !tgUser.id) return;
+
+        let countryCode = null, countryName = null;
+        try {
+          const geo = await fetch('https://ipapi.co/json/').then(r => r.json());
+          if (geo && !geo.error) {
+            countryCode = geo.country_code || null;
+            countryName = geo.country_name || null;
+          }
+        } catch (e) { /* geolocation lookup is best-effort only */ }
+
+        await sb.rpc('report_visitor_country', {
+          p_chat_id: tgUser.id,
+          p_country_code: countryCode,
+          p_country_name: countryName
+        });
+      } catch (e) {
+        console.warn('registerVisitor failed (non-critical):', e);
+      }
+    }
+    registerVisitor();
+
     // ── Build the same base64url "startapp" payload the bot builds,
     //    so details.html?startapp=... decodes it with zero changes. ──
     function b64urlEncode(str) {
