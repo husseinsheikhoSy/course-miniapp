@@ -789,34 +789,73 @@ function loadCourseMeta() {
 
 const COURSE_URL = resolveCourseUrl();
 
+// ── Debug logging — always to console; also on-screen if the page is
+//    opened with ?debug=1 appended to the URL. Same helper as index.html;
+//    use it to see whether Telegram is handing us a user object at all,
+//    and whether the RPC call itself succeeds or is rejected. ──────────
+const DEBUG = new URLSearchParams(window.location.search).get('debug') === '1';
+function debugLog(...args) {
+  console.log('[MiniApp]', ...args);
+  if (!DEBUG) return;
+  let box = document.getElementById('__debug_box');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = '__debug_box';
+    box.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:40vh;' +
+      'overflow:auto;background:rgba(0,0,0,.88);color:#7CFC7C;font:11px monospace;' +
+      'padding:8px;z-index:99999;white-space:pre-wrap;';
+    document.body.appendChild(box);
+  }
+  const line = document.createElement('div');
+  line.textContent = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+  box.appendChild(line);
+}
+
 // ── Register/refresh this visitor in bot_users ──────────────────
-// Same report_visitor_country() RPC used by index.html, keyed on the
-// visitor's real Telegram chat_id. This is what lets us capture users
-// who land here directly (e.g. tapping "Enroll Now" under a channel
-// post) without ever opening index.html first. The RPC upserts on
-// chat_id, so visiting both pages — in any order, any number of times —
-// still produces exactly one bot_users row, never a duplicate.
+// Calls register_mini_app_visitor() — the same RPC index.html uses —
+// keyed on the visitor's real Telegram chat_id. This is what lets us
+// capture users who land here directly (e.g. tapping "Enroll Now" under
+// a channel post) without ever opening index.html or /start first.
+// chat_id is the table's primary key and the RPC upserts on it, so
+// visiting either page, or both, or /start in the bot — any order, any
+// number of times — still produces exactly one bot_users row, never a
+// duplicate.
 async function registerVisitor() {
+  const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+  debugLog('initDataUnsafe.user =', tgUser || null);
+
+  if (!tgUser || !tgUser.id) {
+    debugLog('registerVisitor: SKIPPED — no Telegram user in initData. ' +
+      'This means the page was not opened as a real Telegram Mini App ' +
+      '(check the Mini App URL / menu button setup in @BotFather).');
+    return;
+  }
+
+  let countryCode = null, countryName = null;
   try {
-    const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-    if (!tgUser || !tgUser.id) return;
+    const geo = await fetch('https://ipapi.co/json/').then(r => r.json());
+    if (geo && !geo.error) {
+      countryCode = geo.country_code || null;
+      countryName = geo.country_name || null;
+    }
+  } catch (e) { /* geolocation lookup is best-effort only */ }
 
-    let countryCode = null, countryName = null;
-    try {
-      const geo = await fetch('https://ipapi.co/json/').then(r => r.json());
-      if (geo && !geo.error) {
-        countryCode = geo.country_code || null;
-        countryName = geo.country_name || null;
-      }
-    } catch (e) { /* geolocation lookup is best-effort only */ }
+  const { error } = await sb.rpc('register_mini_app_visitor', {
+    p_chat_id: tgUser.id,
+    p_username: tgUser.username || null,
+    p_first_name: tgUser.first_name || null,
+    p_country_code: countryCode,
+    p_country_name: countryName
+  });
 
-    await sb.rpc('report_visitor_country', {
-      p_chat_id: tgUser.id,
-      p_country_code: countryCode,
-      p_country_name: countryName
-    });
-  } catch (e) {
-    console.warn('registerVisitor failed (non-critical):', e);
+  // Previously this result was never checked, so RPC failures (RLS,
+  // missing function, bad params, etc.) were silently swallowed —
+  // nothing was saved AND no error appeared anywhere. Fixed now.
+  if (error) {
+    console.error('registerVisitor: RPC failed:', error);
+    debugLog('registerVisitor: RPC FAILED —', error.message || error);
+  } else {
+    debugLog('registerVisitor: OK — chat_id', tgUser.id, 'registered/updated.');
   }
 }
 
