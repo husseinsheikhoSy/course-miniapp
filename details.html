@@ -835,29 +835,6 @@ async function loadLatestCourses() {
   }
 }
 
-// ── localStorage progress cache (2 min) ──────────────────────
-const CACHE_KEY = 'ud_progress_' + COURSE_URL.slice(-20);
-const CACHE_TTL = 2 * 60 * 1000;
-
-function loadProgress() {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const obj = JSON.parse(raw);
-    if (Date.now() - obj.ts > CACHE_TTL) { localStorage.removeItem(CACHE_KEY); return null; }
-    return obj;
-  } catch(e) { return null; }
-}
-
-function saveProgress() {
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      unlocked: freeUnlockDone,
-      ts: Date.now()
-    }));
-  } catch(e) {}
-}
-
 // ── Points — purely cosmetic bonus balance, never spent to access
 //   anything. Stored server-side (Supabase) keyed on Telegram chat_id
 //   so it persists across sessions/devices, capped at MAX_BONUS_ADS_PER_DAY
@@ -953,7 +930,6 @@ function completeFreeUnlock() {
   document.getElementById('progress-fill').style.width = '100%';
   document.getElementById('progress-label').textContent = 'Ready!';
 
-  saveProgress();
   unlockEnroll();
   launchConfetti();
 }
@@ -1060,22 +1036,8 @@ window.addEventListener('load', () => {
   loadLatestCourses();
   refreshPointsBadge();
 
-  const cached = loadProgress();
-  if (cached?.unlocked) {
-    // already unlocked earlier in this 2-minute window
-    freeUnlockDone = true;
-    showCard();
-    document.getElementById('ring-1').classList.remove('active');
-    document.getElementById('num-1').childNodes[0].textContent = '✓';
-    document.getElementById('step-1').classList.add('done');
-    document.getElementById('btn-1').style.display = 'none';
-    document.getElementById('sub-1').textContent = 'Unlocked ✓';
-    updateProgress();
-    unlockEnroll();
-  } else {
-    showCard();
-    startFreeCountdown();
-  }
+  showCard();
+  startFreeCountdown();
 });
 </script>
 
