@@ -90,8 +90,8 @@
   })();
   </script>
 
-  <!-- tads.me SDK (primary and only ad provider) — Vanilla JS integration -->
-  <script src="https://w.tads.me/widget.js"></script>
+  <!-- Adsgram SDK — https://partner.adsgram.ai/platforms/24966/ (only ad provider) -->
+  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 
   <!-- Supabase JS SDK — used to register this visitor (bot_users) and to
        show the "Latest Courses" section below the enroll button -->
@@ -362,18 +362,6 @@
       100%{ box-shadow: 0 0 0 0   rgba(217,119,87,0);   }
     }
 
-    /* ── tads.me TGB Banner ── */
-    .tads-banner-section {
-      width: 100%;
-      padding: 0 18px 14px;
-      background: var(--bg);
-    }
-    #tads-container-9639 {
-      width: 100%;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
     /* ── Latest Courses section ── */
     .latest-section {
       width: 100%;
@@ -525,50 +513,40 @@
     </div>
 
     <div class="ad-notice" id="ad-notice">
-      📋 <strong>How it works:</strong> Click <strong>Visit</strong> → view the advertiser page for a few seconds → come back here and the next step unlocks <strong>automatically</strong>.
+      📋 <strong>How it works:</strong> Your free link unlocks on its own in a few seconds — <strong>no ad required</strong>. Don't want to wait? Watch a short ad to unlock <strong>instantly</strong> and earn bonus points 🎁.
+    </div>
+
+    <!-- Points balance (cosmetic reward — never required to unlock the course) -->
+    <div class="ad-notice" id="points-badge" style="display:none;">
+      ⭐ Your points: <strong id="points-value">0</strong> — watch bonus ads any time you like, there's no penalty for skipping them.
     </div>
 
     <div class="progress-wrap">
       <div class="progress-bar-bg">
         <div class="progress-bar-fill" id="progress-fill"></div>
       </div>
-      <span class="progress-label" id="progress-label">0/2</span>
+      <span class="progress-label" id="progress-label">Preparing your link…</span>
     </div>
 
     <div class="steps">
-      <!-- Step 1 -->
+      <!-- Single free step: always unlocks on its own, ad is optional -->
       <div class="step" id="step-1">
         <div class="step-num" id="num-1">
-          1
+          ⏳
           <svg class="countdown-ring" id="ring-1" viewBox="0 0 32 32">
             <circle cx="16" cy="16" r="13" id="ring-circle-1"/>
           </svg>
         </div>
         <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #1</div>
-          <div class="step-sub" id="sub-1">~5 seconds • watch the ad to unlock</div>
+          <div class="step-title">Free unlock in progress…</div>
+          <div class="step-sub" id="sub-1">Automatic — no action needed</div>
         </div>
-        <button class="step-btn" id="btn-1" onclick="startStep(1)">Visit</button>
-      </div>
-
-      <!-- Step 2 -->
-      <div class="step locked" id="step-2">
-        <div class="step-num" id="num-2">
-          2
-          <svg class="countdown-ring" id="ring-2" viewBox="0 0 32 32">
-            <circle cx="16" cy="16" r="13" id="ring-circle-2"/>
-          </svg>
-        </div>
-        <div class="step-body">
-          <div class="step-title">Visit Sponsor Page #2</div>
-          <div class="step-sub" id="sub-2">~5 seconds • watch the ad to unlock</div>
-        </div>
-        <button class="step-btn" id="btn-2" onclick="startStep(2)" disabled>Visit</button>
+        <button class="step-btn" id="btn-1" onclick="startBonusAd()">⚡ Skip with ad</button>
       </div>
     </div>
 
     <button class="cta-btn locked" id="btn-enroll" disabled>
-      🔒 Complete all steps to enroll
+      🔒 Unlocking your free link…
     </button>
 
     <div class="success-msg" id="success-msg">
@@ -581,11 +559,6 @@
   <div class="latest-section" id="latest-section" style="display:none;">
     <div class="latest-heading">🆕 Latest Courses</div>
     <div class="latest-list" id="latest-list"></div>
-  </div>
-
-  <!-- tads.me TGB Banner #9639 (initialized only after user finishes all steps) -->
-  <div class="tads-banner-section" id="tads-banner-section">
-    <div id="tads-container-9639"></div>
   </div>
 
   <!-- WhatsApp Channel banner -->
@@ -615,111 +588,40 @@ const SUPABASE_URL = "https://wqnxyxrbtvmasuvdogrg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_63UWVbOlukOiUqsmtfQ9Jw_Go1dV3tt";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── Ad config ───────────────────────────────────────────────
-const AD_DURATION_SEC = 5;
+// ── Ad / unlock config ────────────────────────────────────────
+// IMPORTANT — Adsgram moderation clause 3 forbids gating ANY action
+// behind a mandatory ad. So the free link ALWAYS unlocks on its own
+// after FREE_WAIT_SEC, whether or not the user ever touches an ad.
+// Watching a bonus ad only (a) skips the wait, and (b) adds points —
+// pure upside, zero penalty for ignoring it.
+const FREE_WAIT_SEC   = 30;     // always-free countdown, no ad involved
+const ADSGRAM_BLOCK_ID = '25863'; // https://partner.adsgram.ai/platforms/24966/
+const MAX_BONUS_ADS_PER_DAY = 3;
+const POINTS_PER_AD = 5;
 
-// tads.me widget IDs — كل زر مستقل تماماً وله widget id خاص به
-const TADS_FULLSCREEN_IDS = {
-  1: 9966,
-  2: 9579
-};
-const TADS_TGB_ID = 9639; // بانر TGB الثابت — يُحمّل فقط بعد إكمال جميع الخطوات
+let freeUnlockDone = false;
+let bonusPlaying    = false;
+let adsgramCtrl     = null;
 
-// ── حالة كل زر مستقلة ───────────────────────────────────────
-const STEP_COUNT = 2;
-const stepState = {
-  1: { done: false, playing: false },
-  2: { done: false, playing: false },
-};
-
-// ── tads.me helpers (Vanilla JS integration) ─────────────────
-// المرجع: https://docs.tads.me/getting-started/publishers/embed-widget/vanilla-js
-function waitForTads(timeout = 6000) {
-  return new Promise((resolve, reject) => {
-    if (window.tads && typeof window.tads.init === 'function') return resolve();
-    const start = performance.now();
-    const iv = setInterval(() => {
-      if (window.tads && typeof window.tads.init === 'function') {
-        clearInterval(iv); resolve();
-      } else if (performance.now() - start > timeout) {
-        clearInterval(iv); reject(new Error('tads timeout'));
-      }
-    }, 50);
-  });
+function getAdsgram() {
+  if (adsgramCtrl) return adsgramCtrl;
+  if (window.Adsgram && typeof window.Adsgram.init === 'function') {
+    adsgramCtrl = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+  }
+  return adsgramCtrl;
 }
 
-// يعرض إعلان tads.me الـ fullscreen الخاص بالزر n
-// كل نقرة = instance جديد تماماً بمعرف الويدجت الخاص بهذا الزر فقط،
-// ويُدمَّر (destroy/close) فور انتهاء الإعلان أو إغلاقه أو عدم توفره.
-// يُرجع Promise<'shown' | 'not_found' | 'error'>
-function showTadsFullscreen(n) {
-  return new Promise(async (resolve) => {
-    let widgetReady = true;
-    try {
-      await waitForTads(5000);
-    } catch (e) {
-      widgetReady = false;
-    }
-    if (!widgetReady) { resolve('error'); return; }
-
-    const widgetId = TADS_FULLSCREEN_IDS[n];
-    let settled = false;
-    let ctrl = null;
-
-    function killInstance() {
-      try { ctrl && typeof ctrl.destroy === 'function' && ctrl.destroy(); } catch (e) {}
-      try { ctrl && typeof ctrl.close   === 'function' && ctrl.close();   } catch (e) {}
-      ctrl = null; // قتل نهائي — لن يُعاد استخدام هذا الـ instance أبداً
-    }
-
-    function finish(status) {
-      if (settled) return;
-      settled = true;
-      killInstance();
-      resolve(status);
-    }
-
-    try {
-      ctrl = window.tads.init({
-        widgetId: widgetId,
-        type: 'fullscreen',
-        debug: false,
-        onShowReward: () => finish('shown'),
-        onAdsNotFound: () => finish('not_found'),
-        onClose: () => finish('shown')
-      });
-    } catch (e) {
-      finish('error');
-      return;
-    }
-
-    if (ctrl && typeof ctrl.showAd === 'function') {
-      ctrl.showAd().catch(() => finish('error'));
-    } else {
-      finish('error');
-    }
-
-    // حارس: إذا لم يستجب tads خلال 7 ثوانٍ → اعتبره خطأ ويُقتل الـ instance أيضاً
-    setTimeout(() => finish('error'), 7000);
+// Shows a rewarded Adsgram ad. Resolves 'shown' | 'skipped' | 'error'.
+// Never called automatically — only in response to the user tapping
+// "⚡ Skip with ad", and never blocks the free countdown from finishing.
+function showAdsgramRewarded() {
+  return new Promise((resolve) => {
+    const ctrl = getAdsgram();
+    if (!ctrl) { resolve('error'); return; }
+    ctrl.show()
+      .then(() => resolve('shown'))     // reward is granted only on a completed view
+      .catch(() => resolve('skipped')); // closed early / no fill / error — no penalty
   });
-}
-
-// ── Init tads TGB Banner #9639 — يُستدعى فقط بعد إكمال جميع الخطوات ──
-let tgbLoaded = false;
-function initTadsBanner() {
-  if (tgbLoaded) return;
-  tgbLoaded = true;
-  waitForTads().then(() => {
-    const ctrl = window.tads.init({
-      widgetId: TADS_TGB_ID,
-      type: 'static',
-      debug: false,
-      onAdsNotFound: () => {}
-    });
-    ctrl.loadAd()
-      .then(() => ctrl.showAd())
-      .catch(() => {});
-  }).catch(() => {});
 }
 
 // ── start_param decode ──────────────────────────────────────────
@@ -950,11 +852,46 @@ function loadProgress() {
 function saveProgress() {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
-      step1: stepState[1].done,
-      step2: stepState[2].done,
+      unlocked: freeUnlockDone,
       ts: Date.now()
     }));
   } catch(e) {}
+}
+
+// ── Points — purely cosmetic bonus balance, never spent to access
+//   anything. Stored server-side (Supabase) keyed on Telegram chat_id
+//   so it persists across sessions/devices, capped at MAX_BONUS_ADS_PER_DAY
+//   ad-watches/day (enforced server-side in add_bonus_points()).
+async function addBonusPoints(amount) {
+  const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+  if (!tgUser || !tgUser.id) return;
+  try {
+    const { data, error } = await sb.rpc('add_bonus_points', {
+      p_chat_id: tgUser.id,
+      p_amount: amount,
+      p_max_per_day: MAX_BONUS_ADS_PER_DAY
+    });
+    if (!error && typeof data === 'number') showPointsBadge(data);
+  } catch (e) { /* non-critical */ }
+}
+
+async function refreshPointsBadge() {
+  const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+  if (!tgUser || !tgUser.id) return;
+  try {
+    const { data, error } = await sb
+      .from('user_points')
+      .select('points')
+      .eq('chat_id', tgUser.id)
+      .maybeSingle();
+    if (!error && data) showPointsBadge(data.points);
+  } catch (e) { /* non-critical */ }
+}
+
+function showPointsBadge(points) {
+  const badge = document.getElementById('points-badge');
+  document.getElementById('points-value').textContent = points;
+  badge.style.display = 'block';
 }
 
 // ── Show skeleton → card transition ──────────────────────────
@@ -963,129 +900,90 @@ function showCard() {
   document.getElementById('main-card').classList.add('visible');
 }
 
-// ── Countdown ring animation ──────────────────────────────────
-function startCountdownRing(n, onDone) {
-  const ring   = document.getElementById(`ring-${n}`);
-  const circle = document.getElementById(`ring-circle-${n}`);
-  const btn    = document.getElementById(`btn-${n}`);
-  const sub    = document.getElementById(`sub-${n}`);
+// ══════════════════════════════════════════════════════════════
+//  Always-free unlock — starts automatically on load, no ad
+//  involved, and NOTHING can stop it from finishing. This is what
+//  keeps the app inside Adsgram's allowed model: "basic functions
+//  are available without watching ads."
+// ══════════════════════════════════════════════════════════════
+function startFreeCountdown() {
+  const ring   = document.getElementById('ring-1');
+  const circle = document.getElementById('ring-circle-1');
+  const sub    = document.getElementById('sub-1');
 
   const circumference = 2 * Math.PI * 13;
   circle.style.strokeDasharray  = circumference;
   circle.style.strokeDashoffset = circumference;
   ring.classList.add('active');
 
-  let remaining = AD_DURATION_SEC;
-  let finished  = false;
-  btn.textContent = remaining;
-
-  function finish() {
-    if (finished) return;
-    finished = true;
-    clearInterval(iv);
-    stopCountdownRing(n);
-    onDone();
-  }
-
+  let remaining = FREE_WAIT_SEC;
   const iv = setInterval(() => {
+    if (freeUnlockDone) { clearInterval(iv); return; }
     remaining--;
-    const progress = (AD_DURATION_SEC - remaining) / AD_DURATION_SEC;
+    const progress = (FREE_WAIT_SEC - remaining) / FREE_WAIT_SEC;
     circle.style.strokeDashoffset = circumference * (1 - progress);
     if (remaining > 0) {
-      btn.textContent = remaining;
-      sub.textContent = `${remaining}s • watching ad…`;
+      sub.textContent = `Unlocking automatically in ${remaining}s…`;
     } else {
-      finish();
+      clearInterval(iv);
+      completeFreeUnlock();
     }
   }, 1000);
-
-  window[`_cd_${n}`] = iv;
+  window._freeCountdownIv = iv;
 }
 
-function stopCountdownRing(n) {
-  clearInterval(window[`_cd_${n}`]);
-  const ring = document.getElementById(`ring-${n}`);
-  if (ring) ring.classList.remove('active');
+function completeFreeUnlock() {
+  if (freeUnlockDone) return;
+  freeUnlockDone = true;
+  clearInterval(window._freeCountdownIv);
+
+  const ring = document.getElementById('ring-1');
+  const num  = document.getElementById('num-1');
+  const step = document.getElementById('step-1');
+  const btn  = document.getElementById('btn-1');
+  const sub  = document.getElementById('sub-1');
+
+  ring.classList.remove('active');
+  num.childNodes[0].textContent = '✓';
+  step.classList.add('done');
+  btn.disabled = true;
+  btn.style.display = 'none';
+  sub.textContent = 'Unlocked ✓';
+
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('progress-label').textContent = 'Ready!';
+
+  saveProgress();
+  unlockEnroll();
+  launchConfetti();
 }
 
-// ══════════════════════════════════════════════════════════════
-//  startStep — كل زر يعمل بشكل مستقل تماماً، بمعرف widget خاص به
-//  tads.me لا يُستدعى إطلاقاً إلا عند نقر الزر
-//
-//  الحالتان الممكنتان بعد استدعاء tads.me لهذا الزر:
-//  1) الإعلان عُرض فعلياً (status === 'shown') → يبدأ عدّاد الـ 5
-//     ثوانٍ، والخطوة تكتمل فقط بعد انتهائه.
-//  2) لا يوجد إعلان متاح (onAdsNotFound) أو حدث خطأ → الـ instance
-//     الخاص بهذا الزر يُدمَّر فوراً (تم ذلك بالفعل داخل
-//     showTadsFullscreen)، ولا يبدأ أي عدّاد وهمي، والخطوة تكتمل
-//     مباشرة دون انتظار فيُفعَّل الزر التالي على الفور. هذا هو
-//     إصلاح المشكلة الأصلية: لم يعد العدّاد "يكمل العدّ" وهو يعرض
-//     ثوانٍ زائفة رغم عدم وجود إعلان — بل ننتقل للزر التالي فوراً.
-// ══════════════════════════════════════════════════════════════
-function startStep(n) {
-  if (stepState[n].playing) return;
-  if (stepState[n].done) return;
-  if (n > 1 && !stepState[n - 1].done) return;
+// ── Bonus ad — 100% optional, only skips the wait + adds points.
+//   Never required, never blocks enroll, never re-locks anything.
+function startBonusAd() {
+  if (bonusPlaying) return;
+  bonusPlaying = true;
 
-  stepState[n].playing = true;
-
-  const btn = document.getElementById(`btn-${n}`);
-  const sub = document.getElementById(`sub-${n}`);
-
+  const btn = document.getElementById('btn-1');
   btn.classList.add('watching');
   btn.textContent = '⏳';
-  if (sub) sub.textContent = 'loading ad…';
 
-  showTadsFullscreen(n).then((status) => {
+  showAdsgramRewarded().then((status) => {
+    bonusPlaying = false;
+    btn.classList.remove('watching');
+    btn.textContent = '⚡ Skip with ad';
+
     if (status === 'shown') {
-      // الإعلان عُرض فعلياً → ابدأ العدّاد، والخطوة تكتمل فقط بعد انتهائه
-      startCountdownRing(n, () => onAdComplete(n));
-    } else {
-      // لا يوجد إعلان متاح أو حدث خطأ → أكمل الخطوة فوراً بدون عدّاد وهمي
-      // وفعّل الزر التالي مباشرة (الـ instance الحالي مُدمَّر بالفعل)
-      onAdComplete(n);
+      addBonusPoints(POINTS_PER_AD);
+      completeFreeUnlock(); // instant unlock as the reward
     }
+    // 'skipped' or 'error' → nothing happens, free timer keeps running untouched
   });
 }
 
-// ── Ad complete ───────────────────────────────────────────────
-function onAdComplete(n) {
-  stopCountdownRing(n);
-  stepState[n].playing = false;
-  stepState[n].done    = true;
-
-  const btn  = document.getElementById(`btn-${n}`);
-  const step = document.getElementById(`step-${n}`);
-  const num  = document.getElementById(`num-${n}`);
-  const sub  = document.getElementById(`sub-${n}`);
-
-  btn.onclick = null;
-  btn.className   = 'step-btn done-mark';
-  btn.textContent = '✓';
-  step.classList.add('done');
-  num.childNodes[0].textContent = '✓';
-  sub.textContent = 'Completed ✓';
-
-  saveProgress();
-  updateProgress();
-
-  if (n < STEP_COUNT) {
-    setTimeout(() => {
-      const nextStep = document.getElementById(`step-${n + 1}`);
-      const nextBtn  = document.getElementById(`btn-${n + 1}`);
-      nextStep.classList.remove('locked');
-      nextBtn.disabled = false;
-    }, 600);
-  } else {
-    unlockEnroll();
-    launchConfetti();
-  }
-}
-
 function updateProgress() {
-  const done = (stepState[1].done?1:0) + (stepState[2].done?1:0);
-  document.getElementById('progress-fill').style.width  = `${(done / STEP_COUNT) * 100}%`;
-  document.getElementById('progress-label').textContent = `${done}/${STEP_COUNT}`;
+  document.getElementById('progress-fill').style.width  = freeUnlockDone ? '100%' : '0%';
+  document.getElementById('progress-label').textContent = freeUnlockDone ? 'Ready!' : 'Unlocking…';
 }
 
 function unlockEnroll() {
@@ -1095,8 +993,6 @@ function unlockEnroll() {
   btn.innerHTML = '🚀 Enroll Free Now';
   document.getElementById('success-msg').classList.add('visible');
   document.getElementById('ad-notice').style.display = 'none';
-  // بانر TGB يُحمّل الآن فقط — بعد أن أنهى المستخدم تفاعله مع الزرّين
-  initTadsBanner();
 }
 
 // ── Enroll ────────────────────────────────────────────────────
@@ -1154,34 +1050,31 @@ function launchConfetti() {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  Bootstrap — عند تشغيل التطبيق المصغر لا يتم استدعاء tads.me
-//  إطلاقاً هنا. يتم فقط تحميل بيانات الكورس واستعادة أي تقدّم
-//  محفوظ. أول استدعاء لـ tads.me يحدث فقط عند نقر أحد الأزرار.
+//  Bootstrap — no ad SDK is ever called automatically. Course data
+//  loads, then the free countdown starts on its own; Adsgram is
+//  only touched if/when the user taps "Skip with ad".
 // ══════════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
   loadCourseMeta();
   registerVisitor();
   loadLatestCourses();
+  refreshPointsBadge();
 
   const cached = loadProgress();
-  if (cached?.step1 && cached?.step2) {
-    // المستخدم أكمل مسبقاً
-    stepState[1].done = true; stepState[2].done = true;
+  if (cached?.unlocked) {
+    // already unlocked earlier in this 2-minute window
+    freeUnlockDone = true;
     showCard();
+    document.getElementById('ring-1').classList.remove('active');
+    document.getElementById('num-1').childNodes[0].textContent = '✓';
+    document.getElementById('step-1').classList.add('done');
+    document.getElementById('btn-1').style.display = 'none';
+    document.getElementById('sub-1').textContent = 'Unlocked ✓';
     updateProgress();
-    [1,2].forEach(n => {
-      const btn  = document.getElementById(`btn-${n}`);
-      const step = document.getElementById(`step-${n}`);
-      btn.className   = 'step-btn done-mark';
-      btn.textContent = '✓';
-      step.classList.add('done');
-      step.classList.remove('locked');
-      document.getElementById(`sub-${n}`).textContent = 'Completed ✓';
-    });
     unlockEnroll();
   } else {
-    // مستخدم جديد أو لم يكمل — بلا أي استدعاء لـ tads.me
     showCard();
+    startFreeCountdown();
   }
 });
 </script>
