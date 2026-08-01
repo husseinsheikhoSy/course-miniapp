@@ -626,7 +626,7 @@ function getAdsgram() {
 // rejects) instead of rejecting immediately like it does on desktop, so
 // the "⏳" button could get stuck forever. AD_TIMEOUT_MS guards against
 // exactly that: if nothing happens in time, we treat it as 'no_ad'.
-const AD_TIMEOUT_MS = 6000;
+const AD_TIMEOUT_MS = 12000;
 
 function showAdsgramRewarded() {
   return new Promise((resolve) => {
