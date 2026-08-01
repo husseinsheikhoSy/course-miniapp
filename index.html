@@ -32,6 +32,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
+  <!-- Adsgram SDK — Task block (native ad card in the course grid) -->
+  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
   <style>
     /* ══ Same "Claude-style" warm cream + kraft-orange tokens as details.html ══ */
     :root {
@@ -100,6 +103,22 @@
       transition: transform .12s ease;
     }
     .course-card:active { transform: scale(.98); }
+
+    /* ── Adsgram Task block — styled to sit naturally in the grid,
+       clearly labeled as sponsored via the "reward" slot text below ── */
+    adsgram-task.task {
+      display: block;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      padding: 12px;
+      --adsgram-task-font-size: 14px;
+      --adsgram-task-icon-size: 44px;
+      --adsgram-task-icon-title-gap: 12px;
+      --adsgram-task-icon-border-radius: 10px;
+      --adsgram-task-button-width: 84px;
+    }
 
     .course-thumb {
       width: 76px; height: 76px; border-radius: 10px;
@@ -373,7 +392,17 @@
         }
 
         countEl.textContent = data.length + (count && count > data.length ? '+' : '');
-        gridEl.innerHTML = data.map(courseCardHTML).join('');
+
+        // Native Task ad — a single sponsored card mixed naturally into
+        // the grid (after the 4th course). Pure browsing content, so it
+        // never touches any core action — fully compliant with Adsgram's
+        // "no ad required for basic functions" rule.
+        const taskCardHTML =
+          `<adsgram-task data-block-id="task-40716" data-debug="false" class="task"></adsgram-task>`;
+        const cards = data.map(courseCardHTML);
+        if (cards.length > 4) cards.splice(4, 0, taskCardHTML);
+        else cards.push(taskCardHTML);
+        gridEl.innerHTML = cards.join('');
 
         gridEl.querySelectorAll('.course-card').forEach(el => {
           el.addEventListener('click', () => {
