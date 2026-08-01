@@ -594,8 +594,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // after FREE_WAIT_SEC, whether or not the user ever touches an ad.
 // Watching a bonus ad only (a) skips the wait, and (b) adds points —
 // pure upside, zero penalty for ignoring it.
-const FREE_WAIT_SEC   = 45;     // always-free countdown, no ad involved
-const ADSGRAM_BLOCK_ID = '25863'; // https://partner.adsgram.ai/platforms/24966/
+const FREE_WAIT_SEC   = 60;     // always-free countdown, no ad involved
+const ADSGRAM_BLOCK_ID = '25863'; // approved Reward block — https://partner.adsgram.ai/platforms/24966/
 const MAX_BONUS_ADS_PER_DAY = 10;
 const POINTS_PER_AD = 5;
 
@@ -611,16 +611,28 @@ function getAdsgram() {
   return adsgramCtrl;
 }
 
-// Shows a rewarded Adsgram ad. Resolves 'shown' | 'skipped' | 'error'.
+// Shows a rewarded Adsgram ad. Resolves 'shown' | 'closed_early' | 'no_ad'.
 // Never called automatically — only in response to the user tapping
 // "⚡ Skip with ad", and never blocks the free countdown from finishing.
+//
+// Fairness rule: if no ad was available at all (SDK missing, no fill,
+// or any real error), that's not the user's fault — the caller unlocks
+// instantly with no penalty. Only a genuinely-started ad that the user
+// closed early keeps the normal wait, so the button can't be used to
+// dodge the countdown without ever watching anything.
 function showAdsgramRewarded() {
   return new Promise((resolve) => {
     const ctrl = getAdsgram();
-    if (!ctrl) { resolve('error'); return; }
+    if (!ctrl) { resolve('no_ad'); return; }
     ctrl.show()
-      .then(() => resolve('shown'))     // reward is granted only on a completed view
-      .catch(() => resolve('skipped')); // closed early / no fill / error — no penalty
+      .then(() => resolve('shown'))       // reward is granted only on a completed view
+      .catch((result) => {
+        // Adsgram rejects with { done:false, error:true/false, state, description }.
+        // error === true (or state never reached 'playing') → no ad was actually
+        // shown to close early, so treat it as "no ad available".
+        const actuallyPlayed = result && result.state === 'playing';
+        resolve(actuallyPlayed ? 'closed_early' : 'no_ad');
+      });
   });
 }
 
@@ -952,8 +964,14 @@ function startBonusAd() {
     if (status === 'shown') {
       addBonusPoints(POINTS_PER_AD);
       completeFreeUnlock(); // instant unlock as the reward
+    } else if (status === 'no_ad') {
+      // Fairness: no ad was available at all — not the user's fault,
+      // so unlock instantly too, just without the points bonus.
+      document.getElementById('sub-1').textContent = 'No ad available — unlocked for free ✓';
+      completeFreeUnlock();
     }
-    // 'skipped' or 'error' → nothing happens, free timer keeps running untouched
+    // 'closed_early' → an ad genuinely started and the user backed out of
+    // it — the free countdown just keeps running normally, no shortcut.
   });
 }
 
