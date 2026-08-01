@@ -594,7 +594,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // after FREE_WAIT_SEC, whether or not the user ever touches an ad.
 // Watching a bonus ad only (a) skips the wait, and (b) adds points —
 // pure upside, zero penalty for ignoring it.
-const FREE_WAIT_SEC   = 60;     // always-free countdown, no ad involved
+const FREE_WAIT_SEC   = 55;     // always-free countdown, no ad involved
 const ADSGRAM_BLOCK_ID = '25863'; // approved Reward block — https://partner.adsgram.ai/platforms/24966/
 const MAX_BONUS_ADS_PER_DAY = 10;
 const POINTS_PER_AD = 5;
@@ -620,13 +620,37 @@ function getAdsgram() {
 // instantly with no penalty. Only a genuinely-started ad that the user
 // closed early keeps the normal wait, so the button can't be used to
 // dodge the countdown without ever watching anything.
+//
+// SAFETY TIMEOUT — on some Android/webview builds, when there's no fill
+// Adsgram's show() Promise sometimes never settles (neither resolves nor
+// rejects) instead of rejecting immediately like it does on desktop, so
+// the "⏳" button could get stuck forever. AD_TIMEOUT_MS guards against
+// exactly that: if nothing happens in time, we treat it as 'no_ad'.
+const AD_TIMEOUT_MS = 6000;
+
 function showAdsgramRewarded() {
   return new Promise((resolve) => {
     const ctrl = getAdsgram();
     if (!ctrl) { resolve('no_ad'); return; }
+
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      resolve('no_ad'); // ad never even started rendering within the timeout
+    }, AD_TIMEOUT_MS);
+
     ctrl.show()
-      .then(() => resolve('shown'))       // reward is granted only on a completed view
+      .then(() => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve('shown'); // reward is granted only on a completed view
+      })
       .catch((result) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
         // Adsgram rejects with { done:false, error:true/false, state, description }.
         // error === true (or state never reached 'playing') → no ad was actually
         // shown to close early, so treat it as "no ad available".
