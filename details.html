@@ -594,7 +594,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // after FREE_WAIT_SEC, whether or not the user ever touches an ad.
 // Watching a bonus ad only (a) skips the wait, and (b) adds points —
 // pure upside, zero penalty for ignoring it.
-const FREE_WAIT_SEC   = 30;     // always-free countdown, no ad involved
+const FREE_WAIT_SEC   = 15;     // always-free countdown, no ad involved
 const ADSGRAM_BLOCK_ID = '25863'; // https://partner.adsgram.ai/platforms/24966/
 const MAX_BONUS_ADS_PER_DAY = 3;
 const POINTS_PER_AD = 5;
@@ -997,7 +997,7 @@ function unlockEnroll() {
 
 // ── Enroll ────────────────────────────────────────────────────
 function enrollNow() {
-  if (!stepState[1].done || !stepState[2].done) return;
+  if (!freeUnlockDone) return;
   if (tg && typeof tg.openLink === 'function') {
     tg.openLink(COURSE_URL, { try_instant_view: false });
   } else {
