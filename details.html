@@ -111,11 +111,11 @@
       --text:           #3D3929;
       --text-muted:     #87867B;
       --border:         #E8E6DA;
-      --accent:         #D97757;
-      --accent-dark:    #C15F3C;
-      --accent-pale:    #FBEEE7;
-      --step-done-bg:   #FBEEE7;
-      --step-done-text: #C15F3C;
+      --accent:         #A8213C;
+      --accent-dark:    #841A30;
+      --accent-pale:    #FBE9EC;
+      --step-done-bg:   #FBE9EC;
+      --step-done-text: #841A30;
       --radius-card:    20px;
       --radius-btn:     10px;
       --shadow-card:    0 4px 24px rgba(61,57,41,.10);
@@ -368,7 +368,7 @@
       font-size: 13.5px; font-weight: 800;
       cursor: pointer;
       transition: background .2s, transform .1s;
-      box-shadow: 0 6px 16px -4px rgba(217,119,87,.55);
+      box-shadow: 0 6px 16px -4px rgba(168,33,60,.55);
     }
     .step-btn:active  { transform: scale(.96); }
     .step-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; box-shadow:none; }
@@ -377,6 +377,23 @@
     .step-btn.done-mark {
       background: transparent; color: var(--accent-dark);
       font-size: 20px; pointer-events: none; padding: 0 12px; box-shadow:none;
+    }
+
+    /* ── Adsgram Task block — sits below the enroll button, styled to
+       match the card system without disturbing any other element ── */
+    adsgram-task.task {
+      display: block;
+      margin-top: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      padding: 12px;
+      --adsgram-task-font-size: 14px;
+      --adsgram-task-icon-size: 44px;
+      --adsgram-task-icon-title-gap: 12px;
+      --adsgram-task-icon-border-radius: 10px;
+      --adsgram-task-button-width: 84px;
     }
 
     /* ── CTA ── */
@@ -390,13 +407,13 @@
     .cta-btn.unlocked {
       background: var(--accent);
       color: #fff;
-      box-shadow: 0 6px 18px -4px rgba(217,119,87,.55);
+      box-shadow: 0 6px 18px -4px rgba(168,33,60,.55);
       animation: pulseOrange 2.2s infinite;
     }
     @keyframes pulseOrange {
-      0%  { box-shadow: 0 0 0 0   rgba(217,119,87,.45); }
-      60% { box-shadow: 0 0 0 12px rgba(217,119,87,0);  }
-      100%{ box-shadow: 0 0 0 0   rgba(217,119,87,0);   }
+      0%  { box-shadow: 0 0 0 0   rgba(168,33,60,.45); }
+      60% { box-shadow: 0 0 0 12px rgba(168,33,60,0);  }
+      100%{ box-shadow: 0 0 0 0   rgba(168,33,60,0);   }
     }
 
     /* ── Latest Courses section ── */
@@ -590,6 +607,8 @@
     <button class="cta-btn locked" id="btn-enroll" disabled>
       🔒 Wait for the timer to finish
     </button>
+
+    <adsgram-task data-block-id="task-40716" data-debug="false" class="task"></adsgram-task>
 
     <div class="success-msg" id="success-msg">
       🎉 You're all set! Click above to enroll for free.
@@ -1077,7 +1096,7 @@ function launchConfetti() {
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  const colors = ['#D97757','#FFFFFF','#C15F3C','#3D3929','#F5F4EE','#EDA98B'];
+  const colors = ['#A8213C','#FFFFFF','#841A30','#3D3929','#F5F4EE','#D97C90'];
   const pieces = Array.from({length: 90}, () => ({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height - canvas.height,
