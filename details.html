@@ -657,14 +657,16 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // Enrollment now requires watching BOTH ads, one after another:
 // Step 1 unlocks Step 2, and completing Step 2 unlocks the enroll
 // button. Neither step can be skipped.
-const ADSGRAM_BLOCK_ID = '25863'; // approved Reward block — https://partner.adsgram.ai/platforms/24966/
+const ADSGRAM_BLOCK_ID       = '25863';       // approved Reward block (Step 1) — https://partner.adsgram.ai/platforms/24966/
+const ADSGRAM_INTERSTITIAL_ID = 'int-46421';   // Udemy interstitial unit (Step 2) — https://docs.adsgram.ai/publisher/reward-interstitial-integration
 const MAX_BONUS_ADS_PER_DAY = 10;
 const POINTS_PER_AD = 5;
 
 let step1Done   = false;
 let step2Done   = false;
 let adPlaying   = false;
-let adsgramCtrl = null;
+let adsgramCtrl             = null; // Step 1 — Reward controller
+let adsgramInterstitialCtrl = null; // Step 2 — Interstitial controller
 
 function getAdsgram() {
   if (adsgramCtrl) return adsgramCtrl;
@@ -674,9 +676,18 @@ function getAdsgram() {
   return adsgramCtrl;
 }
 
-// Shows a rewarded Adsgram ad. Resolves 'shown' | 'closed_early' | 'no_ad'.
-// Called only in response to the user tapping "Watch Ad 1" / "Watch Ad 2" —
-// each step requires a completed ('shown') view before it counts as done.
+function getAdsgramInterstitial() {
+  if (adsgramInterstitialCtrl) return adsgramInterstitialCtrl;
+  if (window.Adsgram && typeof window.Adsgram.init === 'function') {
+    adsgramInterstitialCtrl = window.Adsgram.init({ blockId: ADSGRAM_INTERSTITIAL_ID });
+  }
+  return adsgramInterstitialCtrl;
+}
+
+// Shows the Step 1 Rewarded Adsgram ad. Resolves 'shown' | 'closed_early' | 'no_ad'.
+// Called only in response to the user tapping "Watch Ad 1" — Step 1
+// requires a fully completed ('shown') view before it counts as done,
+// since Rewarded ads can be closed early without finishing.
 //
 // Fairness rule: if no ad was available at all (SDK missing, no fill,
 // or any real error), that's not the user's fault — the step is allowed
@@ -719,6 +730,42 @@ function showAdsgramRewarded() {
         // shown to close early, so treat it as "no ad available".
         const actuallyPlayed = result && result.state === 'playing';
         resolve(actuallyPlayed ? 'closed_early' : 'no_ad');
+      });
+  });
+}
+
+// Shows the Step 2 Udemy Interstitial ad (unit int-46421). Resolves
+// 'shown' | 'no_ad' — per AdsGram's Reward/Interstitial docs, an
+// Interstitial's show() promise RESOLVES whether the user watches it
+// till the end OR closes it early (unlike Rewarded, which only
+// resolves on a full view). It only rejects on a genuine playback
+// error, which is treated as 'no_ad' under the same fairness rule as
+// Step 1: an SDK/network failure isn't the user's fault.
+// https://docs.adsgram.ai/publisher/reward-interstitial-integration
+function showAdsgramInterstitial() {
+  return new Promise((resolve) => {
+    const ctrl = getAdsgramInterstitial();
+    if (!ctrl) { resolve('no_ad'); return; }
+
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      resolve('no_ad'); // ad never even started rendering within the timeout
+    }, AD_TIMEOUT_MS);
+
+    ctrl.show()
+      .then(() => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve('shown'); // watched till the end, or closed — both count
+      })
+      .catch(() => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve('no_ad'); // genuine playback error — not the user's fault
       });
   });
 }
@@ -1016,7 +1063,9 @@ function watchAd(stepNum) {
   btn.classList.add('watching');
   btn.textContent = '⏳ Loading ad…';
 
-  showAdsgramRewarded().then((status) => {
+  const adPromise = (stepNum === 1) ? showAdsgramRewarded() : showAdsgramInterstitial();
+
+  adPromise.then((status) => {
     adPlaying = false;
     btn.classList.remove('watching');
 
