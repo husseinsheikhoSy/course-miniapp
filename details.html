@@ -103,7 +103,7 @@
 
   <style>
     /* ══════════════════════════════════════════════════════════
-       Damascus blue + white design tokens
+       Ukrainian flag palette (blue + yellow) design tokens
        ══════════════════════════════════════════════════════════ */
     :root {
       --bg:             #F2F8FE;
@@ -111,11 +111,13 @@
       --text:           #142B45;
       --text-muted:     #6F8CA8;
       --border:         #DCEBFA;
-      --accent:         #1173D4;
-      --accent-dark:    #0B5AA8;
+      --accent:         #005BBB;   /* Ukraine blue */
+      --accent-dark:    #003D82;   /* deep blue */
       --accent-pale:    #E4F1FC;
+      --accent-yellow:  #FFD500;   /* Ukraine yellow */
+      --accent-yellow-dark: #C79A00;
       --step-done-bg:   #E4F1FC;
-      --step-done-text: #0B5AA8;
+      --step-done-text: #003D82;
       --radius-card:    20px;
       --radius-btn:     10px;
       --shadow-card:    0 4px 24px rgba(20,43,69,.10);
@@ -175,7 +177,7 @@
     }
     .badge-free {
       margin-left: auto;
-      background: #fff; color: var(--accent-dark);
+      background: var(--accent-yellow); color: var(--accent-dark);
       font-size: 11px; font-weight: 800;
       padding: 5px 12px; border-radius: 20px;
       flex-shrink: 0;
@@ -256,7 +258,7 @@
     .tag.free-tag { background: var(--accent); color: #fff; }
     .course-price { font-size: 12px; font-weight: 700; margin-top: 6px; color: var(--text-muted); }
     .course-price s { color: #A6A499; font-weight: 500; }
-    .course-price .free { color: var(--accent-dark); font-size: 14px; margin-left: 4px; }
+    .course-price .free { color: var(--accent-yellow-dark); font-size: 14px; margin-left: 4px; }
 
     /* ── Rating / duration / provider row ── */
     .course-meta-row {
@@ -368,12 +370,12 @@
       font-size: 13.5px; font-weight: 800;
       cursor: pointer;
       transition: background .2s, transform .1s;
-      box-shadow: 0 6px 16px -4px rgba(168,33,60,.55);
+      box-shadow: 0 6px 16px -4px rgba(0,91,187,.45);
     }
     .step-btn:active  { transform: scale(.96); }
     .step-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; box-shadow:none; }
     .step-btn.watching { background: var(--accent-dark); pointer-events: none; }
-    .step-btn.retry { background: #B3483A; }
+    .step-btn.retry { background: #C0392B; }
     .step-btn.done-mark {
       background: transparent; color: var(--accent-dark);
       font-size: 20px; pointer-events: none; padding: 0 12px; box-shadow:none;
@@ -407,13 +409,13 @@
     .cta-btn.unlocked {
       background: var(--accent);
       color: #fff;
-      box-shadow: 0 6px 18px -4px rgba(168,33,60,.55);
+      box-shadow: 0 6px 18px -4px rgba(0,91,187,.45);
       animation: pulseOrange 2.2s infinite;
     }
     @keyframes pulseOrange {
-      0%  { box-shadow: 0 0 0 0   rgba(168,33,60,.45); }
-      60% { box-shadow: 0 0 0 12px rgba(168,33,60,0);  }
-      100%{ box-shadow: 0 0 0 0   rgba(168,33,60,0);   }
+      0%  { box-shadow: 0 0 0 0   rgba(0,91,187,.45); }
+      60% { box-shadow: 0 0 0 12px rgba(0,91,187,0);  }
+      100%{ box-shadow: 0 0 0 0   rgba(0,91,187,0);   }
     }
 
     /* ── Latest Courses section ── */
@@ -576,10 +578,10 @@
 
     <!-- Points balance (cosmetic reward — never required to unlock the course) -->
     <div class="ad-notice" id="points-badge" style="display:none;">
-      ⭐ Your points: <strong id="points-value">0</strong> — earned only when you choose to watch a bonus ad. Skipping ads never costs you anything.
+      ⭐ Your points: <strong id="points-value">0</strong> — earned automatically each time you watch one of the ads below.
     </div>
-    <div class="ad-notice" id="ad-notice" style="display:none;">
-      📋 No ad needed — your free link unlocks on its own in a few seconds. Prefer not to wait? Tap "⚡ Skip with ad" to unlock instantly and earn bonus points 🎁.
+    <div class="ad-notice" id="ad-notice" style="display:block;">
+      🎬 Watch both ads below to unlock your free enrollment link.
     </div>
 
     <div class="progress-wrap">
@@ -590,22 +592,24 @@
     </div>
 
     <div class="steps">
-      <!-- Single free step: always unlocks on its own, ad is optional -->
+      <!-- Step 1: mandatory ad watch — required before Step 2 unlocks -->
       <div class="step" id="step-1">
-        <div class="step-title">Preparing your link…</div>
-        <div class="step-sub" id="sub-1">Please wait a few seconds, or tap Skip.</div>
-        <div class="step-num" id="num-1">
-          ⏳
-          <svg class="countdown-ring" id="ring-1" viewBox="0 0 96 96">
-            <circle cx="48" cy="48" r="42" id="ring-circle-1"/>
-          </svg>
-        </div>
-        <button class="step-btn" id="btn-1" onclick="startBonusAd()" style="margin-top:18px;">⚡ Skip with ad</button>
+        <div class="step-num" id="num-1">1</div>
+        <div class="step-title">Watch Ad 1</div>
+        <div class="step-sub" id="sub-1">Tap below and watch the full ad</div>
+        <button class="step-btn" id="btn-1" onclick="watchAd(1)" style="margin-top:14px;">▶️ Watch Ad 1</button>
+      </div>
+      <!-- Step 2: mandatory ad watch — locked until Step 1 is complete -->
+      <div class="step locked" id="step-2" style="margin-top:22px;">
+        <div class="step-num" id="num-2">2</div>
+        <div class="step-title">Watch Ad 2</div>
+        <div class="step-sub" id="sub-2">Finish Step 1 first</div>
+        <button class="step-btn" id="btn-2" onclick="watchAd(2)" disabled style="margin-top:14px;">▶️ Watch Ad 2</button>
       </div>
     </div>
 
     <button class="cta-btn locked" id="btn-enroll" disabled>
-      🔒 Wait for the timer to finish
+      🔒 Watch both ads to unlock
     </button>
 
     <adsgram-task data-block-id="task-40716" data-debug="false" class="task"></adsgram-task>
@@ -650,19 +654,17 @@ const SUPABASE_KEY = "sb_publishable_63UWVbOlukOiUqsmtfQ9Jw_Go1dV3tt";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Ad / unlock config ────────────────────────────────────────
-// IMPORTANT — Adsgram moderation clause 3 forbids gating ANY action
-// behind a mandatory ad. So the free link ALWAYS unlocks on its own
-// after FREE_WAIT_SEC, whether or not the user ever touches an ad.
-// Watching a bonus ad only (a) skips the wait, and (b) adds points —
-// pure upside, zero penalty for ignoring it.
-const FREE_WAIT_SEC   = 100;     // always-free countdown, no ad involved
+// Enrollment now requires watching BOTH ads, one after another:
+// Step 1 unlocks Step 2, and completing Step 2 unlocks the enroll
+// button. Neither step can be skipped.
 const ADSGRAM_BLOCK_ID = '25863'; // approved Reward block — https://partner.adsgram.ai/platforms/24966/
 const MAX_BONUS_ADS_PER_DAY = 10;
 const POINTS_PER_AD = 5;
 
-let freeUnlockDone = false;
-let bonusPlaying    = false;
-let adsgramCtrl     = null;
+let step1Done   = false;
+let step2Done   = false;
+let adPlaying   = false;
+let adsgramCtrl = null;
 
 function getAdsgram() {
   if (adsgramCtrl) return adsgramCtrl;
@@ -673,14 +675,14 @@ function getAdsgram() {
 }
 
 // Shows a rewarded Adsgram ad. Resolves 'shown' | 'closed_early' | 'no_ad'.
-// Never called automatically — only in response to the user tapping
-// "⚡ Skip with ad", and never blocks the free countdown from finishing.
+// Called only in response to the user tapping "Watch Ad 1" / "Watch Ad 2" —
+// each step requires a completed ('shown') view before it counts as done.
 //
 // Fairness rule: if no ad was available at all (SDK missing, no fill,
-// or any real error), that's not the user's fault — the caller unlocks
-// instantly with no penalty. Only a genuinely-started ad that the user
-// closed early keeps the normal wait, so the button can't be used to
-// dodge the countdown without ever watching anything.
+// or any real error), that's not the user's fault — the step is allowed
+// to pass with no ad. Only a genuinely-started ad that the user closed
+// early keeps that step locked, so a user can't dodge the requirement
+// without ever watching anything.
 //
 // SAFETY TIMEOUT — on some Android/webview builds, when there's no fill
 // Adsgram's show() Promise sometimes never settles (neither resolves nor
@@ -997,94 +999,68 @@ function showCard() {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  Always-free unlock — starts automatically on load, no ad
-//  involved, and NOTHING can stop it from finishing. This is what
-//  keeps the app inside Adsgram's allowed model: "basic functions
-//  are available without watching ads."
+//  Mandatory two-ad unlock — Step 1 must be watched in full before
+//  Step 2 becomes tappable, and Step 2 must be watched in full
+//  before the enroll button unlocks. Nothing here auto-completes;
+//  the only ways a step finishes are a completed ad view, or the
+//  fairness fallback below when no ad is available at all.
 // ══════════════════════════════════════════════════════════════
-function startFreeCountdown() {
-  const ring   = document.getElementById('ring-1');
-  const circle = document.getElementById('ring-circle-1');
-  const sub    = document.getElementById('sub-1');
+function watchAd(stepNum) {
+  if (adPlaying) return;
+  if (stepNum === 1 && step1Done) return;
+  if (stepNum === 2 && (!step1Done || step2Done)) return;
 
-  const circumference = 2 * Math.PI * 42;
-  circle.style.strokeDasharray  = circumference;
-  circle.style.strokeDashoffset = circumference;
-  ring.classList.add('active');
-
-  let remaining = FREE_WAIT_SEC;
-  const iv = setInterval(() => {
-    if (freeUnlockDone) { clearInterval(iv); return; }
-    remaining--;
-    const progress = (FREE_WAIT_SEC - remaining) / FREE_WAIT_SEC;
-    circle.style.strokeDashoffset = circumference * (1 - progress);
-    if (remaining > 0) {
-      sub.textContent = `Unlocking automatically in ${remaining}s…`;
-    } else {
-      clearInterval(iv);
-      completeFreeUnlock();
-    }
-  }, 1000);
-  window._freeCountdownIv = iv;
-}
-
-function completeFreeUnlock() {
-  if (freeUnlockDone) return;
-  freeUnlockDone = true;
-  clearInterval(window._freeCountdownIv);
-
-  const ring = document.getElementById('ring-1');
-  const num  = document.getElementById('num-1');
-  const step = document.getElementById('step-1');
-  const btn  = document.getElementById('btn-1');
-  const sub  = document.getElementById('sub-1');
-
-  ring.classList.remove('active');
-  num.childNodes[0].textContent = '✓';
-  step.classList.add('done');
-  btn.disabled = true;
-  btn.style.display = 'none';
-  sub.textContent = 'Unlocked ✓';
-
-  document.getElementById('progress-fill').style.width = '100%';
-  document.getElementById('progress-label').textContent = 'Ready!';
-
-  unlockEnroll();
-  launchConfetti();
-}
-
-// ── Bonus ad — 100% optional, only skips the wait + adds points.
-//   Never required, never blocks enroll, never re-locks anything.
-function startBonusAd() {
-  if (bonusPlaying) return;
-  bonusPlaying = true;
-
-  const btn = document.getElementById('btn-1');
+  adPlaying = true;
+  const btn = document.getElementById('btn-' + stepNum);
+  const sub = document.getElementById('sub-' + stepNum);
   btn.classList.add('watching');
-  btn.textContent = '⏳';
+  btn.textContent = '⏳ Loading ad…';
 
   showAdsgramRewarded().then((status) => {
-    bonusPlaying = false;
+    adPlaying = false;
     btn.classList.remove('watching');
-    btn.textContent = '⚡ Skip with ad';
 
     if (status === 'shown') {
       addBonusPoints(POINTS_PER_AD);
-      completeFreeUnlock(); // instant unlock as the reward
+      completeStep(stepNum);
     } else if (status === 'no_ad') {
-      // Fairness: no ad was available at all — not the user's fault,
-      // so unlock instantly too, just without the points bonus.
-      document.getElementById('sub-1').textContent = 'No ad available — unlocked for free ✓';
-      completeFreeUnlock();
+      // Fairness: no ad was available at all (SDK/network issue) —
+      // not the user's fault, so let this step pass without one.
+      sub.textContent = 'No ad available — step unlocked ✓';
+      completeStep(stepNum);
+    } else {
+      // 'closed_early' → an ad genuinely started and the user backed
+      // out — this step stays locked, button resets so they can retry.
+      btn.textContent = '▶️ Watch Ad ' + stepNum + ' again';
+      sub.textContent = 'Ad closed early — please watch it fully to continue';
     }
-    // 'closed_early' → an ad genuinely started and the user backed out of
-    // it — the free countdown just keeps running normally, no shortcut.
   });
 }
 
-function updateProgress() {
-  document.getElementById('progress-fill').style.width  = freeUnlockDone ? '100%' : '0%';
-  document.getElementById('progress-label').textContent = freeUnlockDone ? 'Ready!' : 'Unlocking…';
+function completeStep(stepNum) {
+  const step = document.getElementById('step-' + stepNum);
+  const btn  = document.getElementById('btn-' + stepNum);
+  const sub  = document.getElementById('sub-' + stepNum);
+  const num  = document.getElementById('num-' + stepNum);
+
+  step.classList.add('done');
+  num.textContent = '✓';
+  btn.disabled = true;
+  btn.textContent = '✓ Watched';
+  sub.textContent = 'Done ✓';
+
+  if (stepNum === 1) {
+    step1Done = true;
+    const step2 = document.getElementById('step-2');
+    const btn2  = document.getElementById('btn-2');
+    step2.classList.remove('locked');
+    btn2.disabled = false;
+    document.getElementById('sub-2').textContent = 'Tap below and watch the full ad';
+  } else if (stepNum === 2) {
+    step2Done = true;
+    unlockEnroll();
+    launchConfetti();
+  }
 }
 
 function unlockEnroll() {
@@ -1098,7 +1074,7 @@ function unlockEnroll() {
 
 // ── Enroll ────────────────────────────────────────────────────
 function enrollNow() {
-  if (!freeUnlockDone) return;
+  if (!step2Done) return;
   if (tg && typeof tg.openLink === 'function') {
     tg.openLink(COURSE_URL, { try_instant_view: false });
   } else {
@@ -1119,7 +1095,7 @@ function launchConfetti() {
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  const colors = ['#A8213C','#FFFFFF','#841A30','#3D3929','#F5F4EE','#D97C90'];
+  const colors = ['#005BBB','#FFD500','#FFFFFF','#003D82','#FFE873','#0077E6'];
   const pieces = Array.from({length: 90}, () => ({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height - canvas.height,
@@ -1162,7 +1138,6 @@ window.addEventListener('load', () => {
   refreshPointsBadge();
 
   showCard();
-  startFreeCountdown();
 });
 </script>
 
