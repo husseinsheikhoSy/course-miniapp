@@ -36,16 +36,18 @@
   <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 
   <style>
-    /* ══ Damascus blue + white tokens — shared with details.html ══ */
+    /* ══ Ukrainian flag palette (blue + yellow) — shared with details.html ══ */
     :root {
       --bg:             #F2F8FE;
       --card:           #FFFFFF;
       --text:           #142B45;
       --text-muted:     #6F8CA8;
       --border:         #DCEBFA;
-      --accent:         #1173D4;
-      --accent-dark:    #0B5AA8;
+      --accent:         #005BBB;   /* Ukraine blue */
+      --accent-dark:    #003D82;   /* deep blue */
       --accent-pale:    #E4F1FC;
+      --accent-yellow:  #FFD500;   /* Ukraine yellow */
+      --accent-yellow-dark: #C79A00;
       --radius-card:    16px;
       --shadow-card:    0 4px 24px rgba(20,43,69,.10);
     }
@@ -141,10 +143,10 @@
       padding: 2px 7px; border-radius: 5px;
       background: var(--accent-pale); color: var(--accent-dark);
     }
-    .tag.left-tag { background: var(--accent); color:#fff; }
+    .tag.left-tag { background: var(--accent-yellow); color:var(--accent-dark); }
     .course-price { font-size: 11.5px; margin-top: auto; padding-top:6px; color: var(--text-muted); }
     .course-price s { color:#A6A499; }
-    .course-price .free { color: var(--accent-dark); font-weight: 800; font-size: 12.5px; margin-left:4px; }
+    .course-price .free { color: var(--accent-yellow-dark); font-weight: 800; font-size: 12.5px; margin-left:4px; }
 
     /* ── Skeleton ── */
     .skel-card {
