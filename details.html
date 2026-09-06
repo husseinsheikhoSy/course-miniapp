@@ -14,6 +14,15 @@
   <meta name="keywords" content="free udemy course, udemy coupon, udemy free coupon, online course, learn online" />
   <meta name="theme-color" content="#005BBB" />
   <meta name="robots" content="index, follow" />
+
+  <meta name="author" content="Daily Udemy Coupons" />
+  <meta name="application-name" content="Daily Udemy Coupons" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:url" content="https://t.me/UdemySybot/Udemy" />
+  <meta name="twitter:site" content="@UdemySybot" />
+  <meta name="twitter:image:alt" content="Free Udemy course" />
   <link rel="canonical" href="https://t.me/UdemySybot/Udemy" />
 
   <meta property="og:type" content="website" />
@@ -31,6 +40,19 @@
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='50' fill='%23005BBB'/%3E%3Crect y='50' width='100' height='50' fill='%23FFD500'/%3E%3C/svg%3E" />
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+
+  <script type="application/ld+json" id="course-jsonld">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Free Udemy Course Access",
+    "description": "Unlock a free Udemy course with a limited-time coupon.",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Daily Udemy Coupons"
+    }
+  }
+  </script>
 
   <!-- ══ INTERCEPTORS — يجب أن تكون قبل أي SDK إعلانات ══ -->
   <script>
@@ -458,6 +480,30 @@
       --adsgram-task-button-width: 84px;
     }
 
+
+    /* ── Modern accessibility / interaction polish ── */
+    button:focus-visible, a:focus-visible {
+      outline: 3px solid rgba(255,213,0,.95);
+      outline-offset: 3px;
+    }
+    .step {
+      background: linear-gradient(180deg, #FFFFFF 0%, #FAFCFF 100%);
+    }
+    .step::after {
+      content: "";
+      display: block;
+      width: 34px;
+      height: 3px;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-yellow));
+      margin-top: 14px;
+      opacity: .55;
+    }
+    .step.done::after { opacity: 1; }
+    .unlock-headline {
+      padding: 4px 6px 2px;
+    }
+
     /* ── CTA ── */
     .cta-btn {
       width: 100%; padding: 15px; border-radius: 14px; border: none;
@@ -614,7 +660,7 @@
   </div>
 
   <!-- Main card -->
-  <div class="card" id="main-card">
+  <main class="card" id="main-card">
 
     <div class="course-info">
       <div class="course-thumb" id="course-thumb">🎓</div>
@@ -643,12 +689,8 @@
       <div class="feature-item"><span class="feature-check">✓</span> Certificate on Completion</div>
     </div>
 
-    <!-- Points balance (cosmetic reward — never required to unlock the course) -->
-    <div class="ad-notice" id="points-badge" style="display:none;">
-      ⭐ Your points: <strong id="points-value">0</strong> — earned automatically each time you watch one of the ads below.
-    </div>
     <div class="ad-notice" id="ad-notice" style="display:block;">
-      🎬 Watch both ads below to unlock your free enrollment link.
+      🎬 Open both short ads below to unlock your free enrollment link.
     </div>
 
     <div class="progress-wrap">
@@ -658,25 +700,30 @@
       <span class="progress-label" id="progress-label">Preparing your link…</span>
     </div>
 
+    <div class="unlock-headline" aria-labelledby="unlock-title">
+      <h2 id="unlock-title">Unlock your free enrollment</h2>
+      <p>Complete the two ad steps below, then continue directly to Udemy.</p>
+    </div>
+
     <div class="steps">
       <!-- Step 1: mandatory ad watch — required before Step 2 unlocks -->
       <div class="step" id="step-1">
         <div class="step-num" id="num-1">1</div>
-        <div class="step-title">Watch Ad 1</div>
-        <div class="step-sub" id="sub-1">Tap below and watch the full ad</div>
-        <button class="step-btn" id="btn-1" onclick="watchAd(1)">▶️ Watch Ad 1</button>
+        <div class="step-title">Open Ad 1</div>
+        <div class="step-sub" id="sub-1">Tap below to open the ad</div>
+        <button class="step-btn" id="btn-1" onclick="watchAd(1)">▶️ Open Ad 1</button>
       </div>
       <!-- Step 2: mandatory ad watch — locked until Step 1 is complete -->
       <div class="step locked" id="step-2">
         <div class="step-num" id="num-2">2</div>
-        <div class="step-title">Watch Ad 2</div>
-        <div class="step-sub" id="sub-2">Finish Step 1 first</div>
-        <button class="step-btn" id="btn-2" onclick="watchAd(2)" disabled>▶️ Watch Ad 2</button>
+        <div class="step-title">Open Ad 2</div>
+        <div class="step-sub" id="sub-2">Complete Step 1 first</div>
+        <button class="step-btn" id="btn-2" onclick="watchAd(2)" disabled>▶️ Open Ad 2</button>
       </div>
     </div>
 
     <button class="cta-btn locked" id="btn-enroll" disabled>
-      🔒 Watch both ads to unlock
+      🔒 Open both ads to unlock
     </button>
 
     <adsgram-task data-block-id="task-40716" data-debug="false" class="task"></adsgram-task>
@@ -685,7 +732,7 @@
       🎉 You're all set! Click above to enroll for free.
     </div>
 
-  </div>
+  </main>
 
   <!-- Latest Courses — shows the newest 5 active courses from the catalog -->
   <div class="latest-section" id="latest-section" style="display:none;">
@@ -724,115 +771,77 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // Enrollment now requires watching BOTH ads, one after another:
 // Step 1 unlocks Step 2, and completing Step 2 unlocks the enroll
 // button. Neither step can be skipped.
-const ADSGRAM_BLOCK_ID       = '25863';       // approved Reward block (Step 1) — https://partner.adsgram.ai/platforms/24966/
-const ADSGRAM_INTERSTITIAL_ID = 'int-46421';   // Udemy interstitial unit (Step 2) — https://docs.adsgram.ai/publisher/reward-interstitial-integration
+const ADSGRAM_INTERSTITIAL_ID_1 = 'int-46433'; // Interstitial — Step 1
+const ADSGRAM_INTERSTITIAL_ID_2 = 'int-46421'; // Interstitial — Step 2
 const MAX_BONUS_ADS_PER_DAY = 10;
 const POINTS_PER_AD = 5;
 
 let step1Done   = false;
 let step2Done   = false;
 let adPlaying   = false;
-let adsgramCtrl             = null; // Step 1 — Reward controller
-let adsgramInterstitialCtrl = null; // Step 2 — Interstitial controller
+let adsgramInterstitialCtrl1 = null; // Step 1 — Interstitial controller
+let adsgramInterstitialCtrl2 = null; // Step 2 — Interstitial controller
 
-function getAdsgram() {
-  if (adsgramCtrl) return adsgramCtrl;
+function getAdsgramInterstitial(stepNum) {
+  const blockId = stepNum === 1
+    ? ADSGRAM_INTERSTITIAL_ID_1
+    : ADSGRAM_INTERSTITIAL_ID_2;
+
+  if (stepNum === 1 && adsgramInterstitialCtrl1) return adsgramInterstitialCtrl1;
+  if (stepNum === 2 && adsgramInterstitialCtrl2) return adsgramInterstitialCtrl2;
+
   if (window.Adsgram && typeof window.Adsgram.init === 'function') {
-    adsgramCtrl = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+    const controller = window.Adsgram.init({ blockId });
+
+    if (stepNum === 1) adsgramInterstitialCtrl1 = controller;
+    else adsgramInterstitialCtrl2 = controller;
+
+    return controller;
   }
-  return adsgramCtrl;
+
+  return null;
 }
 
-function getAdsgramInterstitial() {
-  if (adsgramInterstitialCtrl) return adsgramInterstitialCtrl;
-  if (window.Adsgram && typeof window.Adsgram.init === 'function') {
-    adsgramInterstitialCtrl = window.Adsgram.init({ blockId: ADSGRAM_INTERSTITIAL_ID });
-  }
-  return adsgramInterstitialCtrl;
-}
-
-// Shows the Step 1 Rewarded Adsgram ad. Resolves 'shown' | 'closed_early' | 'no_ad'.
-// Called only in response to the user tapping "Watch Ad 1" — Step 1
-// requires a fully completed ('shown') view before it counts as done,
-// since Rewarded ads can be closed early without finishing.
-//
-// Fairness rule: if no ad was available at all (SDK missing, no fill,
-// or any real error), that's not the user's fault — the step is allowed
-// to pass with no ad. Only a genuinely-started ad that the user closed
-// early keeps that step locked, so a user can't dodge the requirement
-// without ever watching anything.
-//
-// SAFETY TIMEOUT — on some Android/webview builds, when there's no fill
-// Adsgram's show() Promise sometimes never settles (neither resolves nor
-// rejects) instead of rejecting immediately like it does on desktop, so
-// the "⏳" button could get stuck forever. AD_TIMEOUT_MS guards against
-// exactly that: if nothing happens in time, we treat it as 'no_ad'.
+// AdsGram Interstitial:
+// According to AdsGram documentation, an Interstitial show() Promise resolves
+// when the ad is viewed to the end OR when the user closes it.
+// It rejects on playback/error/skip conditions. A timeout protects Telegram
+// WebView builds where a no-fill request may leave the Promise pending.
 const AD_TIMEOUT_MS = 12000;
 
-function showAdsgramRewarded() {
+function showAdsgramInterstitial(stepNum) {
   return new Promise((resolve) => {
-    const ctrl = getAdsgram();
-    if (!ctrl) { resolve('no_ad'); return; }
+    const ctrl = getAdsgramInterstitial(stepNum);
+    if (!ctrl) {
+      resolve('no_ad');
+      return;
+    }
 
     let settled = false;
+
     const timer = setTimeout(() => {
       if (settled) return;
       settled = true;
-      resolve('no_ad'); // ad never even started rendering within the timeout
+      resolve('no_ad');
     }, AD_TIMEOUT_MS);
 
     ctrl.show()
-      .then(() => {
+      .then((result) => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-        resolve('shown'); // reward is granted only on a completed view
+
+        // AdsGram Interstitial resolves when the user watched the ad
+        // or closed it, as documented for this format.
+        resolve('shown');
       })
       .catch((result) => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-        // Adsgram rejects with { done:false, error:true/false, state, description }.
-        // error === true (or state never reached 'playing') → no ad was actually
-        // shown to close early, so treat it as "no ad available".
-        const actuallyPlayed = result && result.state === 'playing';
-        resolve(actuallyPlayed ? 'closed_early' : 'no_ad');
-      });
-  });
-}
 
-// Shows the Step 2 Udemy Interstitial ad (unit int-46421). Resolves
-// 'shown' | 'no_ad' — per AdsGram's Reward/Interstitial docs, an
-// Interstitial's show() promise RESOLVES whether the user watches it
-// till the end OR closes it early (unlike Rewarded, which only
-// resolves on a full view). It only rejects on a genuine playback
-// error, which is treated as 'no_ad' under the same fairness rule as
-// Step 1: an SDK/network failure isn't the user's fault.
-// https://docs.adsgram.ai/publisher/reward-interstitial-integration
-function showAdsgramInterstitial() {
-  return new Promise((resolve) => {
-    const ctrl = getAdsgramInterstitial();
-    if (!ctrl) { resolve('no_ad'); return; }
-
-    let settled = false;
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      resolve('no_ad'); // ad never even started rendering within the timeout
-    }, AD_TIMEOUT_MS);
-
-    ctrl.show()
-      .then(() => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        resolve('shown'); // watched till the end, or closed — both count
-      })
-      .catch(() => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        resolve('no_ad'); // genuine playback error — not the user's fault
+        // Do not penalize the user when the ad could not be played.
+        resolve('no_ad');
       });
   });
 }
@@ -899,6 +908,19 @@ function loadCourseMeta() {
     document.getElementById('og-description').setAttribute('content', seoDesc);
     document.getElementById('twitter-title').setAttribute('content', seoTitle);
     document.getElementById('twitter-description').setAttribute('content', seoDesc);
+    const jsonld = document.getElementById('course-jsonld');
+    if (jsonld) {
+      jsonld.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": seoTitle,
+        "description": seoDesc,
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "Daily Udemy Coupons"
+        }
+      });
+    }
   }
   if (img) {
     const thumb = document.getElementById('course-thumb');
@@ -1082,42 +1104,6 @@ async function loadLatestCourses() {
   }
 }
 
-// ── Points — purely cosmetic bonus balance, never spent to access
-//   anything. Stored server-side (Supabase) keyed on Telegram chat_id
-//   so it persists across sessions/devices, capped at MAX_BONUS_ADS_PER_DAY
-//   ad-watches/day (enforced server-side in add_bonus_points()).
-async function addBonusPoints(amount) {
-  const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-  if (!tgUser || !tgUser.id) return;
-  try {
-    const { data, error } = await sb.rpc('add_bonus_points', {
-      p_chat_id: tgUser.id,
-      p_amount: amount,
-      p_max_per_day: MAX_BONUS_ADS_PER_DAY
-    });
-    if (!error && typeof data === 'number') showPointsBadge(data);
-  } catch (e) { /* non-critical */ }
-}
-
-async function refreshPointsBadge() {
-  const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-  if (!tgUser || !tgUser.id) return;
-  try {
-    const { data, error } = await sb
-      .from('user_points')
-      .select('points')
-      .eq('chat_id', tgUser.id)
-      .maybeSingle();
-    if (!error && data) showPointsBadge(data.points);
-  } catch (e) { /* non-critical */ }
-}
-
-function showPointsBadge(points) {
-  const badge = document.getElementById('points-badge');
-  document.getElementById('points-value').textContent = points;
-  badge.style.display = 'block';
-}
-
 // ── Show skeleton → card transition ──────────────────────────
 function showCard() {
   document.getElementById('skeleton').classList.remove('visible');
@@ -1125,11 +1111,10 @@ function showCard() {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  Mandatory two-ad unlock — Step 1 must be watched in full before
-//  Step 2 becomes tappable, and Step 2 must be watched in full
-//  before the enroll button unlocks. Nothing here auto-completes;
-//  the only ways a step finishes are a completed ad view, or the
-//  fairness fallback below when no ad is available at all.
+//  Mandatory two-Interstitial unlock
+//  Step 1 uses AdsGram Interstitial int-46433.
+//  Step 2 uses AdsGram Interstitial int-46421.
+//  Step 2 becomes available only after Step 1 completes.
 // ══════════════════════════════════════════════════════════════
 function watchAd(stepNum) {
   if (adPlaying) return;
@@ -1137,30 +1122,24 @@ function watchAd(stepNum) {
   if (stepNum === 2 && (!step1Done || step2Done)) return;
 
   adPlaying = true;
+
   const btn = document.getElementById('btn-' + stepNum);
   const sub = document.getElementById('sub-' + stepNum);
+
   btn.classList.add('watching');
   btn.textContent = '⏳ Loading ad…';
 
-  const adPromise = (stepNum === 1) ? showAdsgramRewarded() : showAdsgramInterstitial();
-
-  adPromise.then((status) => {
+  showAdsgramInterstitial(stepNum).then((status) => {
     adPlaying = false;
     btn.classList.remove('watching');
 
     if (status === 'shown') {
-      addBonusPoints(POINTS_PER_AD);
-      completeStep(stepNum);
-    } else if (status === 'no_ad') {
-      // Fairness: no ad was available at all (SDK/network issue) —
-      // not the user's fault, so let this step pass without one.
-      sub.textContent = 'No ad available — step unlocked ✓';
       completeStep(stepNum);
     } else {
-      // 'closed_early' → an ad genuinely started and the user backed
-      // out — this step stays locked, button resets so they can retry.
-      btn.textContent = '▶️ Watch Ad ' + stepNum + ' again';
-      sub.textContent = 'Ad closed early — please watch it fully to continue';
+      // If no ad was available or playback failed, allow the user
+      // to continue rather than trapping them in the Mini App.
+      sub.textContent = 'Ad unavailable — you can continue ✓';
+      completeStep(stepNum);
     }
   });
 }
@@ -1174,16 +1153,19 @@ function completeStep(stepNum) {
   step.classList.add('done');
   num.textContent = '✓';
   btn.disabled = true;
-  btn.textContent = '✓ Watched';
+  btn.textContent = '✓ Completed';
   sub.textContent = 'Done ✓';
 
   if (stepNum === 1) {
     step1Done = true;
+
     const step2 = document.getElementById('step-2');
     const btn2  = document.getElementById('btn-2');
+
     step2.classList.remove('locked');
     btn2.disabled = false;
-    document.getElementById('sub-2').textContent = 'Tap below and watch the full ad';
+    document.getElementById('sub-2').textContent =
+      'Tap below to open the second ad';
   } else if (stepNum === 2) {
     step2Done = true;
     unlockEnroll();
@@ -1256,14 +1238,12 @@ function launchConfetti() {
 
 // ══════════════════════════════════════════════════════════════
 //  Bootstrap — no ad SDK is ever called automatically. Course data
-//  loads, then the free countdown starts on its own; Adsgram is
-//  only touched if/when the user taps "Skip with ad".
+//  loads; Adsgram is only initialized when the user taps an ad button.
 // ══════════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
   loadCourseMeta();
   registerVisitor();
   loadLatestCourses();
-  refreshPointsBadge();
 
   showCard();
 });
