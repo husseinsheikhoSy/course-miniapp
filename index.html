@@ -3,7 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>DAILY UDEMY COUPONS — Free Udemy Courses</title>
+  <title>Daily Udemy Coupons — Free Udemy Courses Every Day</title>
+
+  <meta name="description"
+        content="Browse fresh, 100% free Udemy courses updated daily. Grab exclusive limited-time coupons before they expire — no payment required." />
+  <meta name="keywords" content="free udemy courses, udemy coupons, udemy free coupon, online learning, daily udemy coupons" />
+  <meta name="theme-color" content="#005BBB" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://t.me/UdemySybot/Udemy" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Daily Udemy Coupons" />
+  <meta property="og:title" content="Daily Udemy Coupons — Free Udemy Courses Every Day" />
+  <meta property="og:description"
+        content="Browse fresh, 100% free Udemy courses updated daily. Grab exclusive limited-time coupons before they expire." />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Daily Udemy Coupons — Free Udemy Courses Every Day" />
+  <meta name="twitter:description"
+        content="Browse fresh, 100% free Udemy courses updated daily. Grab exclusive limited-time coupons before they expire." />
+
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='50' fill='%23005BBB'/%3E%3Crect y='50' width='100' height='50' fill='%23FFD500'/%3E%3C/svg%3E" />
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
@@ -38,7 +58,7 @@
   <style>
     /* ══ Ukrainian flag palette (blue + yellow) — shared with details.html ══ */
     :root {
-      --bg:             #F2F8FE;
+      --bg:             #EEF5FC;
       --card:           #FFFFFF;
       --text:           #142B45;
       --text-muted:     #6F8CA8;
@@ -50,15 +70,32 @@
       --accent-yellow-dark: #C79A00;
       --radius-card:    16px;
       --shadow-card:    0 4px 24px rgba(20,43,69,.10);
+      --shadow-lift:    0 10px 28px rgba(0,61,130,.16);
     }
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: 'Inter', sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 12% -10%, #EAF3FD 0%, transparent 55%),
+        radial-gradient(circle at 90% 0%, #FFF9DC 0%, transparent 40%),
+        var(--bg);
       color: var(--text);
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
-    .app-shell { width:100%; max-width:520px; margin:0 auto; }
+    .app-shell { width:100%; max-width:560px; margin:0 auto; }
+
+    /* Desktop/tablet: give the feed some visual separation from the
+       page backdrop instead of running edge-to-edge */
+    @media (min-width: 640px) {
+      body { padding: 28px 16px; }
+      .app-shell {
+        background: var(--card);
+        border-radius: 20px;
+        box-shadow: 0 20px 56px rgba(20,43,69,.14);
+        overflow: hidden;
+      }
+    }
 
     /* ── Top bar ── */
     .top-bar {
@@ -69,11 +106,12 @@
       border-bottom: 1px solid var(--border);
     }
     .logo-u {
-      width: 34px; height: 34px; border-radius: 9px;
-      background: var(--accent);
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
       display: flex; align-items: center; justify-content: center;
       font-size: 18px; font-weight: 800; color: #fff;
       flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0,61,130,.25);
     }
     .top-title { font-size: 15px; font-weight: 800; }
     .top-sub   { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
@@ -84,13 +122,27 @@
       padding: 5px 10px; border-radius: 20px;
       white-space: nowrap;
     }
+    /* Thin Ukrainian-flag stripe under the sticky top bar */
+    .top-bar::after {
+      content: "";
+      position: absolute; left:0; right:0; bottom:-1px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent) 50%, var(--accent-yellow) 50%);
+    }
 
-    /* ── Grid ── */
+    /* ── Grid — one column on phones, a real multi-column feed once
+       there's enough width ── */
     .grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 12px;
       padding: 14px 14px 28px;
+    }
+    @media (min-width: 560px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: 1fr 1fr 1fr; }
     }
 
     .course-card {
@@ -102,9 +154,10 @@
       display: flex; gap: 12px;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      transition: transform .12s ease;
+      transition: transform .12s ease, box-shadow .15s ease;
     }
-    .course-card:active { transform: scale(.98); }
+    .course-card:hover   { box-shadow: var(--shadow-lift); }
+    .course-card:active  { transform: scale(.98); }
 
     /* ── Adsgram Task block — styled to sit naturally in the grid,
        clearly labeled as sponsored via the "reward" slot text below ── */
@@ -121,13 +174,19 @@
       --adsgram-task-icon-border-radius: 10px;
       --adsgram-task-button-width: 84px;
     }
+    /* On multi-column layouts, keep the sponsored slot from looking
+       orphaned by letting it span the full row */
+    @media (min-width: 560px) {
+      adsgram-task.task { grid-column: 1 / -1; }
+    }
 
     .course-thumb {
       width: 76px; height: 76px; border-radius: 10px;
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
       flex-shrink: 0; overflow: hidden;
       display: flex; align-items:center; justify-content:center;
       font-size: 30px;
+      box-shadow: 0 4px 12px rgba(0,61,130,.2);
     }
     .course-thumb img { width:100%; height:100%; object-fit:cover; }
 
@@ -170,6 +229,7 @@
     /* ── Empty / error state ── */
     .empty-state {
       text-align: center; padding: 60px 24px; color: var(--text-muted);
+      grid-column: 1 / -1;
     }
     .empty-state .emoji { font-size: 40px; margin-bottom: 10px; }
     .empty-state h3 { color: var(--text); font-size: 15px; margin-bottom: 6px; }
@@ -177,8 +237,9 @@
     .retry-btn {
       margin-top: 14px; background: var(--accent); color:#fff; border:none;
       padding: 9px 18px; border-radius: 10px; font-weight:700; font-size:13px;
-      cursor:pointer;
+      cursor:pointer; transition: background .15s;
     }
+    .retry-btn:hover { background: var(--accent-dark); }
 
     .footer-link {
       text-align:center; padding: 4px 20px 26px;
@@ -194,7 +255,8 @@
       -webkit-tap-highlight-color: transparent;
       transition: transform .12s ease, background .15s ease;
     }
-    .whatsapp-btn:active { transform: scale(.97); background: var(--accent-dark); }
+    .whatsapp-btn:hover  { background: var(--accent-dark); }
+    .whatsapp-btn:active { transform: scale(.97); }
   </style>
 </head>
 <body>
@@ -236,6 +298,37 @@
 
     const gridEl  = document.getElementById('grid');
     const countEl = document.getElementById('count-badge');
+
+    // ══════════════════════════════════════════════════════════════
+    //  One-time welcome Interstitial ad — Udemy interstitial unit
+    //  (int-46421). Shown at most ONCE per session: a sessionStorage
+    //  flag is set the instant we attempt to show it, so even rapid
+    //  re-entry into the page (or a slow/failed ad) can't trigger it
+    //  twice. Purely a monetization touch — never blocks browsing or
+    //  any core action, and failures are silently ignored.
+    // ══════════════════════════════════════════════════════════════
+    const ADSGRAM_INTERSTITIAL_ID = 'int-46421';
+    const INTERSTITIAL_SESSION_KEY = 'udemy_interstitial_shown';
+    let interstitialCtrl = null;
+
+    function getInterstitial() {
+      if (interstitialCtrl) return interstitialCtrl;
+      if (window.Adsgram && typeof window.Adsgram.init === 'function') {
+        interstitialCtrl = window.Adsgram.init({ blockId: ADSGRAM_INTERSTITIAL_ID });
+      }
+      return interstitialCtrl;
+    }
+
+    function showWelcomeInterstitialOnce() {
+      try {
+        if (sessionStorage.getItem(INTERSTITIAL_SESSION_KEY) === '1') return;
+        sessionStorage.setItem(INTERSTITIAL_SESSION_KEY, '1'); // mark first, so it can never fire twice
+      } catch (e) { /* sessionStorage unavailable — skip rather than risk repeats */ return; }
+
+      const ctrl = getInterstitial();
+      if (!ctrl) return;
+      ctrl.show().catch(() => { /* closed early or no fill — nothing to do */ });
+    }
 
     // ── Debug logging — always to console; also on-screen if the page
     //    is opened with ?debug=1 appended to the URL. Use this to see,
@@ -428,7 +521,11 @@
       }
     }
 
-    loadCourses();
+    loadCourses().then(() => {
+      // Small delay so the catalog is visibly rendered first —
+      // avoids the ad covering a blank/loading screen.
+      setTimeout(showWelcomeInterstitialOnce, 800);
+    });
   </script>
 </body>
 </html>
