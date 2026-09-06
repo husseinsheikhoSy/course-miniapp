@@ -1148,6 +1148,47 @@ button {
 }
 </style>
 
+
+<style id="telegram-scroll-fix">
+/* Final Telegram Mini App scroll fix */
+html,
+body {
+  height: auto !important;
+  min-height: 100% !important;
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto !important;
+  touch-action: pan-y !important;
+}
+
+body {
+  position: relative !important;
+  display: block !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.app-shell {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.header-bar,
+.card,
+#skeleton {
+  flex-shrink: 0 !important;
+}
+
+.card {
+  overflow: visible !important;
+}
+
+/* Telegram's viewport can change while dragging/expanding the Mini App.
+   Do not lock scrolling to viewportHeight. */
+</style>
+
 </head>
 <body>
 
@@ -1858,11 +1899,8 @@ window.addEventListener('load', () => {
       });
     }
 
-    // Disable Telegram vertical swipe only when supported by the client;
-    // scrolling inside the page remains normal.
-    if (typeof tg.disableVerticalSwipes === "function") {
-      tg.disableVerticalSwipes();
-    }
+    // Keep Telegram's normal vertical page gesture enabled so the user can
+    // scroll through the Mini App content naturally.
   } catch (e) {
     // Mini App must remain usable in a normal browser too.
     console.warn("Telegram Mini App initialization:", e);
