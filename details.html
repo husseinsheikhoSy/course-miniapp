@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title id="page-title">Free Udemy Course Access | Daily Udemy Coupons</title>
 
-  <!-- ── SEO / social preview ───────────────────────────────── -->
   <meta name="description" id="meta-description"
         content="Unlock this Udemy course for free with an exclusive, limited-time coupon. Fast, mobile-friendly access — no payment required." />
   <meta name="keywords" content="free udemy course, udemy coupon, udemy free coupon, online course, learn online" />
@@ -249,8 +248,8 @@
 
   /* ───────── Header ───────── */
   .header-bar {
-    min-height: 188px;
-    padding: calc(18px + var(--tg-safe-area-inset-top, 0px)) 18px 82px;
+    min-height: auto;
+    padding: calc(14px + var(--tg-safe-area-inset-top, 0px)) 18px 20px;
     display: flex;
     align-items: flex-start;
     gap: 11px;
@@ -340,9 +339,9 @@
     position: relative;
     z-index: 2;
     width: 100%;
-    margin: -58px 0 0;
-    padding: 24px 18px 20px;
-    border-radius: 30px 30px 0 0;
+    margin: -16px 0 0;
+    padding: 20px 18px 20px;
+    border-radius: 24px 24px 0 0;
     background:
       linear-gradient(180deg, rgba(30,30,35,.99), rgba(16,16,19,.99));
     border-top: 1px solid rgba(255,255,255,.09);
@@ -362,8 +361,8 @@
     display: flex;
     gap: 14px;
     align-items: center;
-    padding: 0 0 19px;
-    margin-bottom: 18px;
+    padding: 0 0 16px;
+    margin-bottom: 16px;
     border-bottom: 1px solid var(--border);
   }
 
@@ -875,11 +874,11 @@
   .skeleton {
     display: none;
     width: 100%;
-    margin: -58px 0 0;
-    padding: 24px 18px;
+    margin: -16px 0 0;
+    padding: 20px 18px;
     position: relative;
     z-index: 2;
-    border-radius: 30px 30px 0 0;
+    border-radius: 24px 24px 0 0;
     background: var(--surface);
     flex-shrink: 0;
   }
@@ -1082,16 +1081,12 @@ function initTelegramWebApp() {
   tg.ready();
   tg.expand();
   
-  // Set colors to match our dark theme
   try {
     tg.setHeaderColor('#09090b');
     tg.setBackgroundColor('#09090b');
     tg.setBottomBarColor('#09090b');
-  } catch (e) {
-    // Fallback for older versions
-  }
+  } catch (e) {}
   
-  // Handle viewport changes (keyboard open/close, etc.)
   tg.onEvent('viewportChanged', function() {
     updateViewportVars();
   });
@@ -1105,24 +1100,20 @@ function updateViewportVars() {
   if (!tg) return;
   const root = document.documentElement;
   
-  // Use Telegram's stable height instead of vh
   const vh = tg.viewportStableHeight || window.innerHeight;
   root.style.setProperty('--tg-viewport-height', vh + 'px');
   
-  // Safe area insets
   if (tg.safeAreaInset) {
     root.style.setProperty('--tg-safe-area-inset-top', (tg.safeAreaInset.top || 0) + 'px');
     root.style.setProperty('--tg-safe-area-inset-bottom', (tg.safeAreaInset.bottom || 0) + 'px');
   }
   
-  // Content safe area (for notches, dynamic island, etc.)
   if (tg.contentSafeAreaInset) {
     root.style.setProperty('--tg-content-safe-area-inset-top', (tg.contentSafeAreaInset.top || 0) + 'px');
     root.style.setProperty('--tg-content-safe-area-inset-bottom', (tg.contentSafeAreaInset.bottom || 0) + 'px');
   }
 }
 
-// Initialize immediately
 initTelegramWebApp();
 
 // ── Supabase client ───────────────────────────────────────────
@@ -1475,7 +1466,6 @@ function completeStep(stepNum) {
   btn.textContent = '✓ Completed';
   sub.textContent = 'Done ✓';
 
-  // Update progress bar
   const progressFill = document.getElementById('progress-fill');
   const progressLabel = document.getElementById('progress-label');
   if (stepNum === 1) {
@@ -1532,51 +1522,4 @@ function launchConfetti() {
   canvas.height = window.innerHeight;
 
   const colors = ['#005BBB','#FFD500','#FFFFFF','#003D82','#FFE873','#0077E6'];
-  const pieces = Array.from({length: 90}, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height - canvas.height,
-    r: Math.random() * 5 + 3,
-    d: Math.random() * 2 + 1,
-    color: colors[Math.floor(Math.random()*colors.length)],
-    tilt: Math.random()*10-5,
-    tiltSpeed: (Math.random()*.07+.03) * (Math.random()<.5?1:-1),
-  }));
-
-  let frame = 0;
-  function draw() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    pieces.forEach(p => {
-      ctx.beginPath();
-      ctx.fillStyle = p.color;
-      ctx.ellipse(p.x, p.y, p.r, p.r*0.4, p.tilt, 0, Math.PI*2);
-      ctx.fill();
-      p.y += p.d + frame/80;
-      p.tilt += p.tiltSpeed;
-      p.x += Math.sin(frame/20) * 0.5;
-      if (p.y > canvas.height) { p.y = -10; p.x = Math.random()*canvas.width; }
-    });
-    frame++;
-    if (frame < 160) requestAnimationFrame(draw);
-    else { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }
-  }
-  draw();
-}
-
-// Handle window resize for Telegram viewport stability
-window.addEventListener('resize', function() {
-  if (tg) updateViewportVars();
-});
-
-// ══════════════════════════════════════════════════════════════
-//  Bootstrap
-// ══════════════════════════════════════════════════════════════
-window.addEventListener('load', () => {
-  loadCourseMeta();
-  registerVisitor();
-  loadLatestCourses();
-  showCard();
-});
-</script>
-
-</body>
-</html>
+  const pieces = Array.from({length:
