@@ -3,7 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Udemy Free Course Access</title>
+  <title id="page-title">Free Udemy Course Access | Daily Udemy Coupons</title>
+
+  <!-- ── SEO / social preview ─────────────────────────────────
+       Populated with sensible defaults here, then refined in JS
+       (loadCourseMeta) once the specific course's title/image are
+       known, so shared links preview the actual course. ── -->
+  <meta name="description" id="meta-description"
+        content="Unlock this Udemy course for free with an exclusive, limited-time coupon. Fast, mobile-friendly access — no payment required." />
+  <meta name="keywords" content="free udemy course, udemy coupon, udemy free coupon, online course, learn online" />
+  <meta name="theme-color" content="#005BBB" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://t.me/UdemySybot/Udemy" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Daily Udemy Coupons" />
+  <meta property="og:title" id="og-title" content="Free Udemy Course Access" />
+  <meta property="og:description" id="og-description"
+        content="Unlock this Udemy course for free with an exclusive, limited-time coupon." />
+  <meta property="og:image" id="og-image" content="" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" id="twitter-title" content="Free Udemy Course Access" />
+  <meta name="twitter:description" id="twitter-description"
+        content="Unlock this Udemy course for free with an exclusive, limited-time coupon." />
+
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='50' fill='%23005BBB'/%3E%3Crect y='50' width='100' height='50' fill='%23FFD500'/%3E%3C/svg%3E" />
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
@@ -106,7 +131,8 @@
        Ukrainian flag palette (blue + yellow) design tokens
        ══════════════════════════════════════════════════════════ */
     :root {
-      --bg:             #F2F8FE;
+      --bg:             #EEF5FC;
+      --bg-deep:        #DCEBFA;
       --card:           #FFFFFF;
       --text:           #142B45;
       --text-muted:     #6F8CA8;
@@ -119,23 +145,29 @@
       --step-done-bg:   #E4F1FC;
       --step-done-text: #003D82;
       --radius-card:    20px;
+      --radius-sm:      12px;
       --radius-btn:     10px;
       --shadow-card:    0 4px 24px rgba(20,43,69,.10);
+      --shadow-lift:    0 10px 28px rgba(0,61,130,.16);
     }
 
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
     body {
       font-family: 'Inter', sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 12% -10%, #EAF3FD 0%, transparent 55%),
+        radial-gradient(circle at 90% 0%, #FFF9DC 0%, transparent 40%),
+        var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 18px 12px;
+      padding: 28px 16px;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
     .app-shell {
@@ -143,33 +175,58 @@
       max-width: 440px;
       margin: 0 auto;
       background: var(--bg);
-      border-radius: 20px;
+      border-radius: 22px;
       overflow: hidden;
-      box-shadow: 0 12px 44px rgba(61,57,41,.14);
+      box-shadow: 0 20px 56px rgba(20,43,69,.16);
     }
+
+    /* Small phones: full-bleed, no floating card chrome */
     @media (max-width: 480px) {
       body { padding: 0; justify-content: flex-start; }
       .app-shell { border-radius: 0; box-shadow: none; max-width: 100%; }
+    }
+
+    /* Tablets and up: give the card some breathing room and a
+       slightly larger, more confident scale */
+    @media (min-width: 640px) {
+      .app-shell { max-width: 480px; }
+      .card { padding: 26px 26px 22px; }
+    }
+
+    /* Desktop: comfortably centered, distinct from the page backdrop */
+    @media (min-width: 900px) {
+      body { padding: 56px 16px; }
+      .app-shell { max-width: 500px; box-shadow: 0 28px 70px rgba(20,43,69,.20); }
     }
 
     /* ── Header bar (colored, overlapped by the white sheet below) ── */
     .header-bar {
       width: 100%;
       background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-      padding: 16px 18px 46px;
+      padding: 18px 18px 48px;
       display: flex; align-items: center; gap: 10px;
       position: relative;
     }
+    /* Thin Ukrainian-flag stripe along the bottom edge of the header,
+       visible above the overlapping white card */
+    .header-bar::after {
+      content: "";
+      position: absolute; left: 0; right: 0; bottom: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent) 50%, var(--accent-yellow) 50%);
+      z-index: 3;
+    }
     .back-btn {
-      width: 32px; height: 32px; border-radius: 50%;
+      width: 34px; height: 34px; border-radius: 50%;
       background: rgba(255,255,255,.18);
       display: flex; align-items: center; justify-content: center;
       color: #fff; font-size: 16px; font-weight: 800;
       flex-shrink: 0; border: none; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      transition: background .15s;
+      transition: background .15s, transform .1s;
     }
-    .back-btn:active { background: rgba(255,255,255,.32); }
+    .back-btn:hover  { background: rgba(255,255,255,.28); }
+    .back-btn:active { background: rgba(255,255,255,.32); transform: scale(.92); }
     .logo-text {
       font-size: 16px; font-weight: 800; color: #fff;
       flex: 1; min-width: 0;
@@ -181,6 +238,7 @@
       font-size: 11px; font-weight: 800;
       padding: 5px 12px; border-radius: 20px;
       flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,.12);
     }
 
     /* ── Loading skeleton ── */
@@ -217,7 +275,7 @@
       background: var(--card);
       border-radius: 24px 24px 0 0;
       box-shadow: 0 -6px 24px rgba(61,57,41,.08);
-      padding: 22px 18px 18px;
+      padding: 24px 18px 18px;
       animation: slideUp .45s cubic-bezier(.22,.61,.36,1) both;
       display: none;
       position: relative;
@@ -231,32 +289,33 @@
 
     /* ── Course info ── */
     .course-info {
-      display: flex; gap: 12px;
-      margin-bottom: 14px; padding-bottom: 14px;
+      display: flex; gap: 14px;
+      margin-bottom: 16px; padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
     }
     .course-thumb {
-      width: 64px; height: 64px; border-radius: 10px;
-      background: var(--accent);
+      width: 68px; height: 68px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
       flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
       font-size: 28px; overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0,61,130,.22);
     }
-    .course-thumb img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
+    .course-thumb img { width:100%; height:100%; object-fit:cover; border-radius:12px; }
     .course-meta { flex:1; min-width:0; }
     .course-title {
-      font-size: 14px; font-weight: 700; color: var(--text);
+      font-size: 14.5px; font-weight: 700; color: var(--text);
       white-space: normal; word-break: break-word; line-height: 1.35;
-      margin-bottom: 6px;
+      margin-bottom: 7px;
     }
     .course-tags { display:flex; gap:6px; flex-wrap:wrap; }
     .tag {
       font-size: 11px; font-weight: 700;
-      padding: 3px 8px; border-radius: 5px;
+      padding: 3px 9px; border-radius: 6px;
       background: var(--accent-pale); color: var(--accent-dark);
     }
     .tag.free-tag { background: var(--accent); color: #fff; }
-    .course-price { font-size: 12px; font-weight: 700; margin-top: 6px; color: var(--text-muted); }
+    .course-price { font-size: 12px; font-weight: 700; margin-top: 7px; color: var(--text-muted); }
     .course-price s { color: #A6A499; font-weight: 500; }
     .course-price .free { color: var(--accent-yellow-dark); font-size: 14px; margin-left: 4px; }
 
@@ -264,7 +323,7 @@
     .course-meta-row {
       display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
       font-size: 11.5px; font-weight: 600; color: var(--text-muted);
-      margin-top: 8px;
+      margin-top: 9px;
     }
     .course-meta-row span { display: flex; align-items: center; gap: 4px; }
     .course-meta-row .star { color: #E0A030; }
@@ -277,15 +336,15 @@
 
     /* ── Feature checklist ── */
     .feature-list {
-      display: flex; flex-direction: column; gap: 9px;
-      margin-bottom: 18px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px;
+      margin-bottom: 20px;
     }
     .feature-item {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 13px; font-weight: 600; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12.5px; font-weight: 600; color: var(--text);
     }
     .feature-check {
-      width: 18px; height: 18px; border-radius: 5px;
+      width: 18px; height: 18px; border-radius: 6px;
       background: var(--accent); color: #fff;
       display: flex; align-items: center; justify-content: center;
       font-size: 11px; font-weight: 800; flex-shrink: 0;
@@ -300,18 +359,18 @@
     .ad-notice {
       background: var(--accent-pale);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 12px;
-      margin-bottom: 12px;
-      font-size: 11.5px;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      font-size: 12px;
       color: var(--accent-dark);
       font-weight: 600;
       text-align: center;
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
-    /* ── Progress bar (kept in DOM for JS, hidden — the big ring below
-           already communicates progress, matching the reference design) ── */
+    /* ── Progress bar (kept in DOM for JS, hidden — the step cards
+           below already communicate progress) ── */
     .progress-wrap { display: none; }
     .progress-bar-bg { flex:1; height:7px; background:var(--border); border-radius:10px; overflow:hidden; }
     .progress-bar-fill {
@@ -322,57 +381,58 @@
     }
     .progress-label { font-size:12px; font-weight:700; color:var(--accent-dark); min-width:30px; text-align:right; }
 
-    /* ── Unlock block: centered "preparing your link" state ── */
-    .steps { display:flex; flex-direction:column; align-items:center; margin-bottom:18px; }
+    /* ── Unlock block: two boxed step cards, stacked on phones and
+           laid side-by-side once there's enough width ── */
+    .steps {
+      display: flex; flex-direction: column; gap: 14px;
+      margin-bottom: 18px;
+    }
+    @media (min-width: 520px) {
+      .steps { flex-direction: row; align-items: stretch; }
+      .step  { flex: 1; }
+    }
+
     .step {
       display: flex; flex-direction: column; align-items: center;
-      width: 100%; text-align: center;
-      transition: opacity .3s;
+      text-align: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-card);
+      padding: 18px 14px 16px;
+      transition: opacity .3s, box-shadow .2s, border-color .2s;
     }
-    .step.locked { opacity:.5; pointer-events:none; }
+    .step:not(.locked):not(.done):hover { box-shadow: var(--shadow-lift); }
+    .step.locked { opacity:.55; pointer-events:none; }
+    .step.done   { border-color: var(--accent); background: var(--accent-pale); }
 
-    .step-title { font-size:14.5px; font-weight:800; color:var(--text); margin-top: 4px; }
+    .step-title { font-size:14.5px; font-weight:800; color:var(--text); margin-top: 10px; }
     .step.done .step-title { color: var(--accent-dark); }
-    .step-sub   { font-size:11.5px; color:var(--text-muted); margin-top:4px; margin-bottom:16px; }
+    .step-sub   { font-size:11.5px; color:var(--text-muted); margin-top:4px; margin-bottom:14px; line-height:1.4; }
 
-    /* big countdown ring */
+    /* step number / checkmark badge */
     .step-num {
-      width: 96px; height: 96px; border-radius: 50%;
+      width: 44px; height: 44px; border-radius: 50%;
       background: var(--accent-pale); color: var(--accent-dark);
       display: flex; align-items: center; justify-content: center;
-      font-size: 26px; font-weight: 800;
+      font-size: 18px; font-weight: 800;
       position: relative;
       transition: background .3s, color .3s;
     }
     .step.done .step-num { background: var(--accent); color:#fff; }
 
-    .countdown-ring {
-      position: absolute; top: 0; left: 0;
-      width: 96px; height: 96px;
-      transform: rotate(-90deg);
-      pointer-events: none;
-      opacity: 0; transition: opacity .2s;
-    }
-    .countdown-ring.active { opacity: 1; }
-    .countdown-ring circle {
-      fill: none; stroke: var(--accent);
-      stroke-width: 5;
-      stroke-dasharray: 100;
-      stroke-dashoffset: 100;
-      stroke-linecap: round;
-      transition: stroke-dashoffset .95s linear;
-    }
-
     .step-btn {
       background: var(--accent);
       color: #fff; border: none;
-      border-radius: 30px; padding: 12px 26px;
-      font-size: 13.5px; font-weight: 800;
+      border-radius: 30px; padding: 11px 22px;
+      font-size: 13px; font-weight: 800;
       cursor: pointer;
-      transition: background .2s, transform .1s;
+      width: 100%;
+      transition: background .2s, transform .1s, box-shadow .2s;
       box-shadow: 0 6px 16px -4px rgba(0,91,187,.45);
     }
-    .step-btn:active  { transform: scale(.96); }
+    .step-btn:hover:not(:disabled)  { background: var(--accent-dark); }
+    .step-btn:active { transform: scale(.96); }
     .step-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; box-shadow:none; }
     .step-btn.watching { background: var(--accent-dark); pointer-events: none; }
     .step-btn.retry { background: #C0392B; }
@@ -400,28 +460,29 @@
 
     /* ── CTA ── */
     .cta-btn {
-      width: 100%; padding: 14px; border-radius: 14px; border: none;
+      width: 100%; padding: 15px; border-radius: 14px; border: none;
       font-size: 15px; font-weight: 800; cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 8px;
       transition: all .3s;
     }
     .cta-btn.locked  { background:var(--border); color:var(--text-muted); cursor:not-allowed; }
     .cta-btn.unlocked {
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
       color: #fff;
-      box-shadow: 0 6px 18px -4px rgba(0,91,187,.45);
-      animation: pulseOrange 2.2s infinite;
+      box-shadow: 0 8px 20px -4px rgba(0,61,130,.5);
+      animation: pulseGlow 2.2s infinite;
     }
-    @keyframes pulseOrange {
-      0%  { box-shadow: 0 0 0 0   rgba(0,91,187,.45); }
-      60% { box-shadow: 0 0 0 12px rgba(0,91,187,0);  }
-      100%{ box-shadow: 0 0 0 0   rgba(0,91,187,0);   }
+    .cta-btn.unlocked:hover { filter: brightness(1.06); }
+    @keyframes pulseGlow {
+      0%  { box-shadow: 0 8px 20px -4px rgba(0,61,130,.5), 0 0 0 0   rgba(255,213,0,.55); }
+      60% { box-shadow: 0 8px 20px -4px rgba(0,61,130,.5), 0 0 0 12px rgba(255,213,0,0);  }
+      100%{ box-shadow: 0 8px 20px -4px rgba(0,61,130,.5), 0 0 0 0   rgba(255,213,0,0);   }
     }
 
     /* ── Latest Courses section ── */
     .latest-section {
       width: 100%;
-      padding: 4px 18px 6px;
+      padding: 6px 18px 8px;
       background: var(--bg);
     }
     .latest-heading {
@@ -429,6 +490,9 @@
       margin-bottom: 10px;
     }
     .latest-list { display: flex; flex-direction: column; gap: 8px; }
+    @media (min-width: 640px) {
+      .latest-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    }
     .latest-card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -438,12 +502,13 @@
       display: flex; gap: 10px; align-items: center;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      transition: transform .12s ease;
+      transition: transform .12s ease, box-shadow .15s ease;
     }
-    .latest-card:active { transform: scale(.98); }
+    .latest-card:hover   { box-shadow: var(--shadow-lift); }
+    .latest-card:active  { transform: scale(.98); }
     .latest-thumb {
       width: 50px; height: 50px; border-radius: 8px;
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
       flex-shrink: 0; overflow: hidden;
       display: flex; align-items:center; justify-content:center;
       font-size: 22px;
@@ -463,7 +528,7 @@
     }
 
     /* ── WhatsApp Channel button (same style as index.html) ── */
-    .footer-link { padding: 4px 18px 18px; }
+    .footer-link { padding: 4px 18px 20px; }
     .whatsapp-btn {
       display: flex; align-items:center; justify-content:center; gap: 8px;
       width: 100%;
@@ -475,7 +540,8 @@
       -webkit-tap-highlight-color: transparent;
       transition: transform .12s ease, background .15s ease;
     }
-    .whatsapp-btn:active { transform: scale(.97); background: var(--accent-dark); }
+    .whatsapp-btn:hover   { background: var(--accent-dark); }
+    .whatsapp-btn:active  { transform: scale(.97); }
 
     /* ── Confetti canvas ── */
     #confetti-canvas {
@@ -504,7 +570,8 @@
 
     @media (max-width:380px) {
       .card { padding:16px 14px; }
-      .step-btn { padding:6px 10px; font-size:11.5px; min-width:52px; }
+      .feature-list { grid-template-columns: 1fr; }
+      .step-btn { padding:10px 14px; font-size:12px; }
       .cta-btn { font-size:14px; padding:13px; }
       .course-title { font-size:13px; }
     }
@@ -513,8 +580,8 @@
       body { padding: 10px 12px; }
       .unlock-headline h2 { font-size:16px; }
       .unlock-headline p  { font-size:11.5px; margin-top:3px; }
-      .steps { gap:6px; margin-bottom:12px; }
-      .step  { padding:8px 12px; }
+      .steps { gap:10px; margin-bottom:12px; }
+      .step  { padding:14px 12px; }
     }
   </style>
 </head>
@@ -552,7 +619,7 @@
     <div class="course-info">
       <div class="course-thumb" id="course-thumb">🎓</div>
       <div class="course-meta">
-        <div class="course-title" id="course-title">Udemy Free Course</div>
+        <h1 class="course-title" id="course-title">Udemy Free Course</h1>
         <div class="course-tags">
           <span class="tag free-tag">100% FREE</span>
           <span class="tag" id="course-cat">Udemy</span>
@@ -597,14 +664,14 @@
         <div class="step-num" id="num-1">1</div>
         <div class="step-title">Watch Ad 1</div>
         <div class="step-sub" id="sub-1">Tap below and watch the full ad</div>
-        <button class="step-btn" id="btn-1" onclick="watchAd(1)" style="margin-top:14px;">▶️ Watch Ad 1</button>
+        <button class="step-btn" id="btn-1" onclick="watchAd(1)">▶️ Watch Ad 1</button>
       </div>
       <!-- Step 2: mandatory ad watch — locked until Step 1 is complete -->
-      <div class="step locked" id="step-2" style="margin-top:22px;">
+      <div class="step locked" id="step-2">
         <div class="step-num" id="num-2">2</div>
         <div class="step-title">Watch Ad 2</div>
         <div class="step-sub" id="sub-2">Finish Step 1 first</div>
-        <button class="step-btn" id="btn-2" onclick="watchAd(2)" disabled style="margin-top:14px;">▶️ Watch Ad 2</button>
+        <button class="step-btn" id="btn-2" onclick="watchAd(2)" disabled>▶️ Watch Ad 2</button>
       </div>
     </div>
 
@@ -821,11 +888,23 @@ function loadCourseMeta() {
   }
   if (title) {
     document.getElementById('course-title').textContent = title;
+
+    // ── SEO / social preview — reflect the real course once known ──
+    const seoTitle = `${title} — Free Udemy Coupon`;
+    const seoDesc  = `Unlock "${title}" for free on Udemy with an exclusive, ` +
+      `limited-time coupon. Watch two short ads to get instant access.`;
+    document.getElementById('page-title').textContent = seoTitle;
+    document.getElementById('meta-description').setAttribute('content', seoDesc);
+    document.getElementById('og-title').setAttribute('content', seoTitle);
+    document.getElementById('og-description').setAttribute('content', seoDesc);
+    document.getElementById('twitter-title').setAttribute('content', seoTitle);
+    document.getElementById('twitter-description').setAttribute('content', seoDesc);
   }
   if (img) {
     const thumb = document.getElementById('course-thumb');
     thumb.innerHTML = `<img src="${img}" alt="course"
       onerror="this.parentElement.innerHTML='🎓'" />`;
+    document.getElementById('og-image').setAttribute('content', img);
   }
   if (cat)   document.getElementById('course-cat').textContent            = cat;
   if (price) document.getElementById('course-price-original').textContent = price;
