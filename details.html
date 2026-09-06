@@ -2,17 +2,14 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title id="page-title">Free Udemy Course Access | Daily Udemy Coupons</title>
 
-  <!-- ── SEO / social preview ─────────────────────────────────
-       Populated with sensible defaults here, then refined in JS
-       (loadCourseMeta) once the specific course's title/image are
-       known, so shared links preview the actual course. ── -->
+  <!-- ── SEO / social preview ───────────────────────────────── -->
   <meta name="description" id="meta-description"
         content="Unlock this Udemy course for free with an exclusive, limited-time coupon. Fast, mobile-friendly access — no payment required." />
   <meta name="keywords" content="free udemy course, udemy coupon, udemy free coupon, online course, learn online" />
-  <meta name="theme-color" content="#005BBB" />
+  <meta name="theme-color" content="#7B1733" />
   <meta name="robots" content="index, follow" />
 
   <meta name="author" content="Daily Udemy Coupons" />
@@ -54,15 +51,13 @@
   }
   </script>
 
-  <!-- ══ INTERCEPTORS — يجب أن تكون قبل أي SDK إعلانات ══ -->
+  <!-- ══ INTERCEPTORS ══ -->
   <script>
   (function() {
-    // حفظ النسخ الأصلية
     var _origOpen   = window.open;
     var _origAssign = window.location ? window.location.assign.bind(window.location) : null;
     var _origReplace = window.location ? window.location.replace.bind(window.location) : null;
 
-    // منع window.open من إغلاق التطبيق — نستخدم tg.openLink بدلاً منه
     window.open = function(url, target, features) {
       if (url && typeof url === 'string' && url.indexOf('http') === 0) {
         var tgApp = window.Telegram && window.Telegram.WebApp;
@@ -72,13 +67,11 @@
             return null;
           } catch(e) {}
         }
-        // fallback: استخدم target=_blank
         return _origOpen.call(window, url, '_blank', features);
       }
       return _origOpen.apply(window, arguments);
     };
 
-    // منع location.href من إغلاق التطبيق
     try {
       var _hrefDescriptor = Object.getOwnPropertyDescriptor(window.location, 'href');
       if (_hrefDescriptor && _hrefDescriptor.set) {
@@ -102,7 +95,6 @@
       }
     } catch(e) {}
 
-    // منع location.assign
     if (_origAssign) {
       window.location.assign = function(url) {
         if (url && typeof url === 'string' && url.indexOf('http') === 0) {
@@ -118,7 +110,6 @@
       };
     }
 
-    // منع location.replace
     if (_origReplace) {
       window.location.replace = function(url) {
         if (url && typeof url === 'string' && url.indexOf('http') === 0) {
@@ -137,11 +128,10 @@
   })();
   </script>
 
-  <!-- Adsgram SDK — https://partner.adsgram.ai/platforms/24966/ (only ad provider) -->
+  <!-- Adsgram SDK -->
   <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 
-  <!-- Supabase JS SDK — used to register this visitor (bot_users) and to
-       show the "Latest Courses" section below the enroll button -->
+  <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -149,487 +139,818 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
   <style>
-    /* ══════════════════════════════════════════════════════════
-       Ukrainian flag palette (blue + yellow) design tokens
-       ══════════════════════════════════════════════════════════ */
-    :root {
-      --bg:             #EEF5FC;
-      --bg-deep:        #DCEBFA;
-      --card:           #FFFFFF;
-      --text:           #142B45;
-      --text-muted:     #6F8CA8;
-      --border:         #DCEBFA;
-      --accent:         #005BBB;   /* Ukraine blue */
-      --accent-dark:    #003D82;   /* deep blue */
-      --accent-pale:    #E4F1FC;
-      --accent-yellow:  #FFD500;   /* Ukraine yellow */
-      --accent-yellow-dark: #C79A00;
-      --step-done-bg:   #E4F1FC;
-      --step-done-text: #003D82;
-      --radius-card:    20px;
-      --radius-sm:      12px;
-      --radius-btn:     10px;
-      --shadow-card:    0 4px 24px rgba(20,43,69,.10);
-      --shadow-lift:    0 10px 28px rgba(0,61,130,.16);
-    }
+  :root {
+    --bg: #09090b;
+    --bg-soft: #111114;
+    --surface: #17171b;
+    --surface-2: #1e1e23;
+    --surface-3: #24242a;
+    --text: #f8f5f6;
+    --text-muted: #aaa3a7;
+    --border: rgba(255,255,255,.09);
+    --wine: #7b1733;
+    --wine-bright: #a51f46;
+    --wine-soft: rgba(165,31,70,.14);
+    --wine-glow: rgba(165,31,70,.34);
+    --rose: #d96a88;
+    --gold: #d8ad67;
+    --success: #56c596;
+    --danger: #d95368;
+    --radius-xl: 28px;
+    --radius-lg: 20px;
+    --radius-md: 15px;
+    --shadow: 0 24px 70px rgba(0,0,0,.45);
+    --shadow-wine: 0 14px 38px rgba(123,23,51,.28);
+    --tg-viewport-height: 100vh;
+    --tg-safe-area-inset-top: 0px;
+    --tg-safe-area-inset-bottom: 0px;
+  }
 
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background:
-        radial-gradient(circle at 12% -10%, #EAF3FD 0%, transparent 55%),
-        radial-gradient(circle at 90% 0%, #FFF9DC 0%, transparent 40%),
-        var(--bg);
-      color: var(--text);
+  html { 
+    background: var(--bg); 
+    scroll-behavior: smooth; 
+    height: 100%;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    min-height: 100%;
+    height: 100%;
+    background:
+      radial-gradient(circle at 50% -15%, rgba(165,31,70,.24), transparent 38%),
+      radial-gradient(circle at 100% 35%, rgba(123,23,51,.12), transparent 30%),
+      linear-gradient(180deg, #08080a 0%, #0d0d10 48%, #08080a 100%);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: linear-gradient(to bottom, black, transparent 70%);
+    -webkit-mask-image: linear-gradient(to bottom, black, transparent 70%);
+  }
+
+  .app-shell {
+    width: 100%;
+    max-width: 470px;
+    position: relative;
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 0;
+    box-shadow: var(--shadow);
+    min-height: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  @media (min-width: 481px) {
+    body { 
+      padding: 24px 14px 40px; 
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 28px 16px;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
+      height: auto;
     }
-
     .app-shell {
-      width: 100%;
-      max-width: 440px;
-      margin: 0 auto;
-      background: var(--bg);
-      border-radius: 22px;
-      overflow: hidden;
-      box-shadow: 0 20px 56px rgba(20,43,69,.16);
+      max-width: 470px;
+      border-radius: var(--radius-xl);
+      min-height: auto;
+      height: auto;
+      max-height: calc(var(--tg-viewport-height, 100vh) - 48px);
     }
+  }
 
-    /* Small phones: full-bleed, no floating card chrome */
-    @media (max-width: 480px) {
-      body { padding: 0; justify-content: flex-start; }
-      .app-shell { border-radius: 0; box-shadow: none; max-width: 100%; }
-    }
-
-    /* Tablets and up: give the card some breathing room and a
-       slightly larger, more confident scale */
-    @media (min-width: 640px) {
-      .app-shell { max-width: 480px; }
-      .card { padding: 26px 26px 22px; }
-    }
-
-    /* Desktop: comfortably centered, distinct from the page backdrop */
-    @media (min-width: 900px) {
-      body { padding: 56px 16px; }
-      .app-shell { max-width: 500px; box-shadow: 0 28px 70px rgba(20,43,69,.20); }
-    }
-
-    /* ── Header bar (colored, overlapped by the white sheet below) ── */
-    .header-bar {
-      width: 100%;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-      padding: 18px 18px 48px;
-      display: flex; align-items: center; gap: 10px;
-      position: relative;
-    }
-    /* Thin Ukrainian-flag stripe along the bottom edge of the header,
-       visible above the overlapping white card */
-    .header-bar::after {
-      content: "";
-      position: absolute; left: 0; right: 0; bottom: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--accent) 50%, var(--accent-yellow) 50%);
-      z-index: 3;
-    }
-    .back-btn {
-      width: 34px; height: 34px; border-radius: 50%;
-      background: rgba(255,255,255,.18);
-      display: flex; align-items: center; justify-content: center;
-      color: #fff; font-size: 16px; font-weight: 800;
-      flex-shrink: 0; border: none; cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: background .15s, transform .1s;
-    }
-    .back-btn:hover  { background: rgba(255,255,255,.28); }
-    .back-btn:active { background: rgba(255,255,255,.32); transform: scale(.92); }
-    .logo-text {
-      font-size: 16px; font-weight: 800; color: #fff;
-      flex: 1; min-width: 0;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .badge-free {
-      margin-left: auto;
-      background: var(--accent-yellow); color: var(--accent-dark);
-      font-size: 11px; font-weight: 800;
-      padding: 5px 12px; border-radius: 20px;
-      flex-shrink: 0;
-      box-shadow: 0 2px 8px rgba(0,0,0,.12);
-    }
-
-    /* ── Loading skeleton ── */
-    .skeleton {
-      display: none;
-      width: 100%;
-      margin: -28px 0 0;
-      background: var(--card);
-      border-radius: 24px 24px 0 0;
+  @media (max-width: 480px) {
+    .app-shell {
+      max-width: 100%;
+      border-radius: 0;
+      border: 0;
       box-shadow: none;
-      padding: 26px 20px 22px;
-      position: relative;
-      z-index: 2;
-    }
-    .skeleton.visible { display: block; }
-    .skel-line {
-      background: linear-gradient(90deg, #DCEBFA 25%, #F2F8FE 50%, #DCEBFA 75%);
-      background-size: 200% 100%;
-      border-radius: 6px; margin-bottom: 10px;
-      animation: shimmer 1.4s infinite;
-    }
-    @keyframes shimmer {
-      0%   { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-    .skel-thumb { width: 64px; height: 64px; border-radius: 10px; flex-shrink: 0; }
-    .skel-row { display: flex; gap: 12px; margin-bottom: 18px; }
-    .skel-lines { flex: 1; }
-
-    /* ── Main card (white sheet overlapping the colored header) ── */
-    .card {
-      width: 100%;
-      margin: -28px 0 0;
-      background: var(--card);
-      border-radius: 24px 24px 0 0;
-      box-shadow: 0 -6px 24px rgba(61,57,41,.08);
-      padding: 24px 18px 18px;
-      animation: slideUp .45s cubic-bezier(.22,.61,.36,1) both;
-      display: none;
-      position: relative;
-      z-index: 2;
-    }
-    .card.visible { display: block; }
-    @keyframes slideUp {
-      from { opacity:0; transform:translateY(18px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-
-    /* ── Course info ── */
-    .course-info {
-      display: flex; gap: 14px;
-      margin-bottom: 16px; padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .course-thumb {
-      width: 68px; height: 68px; border-radius: 12px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px; overflow: hidden;
-      box-shadow: 0 4px 14px rgba(0,61,130,.22);
-    }
-    .course-thumb img { width:100%; height:100%; object-fit:cover; border-radius:12px; }
-    .course-meta { flex:1; min-width:0; }
-    .course-title {
-      font-size: 14.5px; font-weight: 700; color: var(--text);
-      white-space: normal; word-break: break-word; line-height: 1.35;
-      margin-bottom: 7px;
-    }
-    .course-tags { display:flex; gap:6px; flex-wrap:wrap; }
-    .tag {
-      font-size: 11px; font-weight: 700;
-      padding: 3px 9px; border-radius: 6px;
-      background: var(--accent-pale); color: var(--accent-dark);
-    }
-    .tag.free-tag { background: var(--accent); color: #fff; }
-    .course-price { font-size: 12px; font-weight: 700; margin-top: 7px; color: var(--text-muted); }
-    .course-price s { color: #A6A499; font-weight: 500; }
-    .course-price .free { color: var(--accent-yellow-dark); font-size: 14px; margin-left: 4px; }
-
-    /* ── Rating / duration / provider row ── */
-    .course-meta-row {
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-      font-size: 11.5px; font-weight: 600; color: var(--text-muted);
-      margin-top: 9px;
-    }
-    .course-meta-row span { display: flex; align-items: center; gap: 4px; }
-    .course-meta-row .star { color: #E0A030; }
-
-    /* ── Description ── */
-    .course-desc {
-      font-size: 12.5px; line-height: 1.6; color: var(--text-muted);
-      margin: 14px 0;
-    }
-
-    /* ── Feature checklist ── */
-    .feature-list {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px;
-      margin-bottom: 20px;
-    }
-    .feature-item {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 12.5px; font-weight: 600; color: var(--text);
-    }
-    .feature-check {
-      width: 18px; height: 18px; border-radius: 6px;
-      background: var(--accent); color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 800; flex-shrink: 0;
-    }
-
-    /* ── Headline ── */
-    .unlock-headline { text-align: center; margin-bottom: 6px; }
-    .unlock-headline h2 { font-size: 17px; font-weight: 800; color: var(--text); line-height: 1.3; }
-    .unlock-headline p  { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
-
-    /* ── Ad notice ── */
-    .ad-notice {
-      background: var(--accent-pale);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      margin-bottom: 14px;
-      font-size: 12px;
-      color: var(--accent-dark);
-      font-weight: 600;
-      text-align: center;
-      line-height: 1.5;
-    }
-
-    /* ── Progress bar (kept in DOM for JS, hidden — the step cards
-           below already communicate progress) ── */
-    .progress-wrap { display: none; }
-    .progress-bar-bg { flex:1; height:7px; background:var(--border); border-radius:10px; overflow:hidden; }
-    .progress-bar-fill {
+      min-height: 100%;
       height: 100%;
-      background: var(--accent);
-      border-radius: 10px; width: 0%;
-      transition: width .5s ease;
     }
-    .progress-label { font-size:12px; font-weight:700; color:var(--accent-dark); min-width:30px; text-align:right; }
+  }
 
-    /* ── Unlock block: two boxed step cards, stacked on phones and
-           laid side-by-side once there's enough width ── */
-    .steps {
-      display: flex; flex-direction: column; gap: 14px;
-      margin-bottom: 18px;
-    }
-    @media (min-width: 520px) {
-      .steps { flex-direction: row; align-items: stretch; }
-      .step  { flex: 1; }
-    }
+  /* ───────── Header ───────── */
+  .header-bar {
+    min-height: 188px;
+    padding: calc(18px + var(--tg-safe-area-inset-top, 0px)) 18px 82px;
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 82% 18%, rgba(217,106,136,.20), transparent 27%),
+      radial-gradient(circle at 12% 65%, rgba(165,31,70,.28), transparent 35%),
+      linear-gradient(135deg, #240914 0%, #100b0e 56%, #08080a 100%);
+    flex-shrink: 0;
+  }
 
-    .step {
-      display: flex; flex-direction: column; align-items: center;
-      text-align: center;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-card);
-      padding: 18px 14px 16px;
-      transition: opacity .3s, box-shadow .2s, border-color .2s;
-    }
-    .step:not(.locked):not(.done):hover { box-shadow: var(--shadow-lift); }
-    .step.locked { opacity:.55; pointer-events:none; }
-    .step.done   { border-color: var(--accent); background: var(--accent-pale); }
+  .header-bar::before {
+    content: "";
+    position: absolute;
+    width: 230px;
+    height: 230px;
+    right: -100px;
+    top: -105px;
+    border: 1px solid rgba(217,106,136,.18);
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 28px rgba(217,106,136,.025),
+      0 0 0 56px rgba(217,106,136,.018);
+  }
 
-    .step-title { font-size:14.5px; font-weight:800; color:var(--text); margin-top: 10px; }
-    .step.done .step-title { color: var(--accent-dark); }
-    .step-sub   { font-size:11.5px; color:var(--text-muted); margin-top:4px; margin-bottom:14px; line-height:1.4; }
+  .header-bar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--wine-bright), transparent);
+  }
 
-    /* step number / checkmark badge */
-    .step-num {
-      width: 44px; height: 44px; border-radius: 50%;
-      background: var(--accent-pale); color: var(--accent-dark);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; font-weight: 800;
-      position: relative;
-      transition: background .3s, color .3s;
-    }
-    .step.done .step-num { background: var(--accent); color:#fff; }
+  .back-btn {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 50%;
+    background: rgba(255,255,255,.07);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: .2s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
 
-    .step-btn {
-      background: var(--accent);
-      color: #fff; border: none;
-      border-radius: 30px; padding: 11px 22px;
-      font-size: 13px; font-weight: 800;
-      cursor: pointer;
-      width: 100%;
-      transition: background .2s, transform .1s, box-shadow .2s;
-      box-shadow: 0 6px 16px -4px rgba(0,91,187,.45);
-    }
-    .step-btn:hover:not(:disabled)  { background: var(--accent-dark); }
-    .step-btn:active { transform: scale(.96); }
-    .step-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; box-shadow:none; }
-    .step-btn.watching { background: var(--accent-dark); pointer-events: none; }
-    .step-btn.retry { background: #C0392B; }
-    .step-btn.done-mark {
-      background: transparent; color: var(--accent-dark);
-      font-size: 20px; pointer-events: none; padding: 0 12px; box-shadow:none;
-    }
+  .back-btn:hover { background: rgba(255,255,255,.13); transform: translateX(-2px); }
+  .back-btn:active { transform: scale(.92); }
 
-    /* ── Adsgram Task block — sits below the enroll button, styled to
-       match the card system without disturbing any other element ── */
-    adsgram-task.task {
-      display: block;
-      margin-top: 14px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-card);
-      padding: 12px;
-      --adsgram-task-font-size: 14px;
-      --adsgram-task-icon-size: 44px;
-      --adsgram-task-icon-title-gap: 12px;
-      --adsgram-task-icon-border-radius: 10px;
-      --adsgram-task-button-width: 84px;
-    }
+  .logo-text {
+    flex: 1;
+    min-width: 0;
+    padding-top: 8px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: .2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
+  .badge-free {
+    padding: 7px 11px;
+    border: 1px solid rgba(216,173,103,.32);
+    border-radius: 999px;
+    background: rgba(216,173,103,.10);
+    color: #e8c989;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .8px;
+    box-shadow: 0 0 22px rgba(216,173,103,.07);
+    flex-shrink: 0;
+  }
 
-    /* ── Modern accessibility / interaction polish ── */
-    button:focus-visible, a:focus-visible {
-      outline: 3px solid rgba(255,213,0,.95);
-      outline-offset: 3px;
-    }
-    .step {
-      background: linear-gradient(180deg, #FFFFFF 0%, #FAFCFF 100%);
-    }
-    .step::after {
-      content: "";
-      display: block;
-      width: 34px;
-      height: 3px;
-      border-radius: 10px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-yellow));
-      margin-top: 14px;
-      opacity: .55;
-    }
-    .step.done::after { opacity: 1; }
-    .unlock-headline {
-      padding: 4px 6px 2px;
-    }
+  /* ───────── Main sheet ───────── */
+  .card {
+    display: none;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    margin: -58px 0 0;
+    padding: 24px 18px 20px;
+    border-radius: 30px 30px 0 0;
+    background:
+      linear-gradient(180deg, rgba(30,30,35,.99), rgba(16,16,19,.99));
+    border-top: 1px solid rgba(255,255,255,.09);
+    animation: sheetIn .45s cubic-bezier(.22,.61,.36,1) both;
+    flex-shrink: 0;
+  }
 
-    /* ── CTA ── */
-    .cta-btn {
-      width: 100%; padding: 15px; border-radius: 14px; border: none;
-      font-size: 15px; font-weight: 800; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: all .3s;
-    }
-    .cta-btn.locked  { background:var(--border); color:var(--text-muted); cursor:not-allowed; }
-    .cta-btn.unlocked {
-      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-      color: #fff;
-      box-shadow: 0 8px 20px -4px rgba(0,61,130,.5);
-      animation: pulseGlow 2.2s infinite;
-    }
-    .cta-btn.unlocked:hover { filter: brightness(1.06); }
-    @keyframes pulseGlow {
-      0%  { box-shadow: 0 8px 20px -4px rgba(0,61,130,.5), 0 0 0 0   rgba(255,213,0,.55); }
-      60% { box-shadow: 0 8px 20px -4px rgba(0,61,130,.5), 0 0 0 12px rgba(255,213,0,0);  }
-      100%{ box-shadow: 0 8px 20px -4px rgba(0,61,130,.5), 0 0 0 0   rgba(255,213,0,0);   }
-    }
+  .card.visible { display: block; }
 
-    /* ── Latest Courses section ── */
-    .latest-section {
-      width: 100%;
-      padding: 6px 18px 8px;
-      background: var(--bg);
-    }
-    .latest-heading {
-      font-size: 13px; font-weight: 800; color: var(--text);
-      margin-bottom: 10px;
-    }
-    .latest-list { display: flex; flex-direction: column; gap: 8px; }
-    @media (min-width: 640px) {
-      .latest-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    }
-    .latest-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: var(--shadow-card);
-      padding: 10px;
-      display: flex; gap: 10px; align-items: center;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: transform .12s ease, box-shadow .15s ease;
-    }
-    .latest-card:hover   { box-shadow: var(--shadow-lift); }
-    .latest-card:active  { transform: scale(.98); }
-    .latest-thumb {
-      width: 50px; height: 50px; border-radius: 8px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-      flex-shrink: 0; overflow: hidden;
-      display: flex; align-items:center; justify-content:center;
-      font-size: 22px;
-    }
-    .latest-thumb img { width:100%; height:100%; object-fit:cover; }
-    .latest-body { flex: 1; min-width: 0; }
-    .latest-title {
-      font-size: 12.5px; font-weight: 700; color: var(--text); line-height: 1.3;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .latest-tag {
-      display: inline-block; margin-top: 5px;
-      font-size: 10px; font-weight: 700;
-      padding: 2px 7px; border-radius: 5px;
-      background: var(--accent-pale); color: var(--accent-dark);
-    }
+  @keyframes sheetIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-    /* ── WhatsApp Channel button (same style as index.html) ── */
-    .footer-link { padding: 4px 18px 20px; }
-    .whatsapp-btn {
-      display: flex; align-items:center; justify-content:center; gap: 8px;
-      width: 100%;
-      background: var(--accent); color:#fff;
-      font-weight: 800; font-size: 13.5px; letter-spacing: .2px;
-      text-decoration: none;
-      padding: 13px 18px; border-radius: 12px;
-      box-shadow: var(--shadow-card);
-      -webkit-tap-highlight-color: transparent;
-      transition: transform .12s ease, background .15s ease;
-    }
-    .whatsapp-btn:hover   { background: var(--accent-dark); }
-    .whatsapp-btn:active  { transform: scale(.97); }
+  /* ───────── Course hero ───────── */
+  .course-info {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 0 0 19px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
 
-    /* ── Confetti canvas ── */
-    #confetti-canvas {
-      position: fixed; top:0; left:0;
-      width:100%; height:100%;
-      pointer-events: none;
-      z-index: 999;
-      display: none;
-    }
+  .course-thumb {
+    width: 76px;
+    height: 76px;
+    flex: 0 0 76px;
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      linear-gradient(145deg, var(--wine-bright), #390d1c);
+    border: 1px solid rgba(217,106,136,.24);
+    box-shadow: var(--shadow-wine);
+    font-size: 28px;
+  }
 
-    /* ── Success message ── */
-    .success-msg {
-      display: none;
-      text-align: center;
-      margin-top: 14px;
-      padding: 12px 16px;
-      background: var(--step-done-bg);
-      border: 1px solid var(--accent);
-      border-radius: 12px;
-      font-size: 13px; font-weight: 600;
-      color: var(--accent-dark);
-      animation: fadeIn .4s ease;
-    }
-    .success-msg.visible { display: block; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+  .course-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-    @media (max-width:380px) {
-      .card { padding:16px 14px; }
-      .feature-list { grid-template-columns: 1fr; }
-      .step-btn { padding:10px 14px; font-size:12px; }
-      .cta-btn { font-size:14px; padding:13px; }
-      .course-title { font-size:13px; }
-    }
+  .course-meta { min-width: 0; flex: 1; }
 
-    @media (max-height:720px) {
-      body { padding: 10px 12px; }
-      .unlock-headline h2 { font-size:16px; }
-      .unlock-headline p  { font-size:11.5px; margin-top:3px; }
-      .steps { gap:10px; margin-bottom:12px; }
-      .step  { padding:14px 12px; }
+  .course-title {
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.35;
+    font-weight: 800;
+    letter-spacing: -.15px;
+    margin-bottom: 8px;
+  }
+
+  .course-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.055);
+    border: 1px solid var(--border);
+    color: #bdb7ba;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: .25px;
+  }
+
+  .tag.free-tag {
+    background: var(--wine-soft);
+    border-color: rgba(165,31,70,.35);
+    color: #ef9ab0;
+  }
+
+  .course-price {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .course-price s { color: #777175; }
+
+  .course-price .free {
+    margin-left: 4px;
+    color: var(--gold);
+    font-weight: 800;
+  }
+
+  .course-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin-top: 9px;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+
+  .course-meta-row span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .course-meta-row .star { color: var(--gold); }
+
+  /* ───────── Benefits ───────── */
+  .feature-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .feature-item {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(255,255,255,.025);
+    color: #d8d3d5;
+    font-size: 10.5px;
+    line-height: 1.3;
+    font-weight: 650;
+  }
+
+  .feature-check {
+    width: 21px;
+    height: 21px;
+    flex: 0 0 21px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    background: var(--wine-soft);
+    border: 1px solid rgba(165,31,70,.35);
+    color: #e58ba3;
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  /* ───────── Unlock heading ───────── */
+  .unlock-headline {
+    text-align: center;
+    padding: 2px 8px 15px;
+  }
+
+  .unlock-headline h2 {
+    color: #fff;
+    font-size: 19px;
+    line-height: 1.25;
+    font-weight: 900;
+    letter-spacing: -.35px;
+  }
+
+  .unlock-headline h2::after {
+    content: "";
+    display: block;
+    width: 42px;
+    height: 2px;
+    margin: 10px auto 0;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--wine), var(--rose));
+  }
+
+  .unlock-headline p {
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .ad-notice {
+    margin-bottom: 14px;
+    padding: 11px 13px;
+    border: 1px solid rgba(165,31,70,.25);
+    border-radius: 13px;
+    background: linear-gradient(135deg, rgba(165,31,70,.11), rgba(255,255,255,.025));
+    color: #d8cbd0;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.5;
+    font-weight: 650;
+  }
+
+  /* ───────── Progress ───────── */
+  .progress-wrap {
+    margin-bottom: 14px;
+  }
+
+  .progress-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,.08);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--wine-bright), var(--rose));
+    border-radius: 3px;
+    transition: width .4s ease;
+  }
+
+  .progress-label {
+    display: block;
+    text-align: center;
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* ───────── Steps ───────── */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .step {
+    position: relative;
+    min-height: 128px;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: linear-gradient(145deg, rgba(255,255,255,.045), rgba(255,255,255,.018));
+    transition: .25s ease;
+  }
+
+  .step:hover:not(.locked):not(.done) {
+    border-color: rgba(165,31,70,.38);
+    box-shadow: 0 12px 34px rgba(0,0,0,.22);
+    transform: translateY(-1px);
+  }
+
+  .step.locked { opacity: .42; }
+
+  .step.done {
+    border-color: rgba(86,197,150,.30);
+    background: linear-gradient(145deg, rgba(86,197,150,.08), rgba(255,255,255,.02));
+  }
+
+  .step-num {
+    grid-row: 1 / span 2;
+    width: 44px;
+    height: 44px;
+    align-self: center;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--wine-soft);
+    border: 1px solid rgba(165,31,70,.30);
+    color: #e58ba3;
+    font-size: 17px;
+    font-weight: 900;
+  }
+
+  .step.done .step-num {
+    background: rgba(86,197,150,.12);
+    border-color: rgba(86,197,150,.30);
+    color: #78ddb3;
+  }
+
+  .step-title {
+    align-self: end;
+    color: #f6f2f3;
+    font-size: 13px;
+    font-weight: 850;
+  }
+
+  .step-sub {
+    align-self: start;
+    margin-top: 4px;
+    margin-bottom: 9px;
+    color: var(--text-muted);
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .step-btn {
+    grid-column: 2;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(165,31,70,.40);
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--wine-bright), var(--wine));
+    color: #fff;
+    font-size: 11px;
+    font-weight: 850;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(123,23,51,.22);
+    transition: .18s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .step-btn:hover:not(:disabled) {
+    filter: brightness(1.12);
+    box-shadow: 0 10px 25px rgba(165,31,70,.32);
+  }
+
+  .step-btn:active:not(:disabled) { transform: scale(.97); }
+
+  .step-btn:disabled {
+    background: rgba(255,255,255,.06);
+    border-color: var(--border);
+    color: #817b7e;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .step-btn.watching {
+    background: linear-gradient(135deg, #4d1023, #2b0b16);
+    pointer-events: none;
+  }
+
+  /* ───────── CTA ───────── */
+  .cta-btn {
+    width: 100%;
+    min-height: 54px;
+    border: 1px solid transparent;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: .22s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .cta-btn.locked {
+    background: rgba(255,255,255,.055);
+    border-color: var(--border);
+    color: #7d777a;
+    cursor: not-allowed;
+  }
+
+  .cta-btn.unlocked {
+    color: #fff;
+    border-color: rgba(217,106,136,.35);
+    background: linear-gradient(135deg, #a51f46 0%, #741631 100%);
+    box-shadow: 0 13px 32px rgba(123,23,51,.38);
+    animation: winePulse 2.6s infinite;
+  }
+
+  .cta-btn.unlocked:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+  }
+
+  @keyframes winePulse {
+    0%,100% { box-shadow: 0 13px 32px rgba(123,23,51,.34), 0 0 0 0 rgba(165,31,70,.30); }
+    50% { box-shadow: 0 13px 32px rgba(123,23,51,.34), 0 0 0 8px rgba(165,31,70,0); }
+  }
+
+  /* ───────── AdsGram task ───────── */
+  adsgram-task.task {
+    display: block;
+    margin-top: 13px;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: rgba(255,255,255,.025);
+    box-shadow: none;
+    --adsgram-task-font-size: 13px;
+    --adsgram-task-icon-size: 42px;
+    --adsgram-task-icon-title-gap: 11px;
+    --adsgram-task-icon-border-radius: 10px;
+    --adsgram-task-button-width: 82px;
+  }
+
+  .success-msg {
+    display: none;
+    margin-top: 12px;
+    padding: 11px 14px;
+    border: 1px solid rgba(86,197,150,.25);
+    border-radius: 13px;
+    background: rgba(86,197,150,.07);
+    color: #91d9ba;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    animation: fadeIn .35s ease;
+  }
+
+  .success-msg.visible { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ───────── Latest courses ───────── */
+  .latest-section {
+    padding: 19px 18px 8px;
+    background: #111114;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .latest-heading {
+    margin-bottom: 11px;
+    color: #eee9eb;
+    font-size: 12px;
+    font-weight: 850;
+  }
+
+  .latest-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .latest-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: rgba(255,255,255,.025);
+    cursor: pointer;
+    transition: .18s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .latest-card:hover {
+    border-color: rgba(165,31,70,.28);
+    background: rgba(165,31,70,.06);
+  }
+
+  .latest-card:active { transform: scale(.985); }
+
+  .latest-thumb {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    overflow: hidden;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, var(--wine), #310b19);
+    font-size: 20px;
+  }
+
+  .latest-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  .latest-body { min-width: 0; flex: 1; }
+
+  .latest-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    color: #d9d3d5;
+    font-size: 11px;
+    line-height: 1.35;
+    font-weight: 700;
+  }
+
+  .latest-tag {
+    display: inline-block;
+    margin-top: 5px;
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: var(--wine-soft);
+    color: #c98298;
+    font-size: 8.5px;
+    font-weight: 800;
+  }
+
+  /* ───────── Footer ───────── */
+  .footer-link {
+    padding: 10px 18px calc(20px + var(--tg-safe-area-inset-bottom, 0px));
+    background: #111114;
+    flex-shrink: 0;
+  }
+
+  .whatsapp-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 12px;
+    background: rgba(255,255,255,.035);
+    color: #c8c2c5;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 800;
+    transition: .18s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .whatsapp-btn:hover {
+    background: rgba(255,255,255,.065);
+    color: #fff;
+  }
+
+  .whatsapp-btn:active { transform: scale(.98); }
+
+  /* ───────── Skeleton ───────── */
+  .skeleton {
+    display: none;
+    width: 100%;
+    margin: -58px 0 0;
+    padding: 24px 18px;
+    position: relative;
+    z-index: 2;
+    border-radius: 30px 30px 0 0;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .skeleton.visible { display: block; }
+
+  .skel-line {
+    margin-bottom: 10px;
+    border-radius: 7px;
+    background: linear-gradient(90deg, #1d1d21 25%, #29292f 50%, #1d1d21 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .skel-thumb {
+    width: 70px;
+    height: 70px;
+    border-radius: 14px;
+    flex-shrink: 0;
+  }
+
+  .skel-row { display: flex; gap: 12px; margin-bottom: 18px; }
+  .skel-lines { flex: 1; }
+
+  /* ───────── Accessibility ───────── */
+  button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--rose);
+    outline-offset: 3px;
+  }
+
+  @media (min-width: 640px) {
+    body { padding-top: 50px; }
+    .app-shell { max-width: 500px; }
+    .card { padding: 28px 24px 22px; }
+    .latest-section, .footer-link { padding-left: 24px; padding-right: 24px; }
+  }
+
+  @media (max-width: 380px) {
+    .card { padding: 22px 14px 18px; }
+    .feature-list { grid-template-columns: 1fr; }
+    .course-thumb { width: 68px; height: 68px; flex-basis: 68px; }
+    .course-title { font-size: 14px; }
+    .step { padding: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+      scroll-behavior: auto !important;
     }
-  </style>
+  }
+
+  /* Confetti canvas */
+  #confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+  }
+</style>
 </head>
 <body>
 
@@ -706,14 +1027,14 @@
     </div>
 
     <div class="steps">
-      <!-- Step 1: mandatory ad watch — required before Step 2 unlocks -->
+      <!-- Step 1 -->
       <div class="step" id="step-1">
         <div class="step-num" id="num-1">1</div>
         <div class="step-title">Open Ad 1</div>
         <div class="step-sub" id="sub-1">Tap below to open the ad</div>
         <button class="step-btn" id="btn-1" onclick="watchAd(1)">▶️ Open Ad 1</button>
       </div>
-      <!-- Step 2: mandatory ad watch — locked until Step 1 is complete -->
+      <!-- Step 2 -->
       <div class="step locked" id="step-2">
         <div class="step-num" id="num-2">2</div>
         <div class="step-title">Open Ad 2</div>
@@ -734,7 +1055,7 @@
 
   </main>
 
-  <!-- Latest Courses — shows the newest 5 active courses from the catalog -->
+  <!-- Latest Courses -->
   <div class="latest-section" id="latest-section" style="display:none;">
     <div class="latest-heading">🆕 Latest Courses</div>
     <div class="latest-list" id="latest-list"></div>
@@ -749,43 +1070,80 @@
 
 </div>
 
-<!-- Confetti canvas -->
 <canvas id="confetti-canvas"></canvas>
 
 <script>
 // ── Telegram WebApp ─────────────────────────────────────────
 const tg = window.Telegram?.WebApp || null;
-if (tg) {
+
+function initTelegramWebApp() {
+  if (!tg) return;
+  
   tg.ready();
   tg.expand();
-  // منع إغلاق التطبيق عند فتح روابط خارجية
+  
+  // Set colors to match our dark theme
+  try {
+    tg.setHeaderColor('#09090b');
+    tg.setBackgroundColor('#09090b');
+    tg.setBottomBarColor('#09090b');
+  } catch (e) {
+    // Fallback for older versions
+  }
+  
+  // Handle viewport changes (keyboard open/close, etc.)
+  tg.onEvent('viewportChanged', function() {
+    updateViewportVars();
+  });
+  
+  updateViewportVars();
+  
   if (tg.disableClosingConfirmation) tg.disableClosingConfirmation();
 }
 
-// ── Supabase client (publishable/anon key) ────────────────────
+function updateViewportVars() {
+  if (!tg) return;
+  const root = document.documentElement;
+  
+  // Use Telegram's stable height instead of vh
+  const vh = tg.viewportStableHeight || window.innerHeight;
+  root.style.setProperty('--tg-viewport-height', vh + 'px');
+  
+  // Safe area insets
+  if (tg.safeAreaInset) {
+    root.style.setProperty('--tg-safe-area-inset-top', (tg.safeAreaInset.top || 0) + 'px');
+    root.style.setProperty('--tg-safe-area-inset-bottom', (tg.safeAreaInset.bottom || 0) + 'px');
+  }
+  
+  // Content safe area (for notches, dynamic island, etc.)
+  if (tg.contentSafeAreaInset) {
+    root.style.setProperty('--tg-content-safe-area-inset-top', (tg.contentSafeAreaInset.top || 0) + 'px');
+    root.style.setProperty('--tg-content-safe-area-inset-bottom', (tg.contentSafeAreaInset.bottom || 0) + 'px');
+  }
+}
+
+// Initialize immediately
+initTelegramWebApp();
+
+// ── Supabase client ───────────────────────────────────────────
 const SUPABASE_URL = "https://wqnxyxrbtvmasuvdogrg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_63UWVbOlukOiUqsmtfQ9Jw_Go1dV3tt";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Ad / unlock config ────────────────────────────────────────
-// Enrollment now requires watching BOTH ads, one after another:
-// Step 1 unlocks Step 2, and completing Step 2 unlocks the enroll
-// button. Neither step can be skipped.
-const ADSGRAM_INTERSTITIAL_ID_1 = 'int-46433'; // Interstitial — Step 1
-const ADSGRAM_INTERSTITIAL_ID_2 = 'int-46421'; // Interstitial — Step 2
+const ADSGRAM_INTERSTITIAL_ID_1 = 'int-46433';
+const ADSGRAM_INTERSTITIAL_ID_2 = 'int-46421';
 const MAX_BONUS_ADS_PER_DAY = 10;
 const POINTS_PER_AD = 5;
 
 let step1Done   = false;
 let step2Done   = false;
 let adPlaying   = false;
-let adsgramInterstitialCtrl1 = null; // Step 1 — Interstitial controller
-let adsgramInterstitialCtrl2 = null; // Step 2 — Interstitial controller
+let adsgramInterstitialCtrl1 = null;
+let adsgramInterstitialCtrl2 = null;
 
 function getAdsgramInterstitial(stepNum) {
-  const blockId = stepNum === 1
-    ? ADSGRAM_INTERSTITIAL_ID_1
-    : ADSGRAM_INTERSTITIAL_ID_2;
+  const blockId = stepNum === 1 ? ADSGRAM_INTERSTITIAL_ID_1 : ADSGRAM_INTERSTITIAL_ID_2;
 
   if (stepNum === 1 && adsgramInterstitialCtrl1) return adsgramInterstitialCtrl1;
   if (stepNum === 2 && adsgramInterstitialCtrl2) return adsgramInterstitialCtrl2;
@@ -802,11 +1160,6 @@ function getAdsgramInterstitial(stepNum) {
   return null;
 }
 
-// AdsGram Interstitial:
-// According to AdsGram documentation, an Interstitial show() Promise resolves
-// when the ad is viewed to the end OR when the user closes it.
-// It rejects on playback/error/skip conditions. A timeout protects Telegram
-// WebView builds where a no-fill request may leave the Promise pending.
 const AD_TIMEOUT_MS = 12000;
 
 function showAdsgramInterstitial(stepNum) {
@@ -830,17 +1183,12 @@ function showAdsgramInterstitial(stepNum) {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-
-        // AdsGram Interstitial resolves when the user watched the ad
-        // or closed it, as documented for this format.
         resolve('shown');
       })
       .catch((result) => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-
-        // Do not penalize the user when the ad could not be played.
         resolve('no_ad');
       });
   });
@@ -898,7 +1246,6 @@ function loadCourseMeta() {
   if (title) {
     document.getElementById('course-title').textContent = title;
 
-    // ── SEO / social preview — reflect the real course once known ──
     const seoTitle = `${title} — Free Udemy Coupon`;
     const seoDesc  = `Unlock "${title}" for free on Udemy with an exclusive, ` +
       `limited-time coupon. Watch two short ads to get instant access.`;
@@ -936,8 +1283,6 @@ function loadCourseMeta() {
     document.getElementById('free-label').textContent = '🆓 FREE with coupon';
   }
 
-  // Rating / duration / students — only overwrite the placeholder text
-  // when the bot actually sent us a real value.
   if (rating && rating !== '0') {
     document.getElementById('course-rating').textContent = `⭐ ${rating}`;
   }
@@ -953,10 +1298,7 @@ function loadCourseMeta() {
 
 const COURSE_URL = resolveCourseUrl();
 
-// ── Debug logging — always to console; also on-screen if the page is
-//    opened with ?debug=1 appended to the URL. Same helper as index.html;
-//    use it to see whether Telegram is handing us a user object at all,
-//    and whether the RPC call itself succeeds or is rejected. ──────────
+// ── Debug logging ─────────────────────────────────────────────
 const DEBUG = new URLSearchParams(window.location.search).get('debug') === '1';
 function debugLog(...args) {
   console.log('[MiniApp]', ...args);
@@ -975,23 +1317,13 @@ function debugLog(...args) {
   box.appendChild(line);
 }
 
-// ── Register/refresh this visitor in bot_users ──────────────────
-// Calls register_mini_app_visitor() — the same RPC index.html uses —
-// keyed on the visitor's real Telegram chat_id. This is what lets us
-// capture users who land here directly (e.g. tapping "Enroll Now" under
-// a channel post) without ever opening index.html or /start first.
-// chat_id is the table's primary key and the RPC upserts on it, so
-// visiting either page, or both, or /start in the bot — any order, any
-// number of times — still produces exactly one bot_users row, never a
-// duplicate.
+// ── Register visitor ──────────────────────────────────────────
 async function registerVisitor() {
   const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
   debugLog('initDataUnsafe.user =', tgUser || null);
 
   if (!tgUser || !tgUser.id) {
-    debugLog('registerVisitor: SKIPPED — no Telegram user in initData. ' +
-      'This means the page was not opened as a real Telegram Mini App ' +
-      '(check the Mini App URL / menu button setup in @BotFather).');
+    debugLog('registerVisitor: SKIPPED — no Telegram user in initData.');
     return;
   }
 
@@ -1002,7 +1334,7 @@ async function registerVisitor() {
       countryCode = geo.country_code || null;
       countryName = geo.country_name || null;
     }
-  } catch (e) { /* geolocation lookup is best-effort only */ }
+  } catch (e) {}
 
   const { error } = await sb.rpc('register_mini_app_visitor', {
     p_chat_id: tgUser.id,
@@ -1012,9 +1344,6 @@ async function registerVisitor() {
     p_country_name: countryName
   });
 
-  // Previously this result was never checked, so RPC failures (RLS,
-  // missing function, bad params, etc.) were silently swallowed —
-  // nothing was saved AND no error appeared anywhere. Fixed now.
   if (error) {
     console.error('registerVisitor: RPC failed:', error);
     debugLog('registerVisitor: RPC FAILED —', error.message || error);
@@ -1023,9 +1352,7 @@ async function registerVisitor() {
   }
 }
 
-// ── Latest Courses (below the enroll button) ─────────────────────
-// Same base64url payload the catalog (index.html) builds, so tapping a
-// card here reloads this same page with the new course's startapp data.
+// ── Latest Courses ────────────────────────────────────────────
 function b64urlEncode(str) {
   const bytes = new TextEncoder().encode(str);
   let binary = '';
@@ -1070,9 +1397,6 @@ function latestCardHTML(c) {
 
 async function loadLatestCourses() {
   try {
-    // Merged from two independent source tables — presented as one
-    // unified "latest courses" list, never revealing which site a
-    // course originally came from.
     const [r1, r2] = await Promise.all([
       sb.from('courses').select('*').eq('is_active', true)
         .order('created_at', { ascending: false }).limit(5),
@@ -1112,9 +1436,6 @@ function showCard() {
 
 // ══════════════════════════════════════════════════════════════
 //  Mandatory two-Interstitial unlock
-//  Step 1 uses AdsGram Interstitial int-46433.
-//  Step 2 uses AdsGram Interstitial int-46421.
-//  Step 2 becomes available only after Step 1 completes.
 // ══════════════════════════════════════════════════════════════
 function watchAd(stepNum) {
   if (adPlaying) return;
@@ -1136,8 +1457,6 @@ function watchAd(stepNum) {
     if (status === 'shown') {
       completeStep(stepNum);
     } else {
-      // If no ad was available or playback failed, allow the user
-      // to continue rather than trapping them in the Mini App.
       sub.textContent = 'Ad unavailable — you can continue ✓';
       completeStep(stepNum);
     }
@@ -1156,8 +1475,13 @@ function completeStep(stepNum) {
   btn.textContent = '✓ Completed';
   sub.textContent = 'Done ✓';
 
+  // Update progress bar
+  const progressFill = document.getElementById('progress-fill');
+  const progressLabel = document.getElementById('progress-label');
   if (stepNum === 1) {
     step1Done = true;
+    progressFill.style.width = '50%';
+    progressLabel.textContent = 'Step 1 completed — continue to Step 2';
 
     const step2 = document.getElementById('step-2');
     const btn2  = document.getElementById('btn-2');
@@ -1168,6 +1492,8 @@ function completeStep(stepNum) {
       'Tap below to open the second ad';
   } else if (stepNum === 2) {
     step2Done = true;
+    progressFill.style.width = '100%';
+    progressLabel.textContent = 'All steps completed!';
     unlockEnroll();
     launchConfetti();
   }
@@ -1236,15 +1562,18 @@ function launchConfetti() {
   draw();
 }
 
+// Handle window resize for Telegram viewport stability
+window.addEventListener('resize', function() {
+  if (tg) updateViewportVars();
+});
+
 // ══════════════════════════════════════════════════════════════
-//  Bootstrap — no ad SDK is ever called automatically. Course data
-//  loads; Adsgram is only initialized when the user taps an ad button.
+//  Bootstrap
 // ══════════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
   loadCourseMeta();
   registerVisitor();
   loadLatestCourses();
-
   showCard();
 });
 </script>
