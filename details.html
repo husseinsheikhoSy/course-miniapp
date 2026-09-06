@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title id="page-title">Free Udemy Course Access | Daily Udemy Coupons</title>
 
+  <!-- ── SEO / social preview ───────────────────────────────── -->
   <meta name="description" id="meta-description"
         content="Unlock this Udemy course for free with an exclusive, limited-time coupon. Fast, mobile-friendly access — no payment required." />
   <meta name="keywords" content="free udemy course, udemy coupon, udemy free coupon, online course, learn online" />
@@ -248,8 +249,8 @@
 
   /* ───────── Header ───────── */
   .header-bar {
-    min-height: auto;
-    padding: calc(14px + var(--tg-safe-area-inset-top, 0px)) 18px 20px;
+    min-height: 188px;
+    padding: calc(18px + var(--tg-safe-area-inset-top, 0px)) 18px 82px;
     display: flex;
     align-items: flex-start;
     gap: 11px;
@@ -339,9 +340,9 @@
     position: relative;
     z-index: 2;
     width: 100%;
-    margin: -16px 0 0;
-    padding: 20px 18px 20px;
-    border-radius: 24px 24px 0 0;
+    margin: -58px 0 0;
+    padding: 24px 18px 20px;
+    border-radius: 30px 30px 0 0;
     background:
       linear-gradient(180deg, rgba(30,30,35,.99), rgba(16,16,19,.99));
     border-top: 1px solid rgba(255,255,255,.09);
@@ -361,8 +362,8 @@
     display: flex;
     gap: 14px;
     align-items: center;
-    padding: 0 0 16px;
-    margin-bottom: 16px;
+    padding: 0 0 19px;
+    margin-bottom: 18px;
     border-bottom: 1px solid var(--border);
   }
 
@@ -874,11 +875,11 @@
   .skeleton {
     display: none;
     width: 100%;
-    margin: -16px 0 0;
-    padding: 20px 18px;
+    margin: -58px 0 0;
+    padding: 24px 18px;
     position: relative;
     z-index: 2;
-    border-radius: 24px 24px 0 0;
+    border-radius: 30px 30px 0 0;
     background: var(--surface);
     flex-shrink: 0;
   }
@@ -950,6 +951,203 @@
     display: none;
   }
 </style>
+
+<style id="telegram-mini-app-optimization">
+/* =========================================================
+   Telegram Mini App responsive layer
+   Content/JS preserved; this layer only fixes viewport/layout.
+   ========================================================= */
+
+:root {
+  --tg-top-safe: var(--tg-safe-area-inset-top, 0px);
+  --tg-bottom-safe: var(--tg-safe-area-inset-bottom, 0px);
+  --tg-left-safe: var(--tg-safe-area-inset-left, 0px);
+  --tg-right-safe: var(--tg-safe-area-inset-right, 0px);
+  --tg-content-top-safe: var(--tg-content-safe-area-inset-top, 0px);
+  --tg-content-bottom-safe: var(--tg-content-safe-area-inset-bottom, 0px);
+  --tg-content-left-safe: var(--tg-content-safe-area-inset-left, 0px);
+  --tg-content-right-safe: var(--tg-content-safe-area-inset-right, 0px);
+}
+
+/* Telegram WebView owns the viewport. Do not center a fixed-height page. */
+html {
+  width: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  width: 100%;
+  min-width: 0;
+  min-height: 100dvh;
+  height: auto;
+  margin: 0;
+  padding:
+    var(--tg-content-top-safe)
+    max(0px, var(--tg-content-right-safe))
+    calc(var(--tg-content-bottom-safe) + 12px)
+    max(0px, var(--tg-content-left-safe));
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The app fills the Telegram webview instead of using a desktop-only
+   max-height that can clip content on mobile. */
+.app-shell {
+  width: min(100%, 500px);
+  min-width: 0;
+  min-height: 100dvh;
+  height: auto;
+  max-height: none;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Clean, continuous header -> course card transition. */
+.header-bar {
+  min-height: 96px;
+  height: auto;
+  box-sizing: border-box;
+  padding:
+    calc(16px + var(--tg-top-safe))
+    max(16px, calc(16px + var(--tg-left-safe)))
+    18px
+    max(16px, calc(16px + var(--tg-right-safe)));
+  align-items: center;
+}
+
+/* Remove the old artificial overlap that caused the large displacement. */
+.card {
+  width: 100%;
+  margin: 0 !important;
+  box-sizing: border-box;
+  border-radius: 24px 24px 0 0;
+  padding:
+    22px
+    max(18px, calc(18px + var(--tg-content-right-safe)))
+    calc(22px + var(--tg-content-bottom-safe))
+    max(18px, calc(18px + var(--tg-content-left-safe)));
+  min-height: 0;
+}
+
+/* Skeleton must use the same geometry as the real card. */
+#skeleton {
+  margin: 0 !important;
+  box-sizing: border-box;
+  width: 100%;
+  border-radius: 24px 24px 0 0;
+  padding:
+    22px
+    max(18px, calc(18px + var(--tg-content-right-safe)))
+    calc(22px + var(--tg-content-bottom-safe))
+    max(18px, calc(18px + var(--tg-content-left-safe)));
+}
+
+/* Prevent long course titles/URLs from pushing the layout horizontally. */
+.course-meta,
+.course-title,
+.logo-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.course-info {
+  min-width: 0;
+}
+
+/* Touch targets suitable for Telegram mobile clients. */
+.back-btn,
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.back-btn {
+  flex: 0 0 auto;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+/* Avoid iOS zoom caused by small form controls. */
+input,
+select,
+textarea,
+button {
+  font-size: 16px;
+}
+
+/* Compact phones. */
+@media (max-width: 380px) {
+  .header-bar {
+    min-height: 88px;
+    padding:
+      calc(14px + var(--tg-top-safe))
+      14px
+      14px;
+  }
+
+  .card,
+  #skeleton {
+    padding:
+      18px
+      14px
+      calc(20px + var(--tg-content-bottom-safe));
+    border-radius: 22px 22px 0 0;
+  }
+
+  .course-info {
+    gap: 11px;
+  }
+
+  .course-thumb {
+    flex: 0 0 68px;
+    width: 68px;
+    height: 68px;
+  }
+}
+
+/* Tablets / Telegram Desktop: keep a centered readable column without
+   introducing a fixed viewport height. */
+@media (min-width: 501px) {
+  body {
+    padding-top: max(18px, var(--tg-content-top-safe));
+    padding-bottom: max(24px, var(--tg-content-bottom-safe));
+  }
+
+  .app-shell {
+    width: min(500px, calc(100vw - 28px));
+    min-height: 0;
+  }
+
+  .header-bar {
+    min-height: 100px;
+  }
+
+  .card,
+  #skeleton {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+/* When Telegram exposes content safe-area values, keep the app away from
+   them without adding duplicate spacing when values are zero. */
+@supports (height: 100dvh) {
+  .app-shell {
+    min-height: 100dvh;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -1081,12 +1279,16 @@ function initTelegramWebApp() {
   tg.ready();
   tg.expand();
   
+  // Set colors to match our dark theme
   try {
     tg.setHeaderColor('#09090b');
     tg.setBackgroundColor('#09090b');
     tg.setBottomBarColor('#09090b');
-  } catch (e) {}
+  } catch (e) {
+    // Fallback for older versions
+  }
   
+  // Handle viewport changes (keyboard open/close, etc.)
   tg.onEvent('viewportChanged', function() {
     updateViewportVars();
   });
@@ -1100,20 +1302,24 @@ function updateViewportVars() {
   if (!tg) return;
   const root = document.documentElement;
   
+  // Use Telegram's stable height instead of vh
   const vh = tg.viewportStableHeight || window.innerHeight;
   root.style.setProperty('--tg-viewport-height', vh + 'px');
   
+  // Safe area insets
   if (tg.safeAreaInset) {
     root.style.setProperty('--tg-safe-area-inset-top', (tg.safeAreaInset.top || 0) + 'px');
     root.style.setProperty('--tg-safe-area-inset-bottom', (tg.safeAreaInset.bottom || 0) + 'px');
   }
   
+  // Content safe area (for notches, dynamic island, etc.)
   if (tg.contentSafeAreaInset) {
     root.style.setProperty('--tg-content-safe-area-inset-top', (tg.contentSafeAreaInset.top || 0) + 'px');
     root.style.setProperty('--tg-content-safe-area-inset-bottom', (tg.contentSafeAreaInset.bottom || 0) + 'px');
   }
 }
 
+// Initialize immediately
 initTelegramWebApp();
 
 // ── Supabase client ───────────────────────────────────────────
@@ -1466,6 +1672,7 @@ function completeStep(stepNum) {
   btn.textContent = '✓ Completed';
   sub.textContent = 'Done ✓';
 
+  // Update progress bar
   const progressFill = document.getElementById('progress-fill');
   const progressLabel = document.getElementById('progress-label');
   if (stepNum === 1) {
@@ -1522,4 +1729,146 @@ function launchConfetti() {
   canvas.height = window.innerHeight;
 
   const colors = ['#005BBB','#FFD500','#FFFFFF','#003D82','#FFE873','#0077E6'];
-  const pieces = Array.from({length:
+  const pieces = Array.from({length: 90}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    r: Math.random() * 5 + 3,
+    d: Math.random() * 2 + 1,
+    color: colors[Math.floor(Math.random()*colors.length)],
+    tilt: Math.random()*10-5,
+    tiltSpeed: (Math.random()*.07+.03) * (Math.random()<.5?1:-1),
+  }));
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p => {
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.ellipse(p.x, p.y, p.r, p.r*0.4, p.tilt, 0, Math.PI*2);
+      ctx.fill();
+      p.y += p.d + frame/80;
+      p.tilt += p.tiltSpeed;
+      p.x += Math.sin(frame/20) * 0.5;
+      if (p.y > canvas.height) { p.y = -10; p.x = Math.random()*canvas.width; }
+    });
+    frame++;
+    if (frame < 160) requestAnimationFrame(draw);
+    else { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }
+  }
+  draw();
+}
+
+// Handle window resize for Telegram viewport stability
+window.addEventListener('resize', function() {
+  if (tg) updateViewportVars();
+});
+
+// ══════════════════════════════════════════════════════════════
+//  Bootstrap
+// ══════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  loadCourseMeta();
+  registerVisitor();
+  loadLatestCourses();
+  showCard();
+});
+</script>
+
+
+<script id="telegram-mini-app-optimization-js">
+(function () {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg) return;
+
+  try {
+    tg.ready();
+    tg.expand();
+
+    // Keep Telegram's native header/background visually synchronized.
+    if (typeof tg.setHeaderColor === "function") {
+      tg.setHeaderColor("bg_color");
+    }
+    if (typeof tg.setBackgroundColor === "function") {
+      tg.setBackgroundColor("bg_color");
+    }
+
+    // Ask Telegram for the current safe-area and viewport information.
+    if (typeof tg.requestViewport === "function") tg.requestViewport();
+    if (typeof tg.requestSafeArea === "function") tg.requestSafeArea();
+    if (typeof tg.requestContentSafeArea === "function") tg.requestContentSafeArea();
+
+    const root = document.documentElement;
+
+    function setVar(name, value) {
+      if (value === undefined || value === null) return;
+      root.style.setProperty(name, Math.max(0, Number(value) || 0) + "px");
+    }
+
+    function syncSafeArea() {
+      const s = tg.safeAreaInset || {};
+      const c = tg.contentSafeAreaInset || {};
+
+      setVar("--tg-safe-area-inset-top", s.top);
+      setVar("--tg-safe-area-inset-bottom", s.bottom);
+      setVar("--tg-safe-area-inset-left", s.left);
+      setVar("--tg-safe-area-inset-right", s.right);
+
+      setVar("--tg-content-safe-area-inset-top", c.top);
+      setVar("--tg-content-safe-area-inset-bottom", c.bottom);
+      setVar("--tg-content-safe-area-inset-left", c.left);
+      setVar("--tg-content-safe-area-inset-right", c.right);
+    }
+
+    function syncViewport() {
+      if (tg.viewportHeight) {
+        root.style.setProperty("--tg-viewport-height", tg.viewportHeight + "px");
+      }
+      if (tg.viewportStableHeight) {
+        root.style.setProperty("--tg-stable-viewport-height", tg.viewportStableHeight + "px");
+      }
+      syncSafeArea();
+    }
+
+    syncViewport();
+
+    if (typeof tg.onEvent === "function") {
+      tg.onEvent("viewportChanged", syncViewport);
+      tg.onEvent("safeAreaChanged", syncSafeArea);
+      tg.onEvent("contentSafeAreaChanged", syncSafeArea);
+
+      // Theme updates are handled without replacing the app's existing design.
+      tg.onEvent("themeChanged", function () {
+        syncSafeArea();
+      });
+    }
+
+    window.addEventListener("resize", syncViewport, { passive: true });
+    window.addEventListener("orientationchange", function () {
+      setTimeout(syncViewport, 100);
+    }, { passive: true });
+
+    // Native Telegram Back Button support, while preserving the existing
+    // page button if the app has its own navigation logic.
+    const customBack = document.querySelector(".back-btn");
+    if (customBack && typeof tg.BackButton !== "undefined") {
+      tg.BackButton.show();
+      tg.BackButton.onClick(function () {
+        customBack.click();
+      });
+    }
+
+    // Disable Telegram vertical swipe only when supported by the client;
+    // scrolling inside the page remains normal.
+    if (typeof tg.disableVerticalSwipes === "function") {
+      tg.disableVerticalSwipes();
+    }
+  } catch (e) {
+    // Mini App must remain usable in a normal browser too.
+    console.warn("Telegram Mini App initialization:", e);
+  }
+})();
+</script>
+
+</body>
+</html>
