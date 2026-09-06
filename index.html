@@ -258,6 +258,206 @@
     .whatsapp-btn:hover  { background: var(--accent-dark); }
     .whatsapp-btn:active { transform: scale(.97); }
   </style>
+
+<style id="telegram-mini-app-home-optimization">
+:root {
+  --tg-top-safe: var(--tg-safe-area-inset-top, 0px);
+  --tg-bottom-safe: var(--tg-safe-area-inset-bottom, 0px);
+  --tg-left-safe: var(--tg-safe-area-inset-left, 0px);
+  --tg-right-safe: var(--tg-safe-area-inset-right, 0px);
+  --tg-content-top-safe: var(--tg-content-safe-area-inset-top, 0px);
+  --tg-content-bottom-safe: var(--tg-content-safe-area-inset-bottom, 0px);
+  --tg-content-left-safe: var(--tg-content-safe-area-inset-left, 0px);
+  --tg-content-right-safe: var(--tg-content-safe-area-inset-right, 0px);
+}
+
+html {
+  width: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  width: 100%;
+  min-width: 0;
+  min-height: 100dvh;
+  height: auto;
+  margin: 0;
+  padding:
+    var(--tg-content-top-safe)
+    var(--tg-content-right-safe)
+    calc(12px + var(--tg-content-bottom-safe))
+    var(--tg-content-left-safe);
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+.app-shell {
+  width: min(100%, 560px);
+  min-width: 0;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 auto;
+  overflow: visible !important;
+}
+
+.top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-sizing: border-box;
+  padding:
+    calc(12px + var(--tg-top-safe))
+    max(14px, calc(14px + var(--tg-content-right-safe)))
+    14px
+    max(14px, calc(14px + var(--tg-content-left-safe)));
+  min-height: 72px;
+  background: var(--card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.grid {
+  width: 100%;
+  box-sizing: border-box;
+  padding:
+    12px
+    max(12px, var(--tg-content-right-safe))
+    24px
+    max(12px, var(--tg-content-left-safe));
+  gap: 12px;
+}
+
+.course-card,
+adsgram-task.task,
+.skel-card {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.course-body,
+.course-title,
+.top-title,
+.top-sub {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.course-card {
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.course-thumb {
+  flex: 0 0 76px;
+}
+
+.footer-link {
+  padding:
+    4px
+    max(16px, calc(16px + var(--tg-content-right-safe)))
+    calc(20px + var(--tg-content-bottom-safe))
+    max(16px, calc(16px + var(--tg-content-left-safe)));
+}
+
+.whatsapp-btn,
+.retry-btn {
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+@media (max-width: 380px) {
+  .top-bar {
+    min-height: 66px;
+    padding:
+      calc(10px + var(--tg-top-safe))
+      12px
+      12px;
+  }
+
+  .logo-u {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+  }
+
+  .top-title {
+    font-size: 13px;
+  }
+
+  .top-sub {
+    font-size: 10.5px;
+  }
+
+  .count-badge {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .grid {
+    padding: 10px 10px 22px;
+    gap: 10px;
+  }
+
+  .course-card {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .course-thumb {
+    flex-basis: 68px;
+    width: 68px;
+    height: 68px;
+  }
+
+  .course-title {
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 560px) {
+  body {
+    padding-top: max(18px, var(--tg-content-top-safe));
+    padding-bottom: max(24px, var(--tg-content-bottom-safe));
+  }
+
+  .app-shell {
+    width: min(560px, calc(100vw - 28px));
+    border-radius: 20px;
+  }
+
+  .top-bar {
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+@media (min-width: 900px) {
+  .app-shell {
+    width: min(760px, calc(100vw - 48px));
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  adsgram-task.task {
+    grid-column: 1 / -1;
+  }
+}
+</style>
+
 </head>
 <body>
   <div class="app-shell">
@@ -527,5 +727,75 @@
       setTimeout(showWelcomeInterstitialOnce, 800);
     });
   </script>
+
+<script id="telegram-mini-app-home-optimization-js">
+(function () {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg) return;
+
+  try {
+    tg.ready();
+    tg.expand();
+
+    if (typeof tg.setHeaderColor === "function") tg.setHeaderColor("bg_color");
+    if (typeof tg.setBackgroundColor === "function") tg.setBackgroundColor("bg_color");
+
+    if (typeof tg.requestViewport === "function") tg.requestViewport();
+    if (typeof tg.requestSafeArea === "function") tg.requestSafeArea();
+    if (typeof tg.requestContentSafeArea === "function") tg.requestContentSafeArea();
+
+    const root = document.documentElement;
+
+    function setVar(name, value) {
+      if (value === undefined || value === null) return;
+      root.style.setProperty(name, Math.max(0, Number(value) || 0) + "px");
+    }
+
+    function syncSafeArea() {
+      const s = tg.safeAreaInset || {};
+      const c = tg.contentSafeAreaInset || {};
+
+      setVar("--tg-safe-area-inset-top", s.top);
+      setVar("--tg-safe-area-inset-bottom", s.bottom);
+      setVar("--tg-safe-area-inset-left", s.left);
+      setVar("--tg-safe-area-inset-right", s.right);
+
+      setVar("--tg-content-safe-area-inset-top", c.top);
+      setVar("--tg-content-safe-area-inset-bottom", c.bottom);
+      setVar("--tg-content-safe-area-inset-left", c.left);
+      setVar("--tg-content-safe-area-inset-right", c.right);
+    }
+
+    function syncViewport() {
+      if (tg.viewportHeight) {
+        root.style.setProperty("--tg-viewport-height", tg.viewportHeight + "px");
+      }
+      if (tg.viewportStableHeight) {
+        root.style.setProperty("--tg-stable-viewport-height", tg.viewportStableHeight + "px");
+      }
+      syncSafeArea();
+    }
+
+    syncViewport();
+
+    if (typeof tg.onEvent === "function") {
+      tg.onEvent("viewportChanged", syncViewport);
+      tg.onEvent("safeAreaChanged", syncSafeArea);
+      tg.onEvent("contentSafeAreaChanged", syncSafeArea);
+      tg.onEvent("themeChanged", syncSafeArea);
+    }
+
+    window.addEventListener("resize", syncViewport, { passive: true });
+    window.addEventListener("orientationchange", function () {
+      setTimeout(syncViewport, 100);
+    }, { passive: true });
+
+    // Keep native Telegram vertical scrolling/swiping enabled.
+  } catch (e) {
+    console.warn("Telegram Mini App initialization:", e);
+  }
+})();
+</script>
+
 </body>
 </html>
