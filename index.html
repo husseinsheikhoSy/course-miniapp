@@ -27,22 +27,36 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 
-  <!-- ══ Redirect immediately if this launch carries a startapp payload ══
-       Channel post buttons still link to t.me/UdemySybot/Udemy?startapp=...
-       Telegram always opens the Mini App's registered root URL (this file)
-       and forwards startapp as start_param — so we hand off to the
-       single-course detail page before rendering the catalog. -->
+  <!-- Course deep-link routing.
+       Important: Telegram can keep start_param in initData while the Mini App
+       is being restored. Route only on the first active launch, and never
+       use a navigation assignment from visibility/close events. -->
   <script>
     (function () {
       var tg = window.Telegram && window.Telegram.WebApp;
       var qs = new URLSearchParams(window.location.search);
       var startParam =
-        (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) ||
         qs.get('startapp') ||
-        qs.get('tgWebAppStartParam');
-      if (startParam) {
-        window.location.replace('details.html?startapp=' + encodeURIComponent(startParam));
-      }
+        qs.get('tgWebAppStartParam') ||
+        (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param);
+
+      if (!startParam) return;
+
+      try {
+        var key = 'udemy_deeplink_' + startParam;
+        var now = Date.now();
+        var previous = sessionStorage.getItem(key);
+        var previousAt = previous ? Number(previous) : 0;
+
+        // Telegram may restore the root Mini App after closing. Do not
+        // immediately send it back to details in that same WebView session.
+        if (previousAt && (now - previousAt) < 60000) return;
+
+        sessionStorage.setItem(key, String(now));
+      } catch (e) {}
+
+      // replace() keeps the catalog out of the browser back-stack.
+      window.location.replace('details.html?startapp=' + encodeURIComponent(startParam));
     })();
   </script>
 
@@ -56,414 +70,387 @@
   <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 
   <style>
-    /* ══ Ukrainian flag palette (blue + yellow) — shared with details.html ══ */
-    :root {
-      --bg:             #EEF5FC;
-      --card:           #FFFFFF;
-      --text:           #142B45;
-      --text-muted:     #6F8CA8;
-      --border:         #DCEBFA;
-      --accent:         #005BBB;   /* Ukraine blue */
-      --accent-dark:    #003D82;   /* deep blue */
-      --accent-pale:    #E4F1FC;
-      --accent-yellow:  #FFD500;   /* Ukraine yellow */
-      --accent-yellow-dark: #C79A00;
-      --radius-card:    16px;
-      --shadow-card:    0 4px 24px rgba(20,43,69,.10);
-      --shadow-lift:    0 10px 28px rgba(0,61,130,.16);
-    }
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background:
-        radial-gradient(circle at 12% -10%, #EAF3FD 0%, transparent 55%),
-        radial-gradient(circle at 90% 0%, #FFF9DC 0%, transparent 40%),
-        var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-    }
-    .app-shell { width:100%; max-width:560px; margin:0 auto; }
+  :root {
+    --bg: #09090b;
+    --bg-soft: #111114;
+    --surface: #17171b;
+    --surface-2: #1e1e23;
+    --surface-3: #24242a;
+    --text: #f8f5f6;
+    --text-muted: #aaa3a7;
+    --border: rgba(255,255,255,.09);
+    --wine: #7b1733;
+    --wine-bright: #a51f46;
+    --wine-soft: rgba(165,31,70,.14);
+    --wine-glow: rgba(165,31,70,.34);
+    --rose: #d96a88;
+    --gold: #d8ad67;
+    --success: #56c596;
+    --radius-xl: 28px;
+    --radius-lg: 20px;
+    --radius-md: 15px;
+    --shadow: 0 24px 70px rgba(0,0,0,.45);
+    --shadow-wine: 0 14px 38px rgba(123,23,51,.28);
+  }
 
-    /* Desktop/tablet: give the feed some visual separation from the
-       page backdrop instead of running edge-to-edge */
-    @media (min-width: 640px) {
-      body { padding: 28px 16px; }
-      .app-shell {
-        background: var(--card);
-        border-radius: 20px;
-        box-shadow: 0 20px 56px rgba(20,43,69,.14);
-        overflow: hidden;
-      }
-    }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-    /* ── Top bar ── */
-    .top-bar {
-      position: sticky; top:0; z-index:10;
-      background: var(--card);
-      padding: 16px 18px 14px;
-      display: flex; align-items: center; gap: 10px;
-      border-bottom: 1px solid var(--border);
-    }
-    .logo-u {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; font-weight: 800; color: #fff;
-      flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(0,61,130,.25);
-    }
-    .top-title { font-size: 15px; font-weight: 800; }
-    .top-sub   { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
-    .count-badge {
-      margin-left: auto;
-      background: var(--accent-pale); color: var(--accent-dark);
-      font-size: 11px; font-weight: 700;
-      padding: 5px 10px; border-radius: 20px;
-      white-space: nowrap;
-    }
-    /* Thin Ukrainian-flag stripe under the sticky top bar */
-    .top-bar::after {
-      content: "";
-      position: absolute; left:0; right:0; bottom:-1px;
-      height: 3px;
-      background: linear-gradient(90deg, var(--accent) 50%, var(--accent-yellow) 50%);
-    }
+  html {
+    width:100%;
+    min-height:100%;
+    background:var(--bg);
+    overflow-x:hidden;
+    overflow-y:auto;
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+  }
 
-    /* ── Grid — one column on phones, a real multi-column feed once
-       there's enough width ── */
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      padding: 14px 14px 28px;
-    }
-    @media (min-width: 560px) {
-      .grid { grid-template-columns: 1fr 1fr; }
-    }
-    @media (min-width: 900px) {
-      .grid { grid-template-columns: 1fr 1fr 1fr; }
-    }
+  body {
+    font-family:'Inter',sans-serif;
+    width:100%;
+    min-width:0;
+    min-height:100dvh;
+    margin:0;
+    color:var(--text);
+    background:
+      radial-gradient(circle at 50% -15%, rgba(165,31,70,.24), transparent 38%),
+      radial-gradient(circle at 100% 35%, rgba(123,23,51,.12), transparent 30%),
+      linear-gradient(180deg,#08080a 0%,#0d0d10 48%,#08080a 100%);
+    -webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:transparent;
+    overflow-x:hidden;
+    overflow-y:auto;
+  }
 
-    .course-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-card);
-      padding: 12px;
-      display: flex; gap: 12px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: transform .12s ease, box-shadow .15s ease;
-    }
-    .course-card:hover   { box-shadow: var(--shadow-lift); }
-    .course-card:active  { transform: scale(.98); }
+  body::before {
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+    background-size:34px 34px;
+    mask-image:linear-gradient(to bottom,black,transparent 70%);
+    -webkit-mask-image:linear-gradient(to bottom,black,transparent 70%);
+  }
 
-    /* ── Adsgram Task block — styled to sit naturally in the grid,
-       clearly labeled as sponsored via the "reward" slot text below ── */
-    adsgram-task.task {
-      display: block;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-card);
-      padding: 12px;
-      --adsgram-task-font-size: 14px;
-      --adsgram-task-icon-size: 44px;
-      --adsgram-task-icon-title-gap: 12px;
-      --adsgram-task-icon-border-radius: 10px;
-      --adsgram-task-button-width: 84px;
-    }
-    /* On multi-column layouts, keep the sponsored slot from looking
-       orphaned by letting it span the full row */
-    @media (min-width: 560px) {
-      adsgram-task.task { grid-column: 1 / -1; }
-    }
+  .app-shell {
+    width:min(100%,500px);
+    min-width:0;
+    margin:0 auto;
+    min-height:100dvh;
+    background:var(--surface);
+    position:relative;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
 
-    .course-thumb {
-      width: 76px; height: 76px; border-radius: 10px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-      flex-shrink: 0; overflow: hidden;
-      display: flex; align-items:center; justify-content:center;
-      font-size: 30px;
-      box-shadow: 0 4px 12px rgba(0,61,130,.2);
-    }
-    .course-thumb img { width:100%; height:100%; object-fit:cover; }
-
-    .course-body { flex:1; min-width:0; display:flex; flex-direction:column; }
-    .course-title {
-      font-size: 13.5px; font-weight: 700; line-height: 1.3;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .course-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
-    .tag {
-      font-size: 10.5px; font-weight: 700;
-      padding: 2px 7px; border-radius: 5px;
-      background: var(--accent-pale); color: var(--accent-dark);
-    }
-    .tag.left-tag { background: var(--accent-yellow); color:var(--accent-dark); }
-    .course-price { font-size: 11.5px; margin-top: auto; padding-top:6px; color: var(--text-muted); }
-    .course-price s { color:#A6A499; }
-    .course-price .free { color: var(--accent-yellow-dark); font-weight: 800; font-size: 12.5px; margin-left:4px; }
-
-    /* ── Skeleton ── */
-    .skel-card {
-      background: var(--card); border:1px solid var(--border);
-      border-radius: var(--radius-card); padding:12px;
-      display:flex; gap:12px;
-    }
-    .skel-thumb { width:76px; height:76px; border-radius:10px; flex-shrink:0; }
-    .skel-line, .skel-thumb {
-      background: linear-gradient(90deg, #DCEBFA 25%, #F2F8FE 50%, #DCEBFA 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
-      border-radius: 6px;
-    }
-    .skel-lines { flex:1; display:flex; flex-direction:column; gap:8px; justify-content:center; }
-    .skel-line { height: 11px; }
-    .skel-line.w60 { width:60%; }
-    .skel-line.w40 { width:40%; }
-    @keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
-
-    /* ── Empty / error state ── */
-    .empty-state {
-      text-align: center; padding: 60px 24px; color: var(--text-muted);
-      grid-column: 1 / -1;
-    }
-    .empty-state .emoji { font-size: 40px; margin-bottom: 10px; }
-    .empty-state h3 { color: var(--text); font-size: 15px; margin-bottom: 6px; }
-    .empty-state p  { font-size: 12.5px; line-height:1.5; }
-    .retry-btn {
-      margin-top: 14px; background: var(--accent); color:#fff; border:none;
-      padding: 9px 18px; border-radius: 10px; font-weight:700; font-size:13px;
-      cursor:pointer; transition: background .15s;
-    }
-    .retry-btn:hover { background: var(--accent-dark); }
-
-    .footer-link {
-      text-align:center; padding: 4px 20px 26px;
-    }
-    .whatsapp-btn {
-      display: flex; align-items:center; justify-content:center; gap: 8px;
-      width: 100%;
-      background: var(--accent); color:#fff;
-      font-weight: 800; font-size: 13.5px; letter-spacing: .2px;
-      text-decoration: none;
-      padding: 13px 18px; border-radius: 12px;
-      box-shadow: var(--shadow-card);
-      -webkit-tap-highlight-color: transparent;
-      transition: transform .12s ease, background .15s ease;
-    }
-    .whatsapp-btn:hover  { background: var(--accent-dark); }
-    .whatsapp-btn:active { transform: scale(.97); }
-  </style>
-
-<style id="telegram-mini-app-home-optimization">
-:root {
-  --tg-top-safe: var(--tg-safe-area-inset-top, 0px);
-  --tg-bottom-safe: var(--tg-safe-area-inset-bottom, 0px);
-  --tg-left-safe: var(--tg-safe-area-inset-left, 0px);
-  --tg-right-safe: var(--tg-safe-area-inset-right, 0px);
-  --tg-content-top-safe: var(--tg-content-safe-area-inset-top, 0px);
-  --tg-content-bottom-safe: var(--tg-content-safe-area-inset-bottom, 0px);
-  --tg-content-left-safe: var(--tg-content-safe-area-inset-left, 0px);
-  --tg-content-right-safe: var(--tg-content-safe-area-inset-right, 0px);
-}
-
-html {
-  width: 100%;
-  min-height: 100%;
-  min-height: 100dvh;
-  height: auto;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-body {
-  width: 100%;
-  min-width: 0;
-  min-height: 100dvh;
-  height: auto;
-  margin: 0;
-  padding:
-    var(--tg-content-top-safe)
-    var(--tg-content-right-safe)
-    calc(12px + var(--tg-content-bottom-safe))
-    var(--tg-content-left-safe);
-  box-sizing: border-box;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior-y: auto;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-  position: relative;
-}
-
-.app-shell {
-  width: min(100%, 560px);
-  min-width: 0;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  margin: 0 auto;
-  overflow: visible !important;
-}
-
-.top-bar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  box-sizing: border-box;
-  padding:
-    calc(12px + var(--tg-top-safe))
-    max(14px, calc(14px + var(--tg-content-right-safe)))
-    14px
-    max(14px, calc(14px + var(--tg-content-left-safe)));
-  min-height: 72px;
-  background: var(--card);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.grid {
-  width: 100%;
-  box-sizing: border-box;
-  padding:
-    12px
-    max(12px, var(--tg-content-right-safe))
-    24px
-    max(12px, var(--tg-content-left-safe));
-  gap: 12px;
-}
-
-.course-card,
-adsgram-task.task,
-.skel-card {
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-.course-body,
-.course-title,
-.top-title,
-.top-sub {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.course-card {
-  touch-action: manipulation;
-  user-select: none;
-}
-
-.course-thumb {
-  flex: 0 0 76px;
-}
-
-.footer-link {
-  padding:
-    4px
-    max(16px, calc(16px + var(--tg-content-right-safe)))
-    calc(20px + var(--tg-content-bottom-safe))
-    max(16px, calc(16px + var(--tg-content-left-safe)));
-}
-
-.whatsapp-btn,
-.retry-btn {
-  min-height: 44px;
-  touch-action: manipulation;
-}
-
-@media (max-width: 380px) {
+  /* Header follows the exact visual language of details.html */
   .top-bar {
-    min-height: 66px;
+    position:sticky;
+    top:0;
+    z-index:20;
+    min-height:100px;
     padding:
-      calc(10px + var(--tg-top-safe))
-      12px
-      12px;
+      calc(16px + var(--tg-top-safe,0px))
+      max(16px,calc(16px + var(--tg-content-right-safe,0px)))
+      18px
+      max(16px,calc(16px + var(--tg-content-left-safe,0px)));
+    display:flex;
+    align-items:center;
+    gap:11px;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 82% 18%,rgba(217,106,136,.20),transparent 27%),
+      radial-gradient(circle at 12% 65%,rgba(165,31,70,.28),transparent 35%),
+      linear-gradient(135deg,#240914 0%,#100b0e 56%,#08080a 100%);
+    border-bottom:1px solid rgba(255,255,255,.07);
+  }
+
+  .top-bar::before {
+    content:"";
+    position:absolute;
+    width:230px;height:230px;
+    right:-100px;top:-105px;
+    border:1px solid rgba(217,106,136,.18);
+    border-radius:50%;
+    box-shadow:
+      0 0 0 28px rgba(217,106,136,.025),
+      0 0 0 56px rgba(217,106,136,.018);
+    pointer-events:none;
+  }
+
+  .top-bar::after {
+    content:"";
+    position:absolute;
+    left:0;right:0;bottom:0;
+    height:1px;
+    background:linear-gradient(90deg,transparent,var(--wine-bright),transparent);
   }
 
   .logo-u {
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
+    width:40px;height:40px;flex:0 0 40px;
+    border:1px solid rgba(217,106,136,.24);
+    border-radius:13px;
+    background:linear-gradient(145deg,var(--wine-bright),#390d1c);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:20px;font-weight:900;
+    box-shadow:var(--shadow-wine);
   }
 
+  .top-copy { min-width:0; flex:1; position:relative; z-index:1; }
   .top-title {
-    font-size: 13px;
+    color:#fff;
+    font-size:14px;
+    font-weight:900;
+    letter-spacing:.2px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
-
   .top-sub {
-    font-size: 10.5px;
+    margin-top:3px;
+    color:var(--text-muted);
+    font-size:10.5px;
+    font-weight:600;
   }
 
   .count-badge {
-    padding: 4px 8px;
-    font-size: 10px;
+    position:relative;z-index:1;
+    flex-shrink:0;
+    padding:7px 11px;
+    border:1px solid rgba(216,173,103,.32);
+    border-radius:999px;
+    background:rgba(216,173,103,.10);
+    color:#e8c989;
+    font-size:10px;font-weight:900;
+    letter-spacing:.4px;
+    box-shadow:0 0 22px rgba(216,173,103,.07);
   }
 
   .grid {
-    padding: 10px 10px 22px;
-    gap: 10px;
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+    padding:
+      16px
+      max(16px,var(--tg-content-right-safe,0px))
+      calc(22px + var(--tg-content-bottom-safe,0px))
+      max(16px,var(--tg-content-left-safe,0px));
   }
 
   .course-card {
-    padding: 10px;
-    gap: 10px;
+    min-width:0;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    padding:11px;
+    border:1px solid var(--border);
+    border-radius:17px;
+    background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.018));
+    box-shadow:0 8px 24px rgba(0,0,0,.16);
+    cursor:pointer;
+    user-select:none;
+    touch-action:manipulation;
+    transition:transform .18s ease,border-color .2s ease,box-shadow .2s ease,background .2s ease;
   }
+  .course-card:hover {
+    border-color:rgba(165,31,70,.38);
+    box-shadow:0 12px 34px rgba(0,0,0,.25);
+    background:linear-gradient(145deg,rgba(165,31,70,.08),rgba(255,255,255,.018));
+    transform:translateY(-1px);
+  }
+  .course-card:active { transform:scale(.985); }
 
   .course-thumb {
-    flex-basis: 68px;
-    width: 68px;
-    height: 68px;
+    width:76px;height:76px;flex:0 0 76px;
+    overflow:hidden;
+    border-radius:15px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,var(--wine-bright),#390d1c);
+    border:1px solid rgba(217,106,136,.24);
+    box-shadow:var(--shadow-wine);
+    font-size:28px;
   }
+  .course-thumb img { width:100%;height:100%;object-fit:cover; }
 
+  .course-body { flex:1;min-width:0;display:flex;flex-direction:column;align-self:stretch; }
   .course-title {
-    font-size: 13px;
-  }
-}
-
-@media (min-width: 560px) {
-  body {
-    padding-top: max(18px, var(--tg-content-top-safe));
-    padding-bottom: max(24px, var(--tg-content-bottom-safe));
-  }
-
-  .app-shell {
-    width: min(560px, calc(100vw - 28px));
-    border-radius: 20px;
+    color:#f6f2f3;
+    font-size:12.5px;
+    line-height:1.35;
+    font-weight:800;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
   }
 
-  .top-bar {
-    border-radius: 20px 20px 0 0;
+  .course-tags { display:flex;gap:6px;flex-wrap:wrap;margin-top:7px; }
+  .tag {
+    padding:3px 7px;
+    border-radius:999px;
+    background:rgba(255,255,255,.055);
+    border:1px solid var(--border);
+    color:#bdb7ba;
+    font-size:9px;
+    font-weight:800;
   }
-}
-
-@media (min-width: 900px) {
-  .app-shell {
-    width: min(760px, calc(100vw - 48px));
+  .tag.left-tag {
+    background:var(--wine-soft);
+    border-color:rgba(165,31,70,.35);
+    color:#ef9ab0;
   }
 
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .course-price {
+    margin-top:auto;
+    padding-top:7px;
+    color:var(--text-muted);
+    font-size:10px;
+  }
+  .course-price s { color:#777175; }
+  .course-price .free {
+    margin-left:4px;
+    color:var(--gold);
+    font-size:11px;
+    font-weight:900;
   }
 
   adsgram-task.task {
-    grid-column: 1 / -1;
+    display:block;
+    min-width:0;
+    margin:0;
+    padding:11px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:rgba(255,255,255,.025);
+    box-shadow:none;
+    --adsgram-task-font-size:13px;
+    --adsgram-task-icon-size:42px;
+    --adsgram-task-icon-title-gap:11px;
+    --adsgram-task-icon-border-radius:10px;
+    --adsgram-task-button-width:82px;
   }
-}
+  @media (min-width:560px) {
+    .grid { grid-template-columns:1fr 1fr; }
+    adsgram-task.task { grid-column:1 / -1; }
+  }
+
+  .skel-card {
+    display:flex;
+    gap:12px;
+    padding:11px;
+    border:1px solid var(--border);
+    border-radius:17px;
+    background:rgba(255,255,255,.025);
+  }
+  .skel-thumb {
+    width:76px;height:76px;flex:0 0 76px;border-radius:15px;
+  }
+  .skel-line,.skel-thumb {
+    background:linear-gradient(90deg,#1d1d21 25%,#29292f 50%,#1d1d21 75%);
+    background-size:200% 100%;
+    animation:shimmer 1.4s infinite;
+  }
+  .skel-lines { flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center; }
+  .skel-line { height:10px;border-radius:7px; }
+  .skel-line.w60 { width:60%; }
+  .skel-line.w40 { width:40%; }
+  @keyframes shimmer {
+    0%{background-position:200% 0}
+    100%{background-position:-200% 0}
+  }
+
+  .empty-state {
+    grid-column:1/-1;
+    text-align:center;
+    padding:65px 24px;
+    color:var(--text-muted);
+  }
+  .empty-state .emoji { font-size:42px;margin-bottom:12px; }
+  .empty-state h3 { color:#f6f2f3;font-size:15px;margin-bottom:7px;font-weight:850; }
+  .empty-state p { font-size:11px;line-height:1.5; }
+  .retry-btn {
+    margin-top:15px;
+    min-height:44px;
+    padding:9px 18px;
+    border:1px solid rgba(165,31,70,.4);
+    border-radius:11px;
+    background:linear-gradient(135deg,var(--wine-bright),var(--wine));
+    color:#fff;
+    font-size:12px;font-weight:850;
+    cursor:pointer;
+    box-shadow:0 8px 20px rgba(123,23,51,.22);
+    touch-action:manipulation;
+  }
+
+  .footer-link {
+    padding:
+      4px
+      max(16px,calc(16px + var(--tg-content-right-safe,0px)))
+      calc(22px + var(--tg-content-bottom-safe,0px))
+      max(16px,calc(16px + var(--tg-content-left-safe,0px)));
+    background:#111114;
+  }
+  .whatsapp-btn {
+    width:100%;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 16px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:12px;
+    background:rgba(255,255,255,.035);
+    color:#c8c2c5;
+    text-decoration:none;
+    font-size:11px;font-weight:800;
+    transition:.18s ease;
+    touch-action:manipulation;
+  }
+  .whatsapp-btn:hover { background:rgba(255,255,255,.065);color:#fff; }
+  .whatsapp-btn:active { transform:scale(.98); }
+
+  button:focus-visible,a:focus-visible {
+    outline:2px solid var(--rose);
+    outline-offset:3px;
+  }
+
+  @media (max-width:380px) {
+    .top-bar { min-height:88px;padding:calc(14px + var(--tg-top-safe,0px)) 14px 14px; }
+    .logo-u { width:36px;height:36px;flex-basis:36px;border-radius:12px;font-size:18px; }
+    .top-title { font-size:12.5px; }
+    .top-sub { font-size:10px; }
+    .count-badge { padding:6px 9px;font-size:9px; }
+    .grid { padding:12px 12px calc(20px + var(--tg-content-bottom-safe,0px));gap:9px; }
+    .course-card { padding:10px;gap:10px; }
+    .course-thumb { width:68px;height:68px;flex-basis:68px;border-radius:13px; }
+    .course-title { font-size:12px; }
+  }
+
+  @media (min-width:640px) {
+    body { padding:24px 14px 40px; }
+    .app-shell { border-radius:var(--radius-xl);min-height:0; }
+  }
+
+  @media (prefers-reduced-motion:reduce) {
+    *,*::before,*::after {
+      animation-duration:.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;
+      scroll-behavior:auto !important;
+    }
+  }
+
 </style>
+
+
 
 </head>
 <body>
   <div class="app-shell">
     <div class="top-bar">
       <div class="logo-u">U</div>
-      <div>
+      <div class="top-copy">
         <div class="top-title">DAILY UDEMY COUPONS</div>
         <div class="top-sub">Fresh free courses, every day</div>
       </div>
@@ -489,7 +476,17 @@ adsgram-task.task,
 
   <script>
     const tg = window.Telegram && window.Telegram.WebApp;
-    if (tg) { tg.ready(); tg.expand(); }
+    if (tg) {
+      tg.ready();
+      // Do not force viewport expansion repeatedly; Telegram owns the Mini App
+      // window and its native close button.
+      try {
+        if (typeof tg.setHeaderColor === 'function') tg.setHeaderColor('#09090b');
+        if (typeof tg.setBackgroundColor === 'function') tg.setBackgroundColor('#09090b');
+        if (typeof tg.setBottomBarColor === 'function') tg.setBottomBarColor('#09090b');
+        if (typeof tg.disableClosingConfirmation === 'function') tg.disableClosingConfirmation();
+      } catch (e) {}
+    }
 
     // ── Supabase client (publishable/anon key — read-only from here) ──
     const SUPABASE_URL = "https://wqnxyxrbtvmasuvdogrg.supabase.co";
@@ -735,62 +732,33 @@ adsgram-task.task,
 
   try {
     tg.ready();
-    tg.expand();
-
-    if (typeof tg.setHeaderColor === "function") tg.setHeaderColor("bg_color");
-    if (typeof tg.setBackgroundColor === "function") tg.setBackgroundColor("bg_color");
-
-    if (typeof tg.requestViewport === "function") tg.requestViewport();
-    if (typeof tg.requestSafeArea === "function") tg.requestSafeArea();
-    if (typeof tg.requestContentSafeArea === "function") tg.requestContentSafeArea();
 
     const root = document.documentElement;
-
     function setVar(name, value) {
       if (value === undefined || value === null) return;
       root.style.setProperty(name, Math.max(0, Number(value) || 0) + "px");
     }
-
-    function syncSafeArea() {
+    function syncViewport() {
       const s = tg.safeAreaInset || {};
       const c = tg.contentSafeAreaInset || {};
-
       setVar("--tg-safe-area-inset-top", s.top);
       setVar("--tg-safe-area-inset-bottom", s.bottom);
       setVar("--tg-safe-area-inset-left", s.left);
       setVar("--tg-safe-area-inset-right", s.right);
-
       setVar("--tg-content-safe-area-inset-top", c.top);
       setVar("--tg-content-safe-area-inset-bottom", c.bottom);
       setVar("--tg-content-safe-area-inset-left", c.left);
       setVar("--tg-content-safe-area-inset-right", c.right);
     }
-
-    function syncViewport() {
-      if (tg.viewportHeight) {
-        root.style.setProperty("--tg-viewport-height", tg.viewportHeight + "px");
-      }
-      if (tg.viewportStableHeight) {
-        root.style.setProperty("--tg-stable-viewport-height", tg.viewportStableHeight + "px");
-      }
-      syncSafeArea();
-    }
-
     syncViewport();
 
     if (typeof tg.onEvent === "function") {
       tg.onEvent("viewportChanged", syncViewport);
-      tg.onEvent("safeAreaChanged", syncSafeArea);
-      tg.onEvent("contentSafeAreaChanged", syncSafeArea);
-      tg.onEvent("themeChanged", syncSafeArea);
+      tg.onEvent("safeAreaChanged", syncViewport);
+      tg.onEvent("contentSafeAreaChanged", syncViewport);
     }
-
-    window.addEventListener("resize", syncViewport, { passive: true });
-    window.addEventListener("orientationchange", function () {
-      setTimeout(syncViewport, 100);
-    }, { passive: true });
-
-    // Keep native Telegram vertical scrolling/swiping enabled.
+    window.addEventListener("resize", syncViewport, { passive:true });
+    window.addEventListener("orientationchange", () => setTimeout(syncViewport,100), { passive:true });
   } catch (e) {
     console.warn("Telegram Mini App initialization:", e);
   }
