@@ -1312,27 +1312,46 @@ const tg = window.Telegram?.WebApp || null;
 
 function initTelegramWebApp() {
   if (!tg) return;
-  
-  tg.ready();
-  tg.expand();
-  
-  // Set colors to match our dark theme
+
+  // Initialize Telegram exactly once. Repeated expand()/ready() calls can
+  // cause unnecessary viewport state changes while the native WebView is
+  // being closed/reopened.
   try {
-    tg.setHeaderColor('#09090b');
-    tg.setBackgroundColor('#09090b');
-    tg.setBottomBarColor('#09090b');
-  } catch (e) {
-    // Fallback for older versions
-  }
-  
-  // Handle viewport changes (keyboard open/close, etc.)
-  tg.onEvent('viewportChanged', function() {
+    tg.ready();
+
+    // Expand only when needed; never force a second expansion after Telegram
+    // has already settled the Mini App viewport.
+    if (tg.isExpanded === false && typeof tg.expand === 'function') {
+      tg.expand();
+    }
+
+    // The user should be able to close the Mini App normally without a
+    // confirmation dialog.
+    if (typeof tg.disableClosingConfirmation === 'function') {
+      tg.disableClosingConfirmation();
+    }
+
+    // Keep native swipe-to-close/minimize behavior enabled.
+    if (typeof tg.enableVerticalSwipes === 'function') {
+      tg.enableVerticalSwipes();
+    }
+
+    try {
+      tg.setHeaderColor('#09090b');
+      tg.setBackgroundColor('#09090b');
+      if (typeof tg.setBottomBarColor === 'function') {
+        tg.setBottomBarColor('#09090b');
+      }
+    } catch (e) {}
+
+    if (typeof tg.onEvent === 'function') {
+      tg.onEvent('viewportChanged', updateViewportVars);
+    }
+
     updateViewportVars();
-  });
-  
-  updateViewportVars();
-  
-  if (tg.disableClosingConfirmation) tg.disableClosingConfirmation();
+  } catch (e) {
+    console.warn('Telegram Mini App initialization:', e);
+  }
 }
 
 function updateViewportVars() {
@@ -1819,18 +1838,8 @@ window.addEventListener('load', () => {
   if (!tg) return;
 
   try {
-    tg.ready();
-    tg.expand();
-
-    // Keep Telegram's native header/background visually synchronized.
-    if (typeof tg.setHeaderColor === "function") {
-      tg.setHeaderColor("bg_color");
-    }
-    if (typeof tg.setBackgroundColor === "function") {
-      tg.setBackgroundColor("bg_color");
-    }
-
-    // Ask Telegram for the current safe-area and viewport information.
+    // The primary Telegram initialization above owns ready()/expand().
+    // This block only synchronizes safe-area/viewport values.
     if (typeof tg.requestViewport === "function") tg.requestViewport();
     if (typeof tg.requestSafeArea === "function") tg.requestSafeArea();
     if (typeof tg.requestContentSafeArea === "function") tg.requestContentSafeArea();
@@ -1870,14 +1879,10 @@ window.addEventListener('load', () => {
     syncViewport();
 
     if (typeof tg.onEvent === "function") {
-      tg.onEvent("viewportChanged", syncViewport);
       tg.onEvent("safeAreaChanged", syncSafeArea);
       tg.onEvent("contentSafeAreaChanged", syncSafeArea);
-
-      // Theme updates are handled without replacing the app's existing design.
-      tg.onEvent("themeChanged", function () {
-        syncSafeArea();
-      });
+      tg.onEvent("viewportChanged", syncViewport);
+      tg.onEvent("themeChanged", syncSafeArea);
     }
 
     window.addEventListener("resize", syncViewport, { passive: true });
@@ -1901,6 +1906,40 @@ window.addEventListener('load', () => {
     // Mini App must remain usable in a normal browser too.
     console.warn("Telegram Mini App initialization:", e);
   }
+})();
+</script>
+
+<script id="telegram-close-reload-guard">
+(function () {
+  // Telegram owns the Mini App's close lifecycle. Do not react to
+  // visibility/pagehide events by navigating, reloading, expanding, or
+  // restoring the page. Doing so can make the native Close button appear
+  // to reload the Mini App instead of closing it.
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg) return;
+
+  let closing = false;
+
+  if (typeof tg.onEvent === 'function') {
+    tg.onEvent('viewportChanged', function () {
+      // A viewport change during closing/minimizing is normal; never call
+      // expand() from this handler.
+      if (tg.isActive === false) closing = true;
+    });
+  }
+
+  window.addEventListener('pagehide', function () {
+    closing = true;
+  }, { passive: true });
+
+  window.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') closing = true;
+  }, { passive: true });
+
+  // Explicitly expose a safe close helper for any future in-page close UI.
+  window.closeTelegramMiniApp = function () {
+    if (typeof tg.close === 'function') tg.close();
+  };
 })();
 </script>
 
