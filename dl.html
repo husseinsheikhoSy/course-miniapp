@@ -1444,21 +1444,45 @@ function getStartParam() {
   return param;
 }
 
-function b64urlDecode(str) {
+function b64urlDecodeBytes(str) {
   const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
   const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
   const binary = atob(padded);
-  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
-  return new TextDecoder('utf-8').decode(bytes);
+  return Uint8Array.from(binary, c => c.charCodeAt(0));
 }
 
-function decodeFilePayload() {
+function b64urlDecode(str) {
+  return new TextDecoder('utf-8').decode(b64urlDecodeBytes(str));
+}
+
+async function decodeCompressedPayload(encoded) {
+  const compressed = b64urlDecodeBytes(encoded);
+  if (typeof DecompressionStream === 'undefined') return null;
+
+  const stream = new Blob([compressed])
+    .stream()
+    .pipeThrough(new DecompressionStream('deflate'));
+  const buffer = await new Response(stream).arrayBuffer();
+  return new TextDecoder('utf-8').decode(new Uint8Array(buffer));
+}
+
+async function decodeFilePayload() {
   const raw = getStartParam();
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(b64urlDecode(raw));
+    let jsonText;
+    if (raw.indexOf('z_') === 0) {
+      jsonText = await decodeCompressedPayload(raw.slice(2));
+    } else {
+      // Backward compatibility with already-published Pixel links.
+      jsonText = b64urlDecode(raw);
+    }
+    if (!jsonText) return null;
+    const parsed = JSON.parse(jsonText);
     if (parsed && typeof parsed === 'object' && parsed.u) return parsed;
-  } catch (e) {}
+  } catch (e) {
+    console.error('Pixel payload decode failed:', e);
+  }
   return null;
 }
 
@@ -1468,8 +1492,8 @@ function safeText(value) {
   }[ch]));
 }
 
-function loadFileMeta() {
-  fileData = decodeFilePayload();
+async function loadFileMeta() {
+  fileData = await decodeFilePayload();
   if (!fileData) {
     document.getElementById('file-title').textContent = 'File link unavailable';
     document.getElementById('progress-label').textContent = 'Invalid or expired file link.';
@@ -1672,8 +1696,8 @@ function launchConfetti() {
   draw();
 }
 
-window.addEventListener('load', () => {
-  if (loadFileMeta()) {
+window.addEventListener('load', async () => {
+  if (await loadFileMeta()) {
     document.getElementById('skeleton').classList.remove('visible');
     document.getElementById('main-card').classList.add('visible');
     document.getElementById('progress-label').textContent = 'Ready — complete both ad steps to download';
