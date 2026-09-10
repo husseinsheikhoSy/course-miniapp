@@ -42,6 +42,22 @@
 
       if (!startParam) return;
 
+      // ---------------------------------------------------------------
+      // Pixel Mini App deep-link router.
+      // Pixel channel buttons use the Telegram Mini App URL:
+      //   t.me/UdemySybot/Udemy?startapp=px_<base64-payload>
+      // Telegram opens this registered Mini App first and supplies the
+      // start parameter through initDataUnsafe. Route the payload to the
+      // standalone Pixel download page instead of details.html.
+      // ---------------------------------------------------------------
+      if (startParam.indexOf('px_') === 0) {
+        var pixelPayload = startParam.slice(3);
+        if (pixelPayload) {
+          window.location.replace('dl.html?startapp=' + encodeURIComponent(pixelPayload));
+        }
+        return;
+      }
+
       try {
         var key = 'udemy_deeplink_' + startParam;
         var now = Date.now();
