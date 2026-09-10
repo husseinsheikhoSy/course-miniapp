@@ -1432,10 +1432,16 @@ let fileData = null;
 
 function getStartParam() {
   const qs = new URLSearchParams(window.location.search);
-  return qs.get('startapp')
+  let param = qs.get('startapp')
       || qs.get('tgWebAppStartParam')
       || tg?.initDataUnsafe?.start_param
       || null;
+
+  // Defensive support in case the Pixel deep-link prefix reaches dl.html.
+  if (param && param.indexOf('px_') === 0) {
+    param = param.slice(3);
+  }
+  return param;
 }
 
 function b64urlDecode(str) {
