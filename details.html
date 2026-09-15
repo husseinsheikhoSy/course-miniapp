@@ -156,6 +156,7 @@
     --gold: #d8ad67;
     --success: #56c596;
     --danger: #d95368;
+    --warn: #d9822b;
     --radius-xl: 28px;
     --radius-lg: 20px;
     --radius-md: 15px;
@@ -602,6 +603,11 @@
     background: linear-gradient(145deg, rgba(86,197,150,.08), rgba(255,255,255,.02));
   }
 
+  .step.failed {
+    border-color: rgba(217,130,43,.40);
+    background: linear-gradient(145deg, rgba(217,130,43,.10), rgba(255,255,255,.02));
+  }
+
   .step-num {
     grid-row: 1 / span 2;
     width: 44px;
@@ -622,6 +628,12 @@
     background: rgba(86,197,150,.12);
     border-color: rgba(86,197,150,.30);
     color: #78ddb3;
+  }
+
+  .step.failed .step-num {
+    background: rgba(217,130,43,.12);
+    border-color: rgba(217,130,43,.30);
+    color: #f0b273;
   }
 
   .step-title {
@@ -675,6 +687,11 @@
   .step-btn.watching {
     background: linear-gradient(135deg, #4d1023, #2b0b16);
     pointer-events: none;
+  }
+
+  .step-btn.retry {
+    background: linear-gradient(135deg, var(--warn), #a85e18);
+    border-color: rgba(217,130,43,.45);
   }
 
   /* ───────── CTA ───────── */
@@ -1395,7 +1412,9 @@ let adPlaying   = false;
 let adsgramInterstitialCtrl1 = null;
 let adsgramInterstitialCtrl2 = null;
 
-function getAdsgramInterstitial(stepNum) {
+// Cache the controller per step (matches Adsgram's own useAdsgram example:
+// init() once, then call .show() on the same controller each time).
+function getAdsgramController(stepNum) {
   const blockId = stepNum === 1 ? ADSGRAM_INTERSTITIAL_ID_1 : ADSGRAM_INTERSTITIAL_ID_2;
 
   if (stepNum === 1 && adsgramInterstitialCtrl1) return adsgramInterstitialCtrl1;
@@ -1413,38 +1432,17 @@ function getAdsgramInterstitial(stepNum) {
   return null;
 }
 
-const AD_TIMEOUT_MS = 12000;
+function setStepFailedUI(stepNum, message) {
+  const step = document.getElementById('step-' + stepNum);
+  const btn  = document.getElementById('btn-' + stepNum);
+  const sub  = document.getElementById('sub-' + stepNum);
 
-function showAdsgramInterstitial(stepNum) {
-  return new Promise((resolve) => {
-    const ctrl = getAdsgramInterstitial(stepNum);
-    if (!ctrl) {
-      resolve('no_ad');
-      return;
-    }
-
-    let settled = false;
-
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      resolve('no_ad');
-    }, AD_TIMEOUT_MS);
-
-    ctrl.show()
-      .then((result) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        resolve('shown');
-      })
-      .catch((result) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        resolve('no_ad');
-      });
-  });
+  step.classList.add('failed');
+  btn.classList.remove('watching');
+  btn.classList.add('retry');
+  btn.disabled = false;
+  btn.textContent = '↻ Retry';
+  sub.textContent = message;
 }
 
 // ── start_param decode ──────────────────────────────────────────
@@ -1695,25 +1693,46 @@ function watchAd(stepNum) {
   if (stepNum === 1 && step1Done) return;
   if (stepNum === 2 && (!step1Done || step2Done)) return;
 
+  const step = document.getElementById('step-' + stepNum);
+  const btn  = document.getElementById('btn-' + stepNum);
+  const sub  = document.getElementById('sub-' + stepNum);
+
+  step.classList.remove('failed');
+  btn.classList.remove('retry');
+
+  const ctrl = getAdsgramController(stepNum);
+  if (!ctrl) {
+    // SDK itself never loaded (e.g. blocked script) — nothing to retry against.
+    console.warn('Adsgram SDK not available for step', stepNum);
+    setStepFailedUI(stepNum, 'Ad SDK unavailable — try again');
+    return;
+  }
+
   adPlaying = true;
-
-  const btn = document.getElementById('btn-' + stepNum);
-  const sub = document.getElementById('sub-' + stepNum);
-
   btn.classList.add('watching');
+  btn.disabled = true;
   btn.textContent = '⏳ Loading ad…';
+  sub.textContent = 'Loading ad…';
 
-  showAdsgramInterstitial(stepNum).then((status) => {
-    adPlaying = false;
-    btn.classList.remove('watching');
-
-    if (status === 'shown') {
+  // No artificial timeout/race here — rely purely on Adsgram's own
+  // then/catch, exactly as documented (the promise resolves once the
+  // user has watched the ad through or closed it, and rejects on a
+  // real error / no-fill).
+  ctrl.show()
+    .then(() => {
+      adPlaying = false;
       completeStep(stepNum);
-    } else {
-      sub.textContent = 'Ad unavailable — you can continue ✓';
-      completeStep(stepNum);
-    }
-  });
+    })
+    .catch((err) => {
+      // Swallowing this silently is what was hiding the real failure
+      // reason (low fill rate, wrong blockId, network issue, etc).
+      console.warn('Adsgram show() failed for step ' + stepNum + ':', err);
+      adPlaying = false;
+      btn.disabled = false;
+      // Do NOT unlock the step on failure — let the user retry instead,
+      // so the unlock stays tied to an actual ad view.
+      setStepFailedUI(stepNum, 'Ad unavailable right now — tap to retry');
+    });
 }
 
 function completeStep(stepNum) {
@@ -1722,7 +1741,9 @@ function completeStep(stepNum) {
   const sub  = document.getElementById('sub-' + stepNum);
   const num  = document.getElementById('num-' + stepNum);
 
+  step.classList.remove('failed');
   step.classList.add('done');
+  btn.classList.remove('watching', 'retry');
   num.textContent = '✓';
   btn.disabled = true;
   btn.textContent = '✓ Completed';
@@ -1758,7 +1779,12 @@ function unlockEnroll() {
   btn.className = 'cta-btn unlocked';
   btn.innerHTML = '🚀 Enroll Free Now';
   document.getElementById('success-msg').classList.add('visible');
-  document.getElementById('ad-notice').style.display = 'none';
+  // NOTE: there is no #ad-notice element on this page (removed from markup),
+  // so the old unconditional `.style.display = 'none'` call here used to
+  // throw "Cannot set properties of null" every time a user unlocked.
+  // Guard it so future markup changes can't reintroduce that crash.
+  const adNotice = document.getElementById('ad-notice');
+  if (adNotice) adNotice.style.display = 'none';
 }
 
 // ── Enroll ────────────────────────────────────────────────────
