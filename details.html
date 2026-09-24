@@ -1406,6 +1406,15 @@ let adPlaying   = false;
 let adsgramInterstitialCtrl1 = null;
 let adsgramInterstitialCtrl2 = null;
 
+// Per-step retry counter + cap. Adsgram (and Telegram Mini App ad policy
+// generally) says a core action must never be permanently gated behind an
+// ad — if there's simply no fill for this user today, trapping them in an
+// infinite "tap to retry" loop only burns users (and, ultimately, revenue:
+// a user who rage-quits today doesn't come back tomorrow either). After a
+// couple of real attempts come back empty, the step auto-unlocks instead.
+const MAX_AD_ATTEMPTS = 2;
+let stepAttempts = { 1: 0, 2: 0 };
+
 // Cache the controller per step (matches Adsgram's own useAdsgram example:
 // init() once, then call .show() on the same controller each time).
 function getAdsgramController(stepNum) {
@@ -1437,6 +1446,11 @@ function setStepFailedUI(stepNum, message) {
   btn.disabled = false;
   btn.textContent = '↻ Retry';
   sub.textContent = message;
+
+  const attemptsLeft = MAX_AD_ATTEMPTS - (stepAttempts[stepNum] || 0);
+  if (attemptsLeft <= 1) {
+    sub.textContent = message + ' (last try — unlocks automatically after this)';
+  }
 }
 
 // ── start_param decode ──────────────────────────────────────────
@@ -1696,8 +1710,17 @@ function watchAd(stepNum) {
 
   const ctrl = getAdsgramController(stepNum);
   if (!ctrl) {
-    // SDK itself never loaded (e.g. blocked script) — nothing to retry against.
+    // SDK itself never loaded (e.g. blocked script) — nothing to retry
+    // against. Same attempt cap applies here so this can't trap the user
+    // forever either.
     console.warn('Adsgram SDK not available for step', stepNum);
+    stepAttempts[stepNum] = (stepAttempts[stepNum] || 0) + 1;
+    if (stepAttempts[stepNum] >= MAX_AD_ATTEMPTS) {
+      debugLog('watchAd: step ' + stepNum + ' — SDK unavailable after ' +
+        stepAttempts[stepNum] + ' attempts, auto-unlocking.');
+      completeStep(stepNum, { autoUnlocked: true });
+      return;
+    }
     setStepFailedUI(stepNum, 'Ad SDK unavailable — try again');
     return;
   }
@@ -1723,13 +1746,27 @@ function watchAd(stepNum) {
       console.warn('Adsgram show() failed for step ' + stepNum + ':', err);
       adPlaying = false;
       btn.disabled = false;
-      // Do NOT unlock the step on failure — let the user retry instead,
-      // so the unlock stays tied to an actual ad view.
+
+      stepAttempts[stepNum] = (stepAttempts[stepNum] || 0) + 1;
+
+      if (stepAttempts[stepNum] >= MAX_AD_ATTEMPTS) {
+        // No fill after a real retry — this user simply has no ad
+        // inventory available today. Don't leave them stuck forever;
+        // unlock the step so the core action (getting the coupon) still
+        // works. This is the fallback path, not the common path — most
+        // sessions unlock via an actually-watched ad above.
+        debugLog('watchAd: step ' + stepNum + ' — no fill after ' +
+          stepAttempts[stepNum] + ' attempts, auto-unlocking.');
+        completeStep(stepNum, { autoUnlocked: true });
+        return;
+      }
+
       setStepFailedUI(stepNum, 'Ad unavailable right now — tap to retry');
     });
 }
 
-function completeStep(stepNum) {
+function completeStep(stepNum, opts) {
+  const autoUnlocked = !!(opts && opts.autoUnlocked);
   const step = document.getElementById('step-' + stepNum);
   const btn  = document.getElementById('btn-' + stepNum);
   const sub  = document.getElementById('sub-' + stepNum);
@@ -1741,7 +1778,7 @@ function completeStep(stepNum) {
   num.textContent = '✓';
   btn.disabled = true;
   btn.textContent = '✓ Completed';
-  sub.textContent = 'Done ✓';
+  sub.textContent = autoUnlocked ? 'No ad available — unlocked' : 'Done ✓';
 
   // Update progress bar
   const progressFill = document.getElementById('progress-fill');
