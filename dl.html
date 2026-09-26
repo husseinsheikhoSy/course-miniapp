@@ -1445,6 +1445,13 @@ let adexiumInstance = null;
 let adexiumCtrl = null;
 let fileData = null;
 
+// Per-step retry counter + cap. A core action (the download) must never be
+// permanently gated behind an ad — if there's simply no fill for this user
+// today, trapping them in an infinite "tap to retry" loop only burns users.
+// After a couple of real attempts come back empty, the step auto-unlocks.
+const MAX_AD_ATTEMPTS = 2;
+let stepAttempts = { 1: 0, 2: 0 };
+
 function getStartParam() {
   const qs = new URLSearchParams(window.location.search);
   let param = qs.get('startapp')
@@ -1627,8 +1634,17 @@ function watchAd(stepNum) {
 
   const ctrl = stepNum === 1 ? getAdsgramController(1) : getAdexiumController();
   if (!ctrl) {
-    // SDK itself never loaded (e.g. blocked script) — nothing to retry against.
+    // SDK itself never loaded (e.g. blocked script) — nothing to retry
+    // against. Same attempt cap applies here so this can't trap the user
+    // forever either.
     console.warn((stepNum === 1 ? 'Adsgram' : 'Adexium') + ' SDK not available for step', stepNum);
+    stepAttempts[stepNum] = (stepAttempts[stepNum] || 0) + 1;
+    if (stepAttempts[stepNum] >= MAX_AD_ATTEMPTS) {
+      console.warn('watchAd: step ' + stepNum + ' — SDK unavailable after ' +
+        stepAttempts[stepNum] + ' attempts, auto-unlocking.');
+      completeStep(stepNum, { autoUnlocked: true });
+      return;
+    }
     setStepFailedUI(stepNum, 'Ad SDK unavailable — try again');
     return;
   }
@@ -1654,13 +1670,25 @@ function watchAd(stepNum) {
       console.warn((stepNum === 1 ? 'Adsgram' : 'Adexium') + ' show() failed for step ' + stepNum + ':', err);
       adPlaying = false;
       btn.disabled = false;
-      // Do NOT unlock the step on failure — let the user retry instead,
-      // so the unlock stays tied to an actual ad view.
+
+      stepAttempts[stepNum] = (stepAttempts[stepNum] || 0) + 1;
+
+      if (stepAttempts[stepNum] >= MAX_AD_ATTEMPTS) {
+        // No fill after a real retry — this user simply has no ad
+        // inventory available today. Don't leave them stuck forever;
+        // unlock the step so the core action (the download) still works.
+        console.warn('watchAd: step ' + stepNum + ' — no fill after ' +
+          stepAttempts[stepNum] + ' attempts, auto-unlocking.');
+        completeStep(stepNum, { autoUnlocked: true });
+        return;
+      }
+
       setStepFailedUI(stepNum, 'Ad unavailable right now — tap to retry');
     });
 }
 
-function completeStep(stepNum) {
+function completeStep(stepNum, opts) {
+  const autoUnlocked = !!(opts && opts.autoUnlocked);
   const step = document.getElementById('step-' + stepNum);
   const btn = document.getElementById('btn-' + stepNum);
   const sub = document.getElementById('sub-' + stepNum);
@@ -1672,7 +1700,7 @@ function completeStep(stepNum) {
   num.textContent = '✓';
   btn.disabled = true;
   btn.textContent = '✓ Completed';
-  sub.textContent = 'Done ✓';
+  sub.textContent = autoUnlocked ? 'No ad available — unlocked' : 'Done ✓';
 
   const fill = document.getElementById('progress-fill');
   const label = document.getElementById('progress-label');
