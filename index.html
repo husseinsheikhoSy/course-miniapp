@@ -513,22 +513,14 @@
     const countEl = document.getElementById('count-badge');
 
     // ══════════════════════════════════════════════════════════════
-    //  One-time welcome ad — Udemy Reward unit (25863). Shown at most
-    //  ONCE per session: a sessionStorage flag is set the instant we
-    //  attempt to show it, so even rapid re-entry into the page (or a
-    //  slow/failed ad) can't trigger it twice. Purely a monetization
-    //  touch — never blocks browsing or any core action, and failures
-    //  are silently ignored.
-    //
-    //  NOTE: this is the Rewarded format now, not Interstitial. Per
-    //  AdsGram's own docs, a Rewarded unit is meant to be shown after
-    //  the user opts in for a reward (docs.adsgram.ai/publisher/
-    //  reward-interstitial-integration), not auto-triggered on page
-    //  load with nothing granted back — worth revisiting if AdsGram
-    //  ever tightens moderation around unrewarded auto-shows of this
-    //  unit type.
+    //  One-time welcome Interstitial ad — Udemy interstitial unit
+    //  (int-46421). Shown at most ONCE per session: a sessionStorage
+    //  flag is set the instant we attempt to show it, so even rapid
+    //  re-entry into the page (or a slow/failed ad) can't trigger it
+    //  twice. Purely a monetization touch — never blocks browsing or
+    //  any core action, and failures are silently ignored.
     // ══════════════════════════════════════════════════════════════
-    const ADSGRAM_INTERSTITIAL_ID = '25863';
+    const ADSGRAM_INTERSTITIAL_ID = 'int-46421';
     const INTERSTITIAL_SESSION_KEY = 'udemy_interstitial_shown';
     let interstitialCtrl = null;
 
