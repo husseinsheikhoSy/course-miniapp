@@ -128,8 +128,11 @@
   })();
   </script>
 
-  <!-- Adsgram SDK -->
+  <!-- Adsgram SDK (Step 1) -->
   <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+  <!-- Adexium SDK (Step 2) -->
+  <script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
 
   <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -1396,15 +1399,18 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Ad / unlock config ────────────────────────────────────────
 const ADSGRAM_INTERSTITIAL_ID_1 = 'int-46433';
-const ADSGRAM_INTERSTITIAL_ID_2 = 'int-46421';
 const MAX_BONUS_ADS_PER_DAY = 10;
 const POINTS_PER_AD = 5;
+
+// Step 2 now runs on Adexium instead of Adsgram.
+const ADEXIUM_WIDGET_ID = 'ce45e384-0fb7-4198-b3ba-477584913169';
 
 let step1Done   = false;
 let step2Done   = false;
 let adPlaying   = false;
 let adsgramInterstitialCtrl1 = null;
-let adsgramInterstitialCtrl2 = null;
+let adexiumInstance = null;
+let adexiumCtrl = null;
 
 // Per-step retry counter + cap. Adsgram (and Telegram Mini App ad policy
 // generally) says a core action must never be permanently gated behind an
@@ -1417,22 +1423,53 @@ let stepAttempts = { 1: 0, 2: 0 };
 
 // Cache the controller per step (matches Adsgram's own useAdsgram example:
 // init() once, then call .show() on the same controller each time).
+// Step 1 only now — step 2 uses Adexium via getAdexiumController() below.
 function getAdsgramController(stepNum) {
-  const blockId = stepNum === 1 ? ADSGRAM_INTERSTITIAL_ID_1 : ADSGRAM_INTERSTITIAL_ID_2;
+  const blockId = ADSGRAM_INTERSTITIAL_ID_1;
 
-  if (stepNum === 1 && adsgramInterstitialCtrl1) return adsgramInterstitialCtrl1;
-  if (stepNum === 2 && adsgramInterstitialCtrl2) return adsgramInterstitialCtrl2;
+  if (adsgramInterstitialCtrl1) return adsgramInterstitialCtrl1;
 
   if (window.Adsgram && typeof window.Adsgram.init === 'function') {
     const controller = window.Adsgram.init({ blockId });
-
-    if (stepNum === 1) adsgramInterstitialCtrl1 = controller;
-    else adsgramInterstitialCtrl2 = controller;
-
+    adsgramInterstitialCtrl1 = controller;
     return controller;
   }
 
   return null;
+}
+
+// Adexium controller for step 2, wrapped so it exposes the same
+// .show() -> Promise contract watchAd() already relies on for Adsgram.
+function getAdexiumController() {
+  if (adexiumCtrl) return adexiumCtrl;
+  if (!(window.AdexiumWidget)) return null;
+
+  if (!adexiumInstance) {
+    adexiumInstance = new window.AdexiumWidget({
+      wid: ADEXIUM_WIDGET_ID,
+      adFormat: 'interstitial'
+    });
+  }
+
+  adexiumCtrl = {
+    show: function () {
+      return new Promise((resolve, reject) => {
+        const onReceived = (ad) => { adexiumInstance.displayAd(ad); };
+        const onCompleted = () => { cleanup(); resolve(); };
+        const onNoAd = () => { cleanup(); reject(new Error('adexium_no_fill')); };
+        function cleanup() {
+          adexiumInstance.off('adReceived', onReceived);
+          adexiumInstance.off('adPlaybackCompleted', onCompleted);
+          adexiumInstance.off('noAdFound', onNoAd);
+        }
+        adexiumInstance.on('adReceived', onReceived);
+        adexiumInstance.on('adPlaybackCompleted', onCompleted);
+        adexiumInstance.on('noAdFound', onNoAd);
+        adexiumInstance.requestAd('interstitial');
+      });
+    }
+  };
+  return adexiumCtrl;
 }
 
 function setStepFailedUI(stepNum, message) {
@@ -1708,12 +1745,12 @@ function watchAd(stepNum) {
   step.classList.remove('failed');
   btn.classList.remove('retry');
 
-  const ctrl = getAdsgramController(stepNum);
+  const ctrl = stepNum === 1 ? getAdsgramController(1) : getAdexiumController();
   if (!ctrl) {
     // SDK itself never loaded (e.g. blocked script) — nothing to retry
     // against. Same attempt cap applies here so this can't trap the user
     // forever either.
-    console.warn('Adsgram SDK not available for step', stepNum);
+    console.warn((stepNum === 1 ? 'Adsgram' : 'Adexium') + ' SDK not available for step', stepNum);
     stepAttempts[stepNum] = (stepAttempts[stepNum] || 0) + 1;
     if (stepAttempts[stepNum] >= MAX_AD_ATTEMPTS) {
       debugLog('watchAd: step ' + stepNum + ' — SDK unavailable after ' +
@@ -1743,7 +1780,7 @@ function watchAd(stepNum) {
     .catch((err) => {
       // Swallowing this silently is what was hiding the real failure
       // reason (low fill rate, wrong blockId, network issue, etc).
-      console.warn('Adsgram show() failed for step ' + stepNum + ':', err);
+      console.warn((stepNum === 1 ? 'Adsgram' : 'Adexium') + ' show() failed for step ' + stepNum + ':', err);
       adPlaying = false;
       btn.disabled = false;
 
