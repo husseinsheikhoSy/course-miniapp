@@ -1667,7 +1667,10 @@ const CATEGORY_BUCKETS = [
   { id: 'programming', label: 'Programming',
     keywords: ['python','javascript','java','c++','c#','php','sql','golang',' go ','ruby',
                'swift','kotlin','typescript','programming','coding','developer','software development',
-               'react','node','django','flutter','android','ios development'] },
+               'react','node','django','flutter','android','ios development',
+               'mobile development','game development','software testing',
+               'programming languages','no-code development','database design',
+               'software engineering'] },
   { id: 'ai', label: 'AI & ML',
     keywords: ['artificial intelligence',' ai ','chatgpt','machine learning','deep learning',
                'neural network','openai','llm','generative ai','nlp','computer vision'] },
@@ -1683,9 +1686,10 @@ const CATEGORY_BUCKETS = [
   { id: 'design', label: 'Design',
     keywords: ['design','photoshop','illustrator','figma','ui/ux','ui ','ux ','graphic',
                'video editing','3d','animation'] },
-  { id: 'it', label: 'IT & Security',
+  { id: 'it', label: 'IT & Software',
     keywords: ['cyber security','cybersecurity','network','it certification','cloud','aws',
-               'azure','devops','linux','ethical hacking'] },
+               'azure','devops','linux','ethical hacking',
+               'it & software','network & security','hardware','operating system'] },
   { id: 'personal', label: 'Personal Development',
     keywords: ['personal development','productivity','language','language learning',
                'health','fitness','music','photography','teaching'] },
@@ -1697,6 +1701,10 @@ function classifyCategory(rawCategory) {
   for (const bucket of CATEGORY_BUCKETS) {
     if (bucket.keywords.some(kw => c.includes(kw))) return bucket.id;
   }
+  // Fallback: bare top-level "Development" (no sub-category detail)
+  // is only tried after every specific bucket had its chance, so it
+  // never shadows "Web Development" above.
+  if (c.includes('development')) return 'programming';
   return 'other';
 }
 
