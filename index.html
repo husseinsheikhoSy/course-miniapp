@@ -566,7 +566,13 @@
       { id: 'programming', label: 'Programming', emoji: '💻',
         keywords: ['python','javascript','java','c++','c#','php','sql','golang',' go ','ruby',
                    'swift','kotlin','typescript','programming','coding','developer','software development',
-                   'react','node','django','flutter','android','ios development'] },
+                   'react','node','django','flutter','android','ios development',
+                   // Specific real Udemy sub-categories under "Development" — kept
+                   // specific (not the bare word "development") so they never
+                   // shadow "Web Development" below, which must win on its own.
+                   'mobile development','game development','software testing',
+                   'programming languages','no-code development','database design',
+                   'software engineering'] },
       { id: 'ai', label: 'AI & ML', emoji: '🤖',
         keywords: ['artificial intelligence',' ai ','chatgpt','machine learning','deep learning',
                    'neural network','openai','llm','generative ai','nlp','computer vision'] },
@@ -582,9 +588,11 @@
       { id: 'design', label: 'Design', emoji: '🎨',
         keywords: ['design','photoshop','illustrator','figma','ui/ux','ui ','ux ','graphic',
                    'video editing','3d','animation'] },
-      { id: 'it', label: 'IT & Security', emoji: '🛡️',
+      { id: 'it', label: 'IT & Software', emoji: '🛡️',
         keywords: ['cyber security','cybersecurity','network','it certification','cloud','aws',
-                   'azure','devops','linux','ethical hacking'] },
+                   'azure','devops','linux','ethical hacking',
+                   // Udemy's own top-level "IT & Software" category and sub-categories.
+                   'it & software','network & security','hardware','operating system'] },
       { id: 'personal', label: 'Personal Development', emoji: '🌱',
         keywords: ['personal development','productivity','language','language learning',
                    'health','fitness','music','photography','teaching'] },
@@ -600,6 +608,12 @@
       for (const bucket of CATEGORY_BUCKETS) {
         if (bucket.keywords.some(kw => c.includes(kw))) return bucket.id;
       }
+      // Fallback pass: Udemy's bare top-level "Development" category
+      // (with no sub-category detail) would otherwise wrongly shadow
+      // "Web Development" if checked in the main loop above — so it's
+      // only tried here, after every specific bucket already had its
+      // chance to match.
+      if (c.includes('development')) return 'programming';
       return 'other';
     }
 
