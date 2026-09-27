@@ -245,6 +245,44 @@
     box-shadow:0 0 22px rgba(216,173,103,.07);
   }
 
+  /* ── Category filter chips ── */
+  .cat-bar {
+    display:flex;
+    gap:8px;
+    padding:12px 16px 4px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .cat-bar::-webkit-scrollbar { display:none; }
+  .cat-chip {
+    flex:0 0 auto;
+    display:flex;align-items:center;gap:5px;
+    padding:7px 13px;
+    border-radius:999px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text-muted);
+    font-size:11.5px;
+    font-weight:800;
+    white-space:nowrap;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:background .15s,border-color .15s,color .15s,transform .1s;
+  }
+  .cat-chip:active { transform:scale(.95); }
+  .cat-chip.active {
+    background:linear-gradient(135deg,var(--wine-bright),var(--wine));
+    border-color:rgba(217,106,136,.55);
+    color:#fff;
+    box-shadow:0 6px 18px rgba(165,31,70,.32);
+  }
+  .cat-chip .chip-count {
+    font-size:9.5px;
+    font-weight:900;
+    opacity:.7;
+  }
+
   .grid {
     width:100%;
     display:grid;
@@ -473,6 +511,8 @@
       <div class="count-badge" id="count-badge">…</div>
     </div>
 
+    <div class="cat-bar" id="cat-bar" style="display:none;"></div>
+
     <div class="grid" id="grid">
       <!-- skeleton placeholders while loading -->
       <div class="skel-card"><div class="skel-thumb"></div>
@@ -509,18 +549,116 @@
     const SUPABASE_KEY = "sb_publishable_63UWVbOlukOiUqsmtfQ9Jw_Go1dV3tt";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const gridEl  = document.getElementById('grid');
-    const countEl = document.getElementById('count-badge');
+    const gridEl   = document.getElementById('grid');
+    const countEl  = document.getElementById('count-badge');
+    const catBarEl = document.getElementById('cat-bar');
 
     // ══════════════════════════════════════════════════════════════
-    //  One-time welcome Interstitial ad — Udemy interstitial unit
-    //  (int-46421). Shown at most ONCE per session: a sessionStorage
-    //  flag is set the instant we attempt to show it, so even rapid
-    //  re-entry into the page (or a slow/failed ad) can't trigger it
-    //  twice. Purely a monetization touch — never blocks browsing or
-    //  any core action, and failures are silently ignored.
+    //  Category buckets — the scraped `category` field is free text
+    //  straight from Udemy ("Web Development", "Python", "ChatGPT",
+    //  "Microsoft Power BI", ...), way too granular to browse by. We
+    //  bucket it into a handful of broad, recognisable groups instead.
+    //  Order here = display order (falls back to "Other" for anything
+    //  unmatched, and a bucket only renders as a chip if at least one
+    //  loaded course actually falls into it — see renderCatBar()).
     // ══════════════════════════════════════════════════════════════
-    const ADSGRAM_INTERSTITIAL_ID = 'int-46421';
+    const CATEGORY_BUCKETS = [
+      { id: 'programming', label: 'Programming', emoji: '💻',
+        keywords: ['python','javascript','java','c++','c#','php','sql','golang',' go ','ruby',
+                   'swift','kotlin','typescript','programming','coding','developer','software development',
+                   'react','node','django','flutter','android','ios development'] },
+      { id: 'ai', label: 'AI & ML', emoji: '🤖',
+        keywords: ['artificial intelligence',' ai ','chatgpt','machine learning','deep learning',
+                   'neural network','openai','llm','generative ai','nlp','computer vision'] },
+      { id: 'data', label: 'Data & Analytics', emoji: '📊',
+        keywords: ['data science','data analysis','data analytics','power bi','tableau','excel',
+                   'big data','data engineering','statistics','pandas','data visualization'] },
+      { id: 'web', label: 'Web Development', emoji: '🌐',
+        keywords: ['web development','wordpress','html','css','frontend','front-end','backend',
+                   'back-end','full stack','fullstack'] },
+      { id: 'business', label: 'Business & Marketing', emoji: '📈',
+        keywords: ['business','marketing','sales','entrepreneurship','finance','accounting',
+                   'seo','social media','e-commerce','management','excel'] },
+      { id: 'design', label: 'Design', emoji: '🎨',
+        keywords: ['design','photoshop','illustrator','figma','ui/ux','ui ','ux ','graphic',
+                   'video editing','3d','animation'] },
+      { id: 'it', label: 'IT & Security', emoji: '🛡️',
+        keywords: ['cyber security','cybersecurity','network','it certification','cloud','aws',
+                   'azure','devops','linux','ethical hacking'] },
+      { id: 'personal', label: 'Personal Development', emoji: '🌱',
+        keywords: ['personal development','productivity','language','language learning',
+                   'health','fitness','music','photography','teaching'] },
+    ];
+
+    // Classify one course's raw category string into a bucket id.
+    // Falls back to 'other' when nothing matches (still browsable via
+    // the "All" chip, just without its own dedicated chip unless it's
+    // the only thing present).
+    function classifyCategory(rawCategory) {
+      if (!rawCategory || rawCategory === 'N/A') return 'other';
+      const c = ' ' + rawCategory.toLowerCase() + ' ';
+      for (const bucket of CATEGORY_BUCKETS) {
+        if (bucket.keywords.some(kw => c.includes(kw))) return bucket.id;
+      }
+      return 'other';
+    }
+
+    let allCourses = [];        // full loaded set, unfiltered
+    let activeCategory = 'all'; // current chip selection
+
+    function renderCatBar() {
+      // Count courses per bucket so we only show chips that have
+      // something behind them, plus "All" first and "Other" last.
+      const counts = {};
+      allCourses.forEach(c => {
+        const b = classifyCategory(c.category);
+        counts[b] = (counts[b] || 0) + 1;
+      });
+
+      const chips = [{ id: 'all', label: 'All', emoji: '✨', count: allCourses.length }];
+      CATEGORY_BUCKETS.forEach(b => {
+        if (counts[b.id]) chips.push({ id: b.id, label: b.label, emoji: b.emoji, count: counts[b.id] });
+      });
+      if (counts.other) chips.push({ id: 'other', label: 'Other', emoji: '🗂️', count: counts.other });
+
+      // Fewer than 2 real categories present → filtering adds nothing
+      // but clutter, so hide the whole bar.
+      if (chips.length < 3) { catBarEl.style.display = 'none'; return; }
+
+      catBarEl.style.display = 'flex';
+      catBarEl.innerHTML = chips.map(ch => `
+        <div class="cat-chip${ch.id === activeCategory ? ' active' : ''}" data-cat="${ch.id}">
+          <span>${ch.emoji}</span><span>${ch.label}</span>
+          <span class="chip-count">${ch.count}</span>
+        </div>`).join('');
+
+      catBarEl.querySelectorAll('.cat-chip').forEach(el => {
+        el.addEventListener('click', () => {
+          activeCategory = el.dataset.cat;
+          renderCatBar();
+          renderGrid();
+          if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        });
+      });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  One-time welcome ad — Udemy Reward unit (25863). Shown at most
+    //  ONCE per session: a sessionStorage flag is set the instant we
+    //  attempt to show it, so even rapid re-entry into the page (or a
+    //  slow/failed ad) can't trigger it twice. Purely a monetization
+    //  touch — never blocks browsing or any core action, and failures
+    //  are silently ignored.
+    //
+    //  NOTE: this is the Rewarded format now, not Interstitial. Per
+    //  AdsGram's own docs, a Rewarded unit is meant to be shown after
+    //  the user opts in for a reward (docs.adsgram.ai/publisher/
+    //  reward-interstitial-integration), not auto-triggered on page
+    //  load with nothing granted back — worth revisiting if AdsGram
+    //  ever tightens moderation around unrewarded auto-shows of this
+    //  unit type.
+    // ══════════════════════════════════════════════════════════════
+    const ADSGRAM_INTERSTITIAL_ID = '25863';
     const INTERSTITIAL_SESSION_KEY = 'udemy_interstitial_shown';
     let interstitialCtrl = null;
 
@@ -681,6 +819,43 @@
         </div>`;
     }
 
+    // Renders the grid from allCourses, filtered by activeCategory.
+    // Kept separate from loadCourses() so clicking a chip re-renders
+    // instantly from the already-fetched data — no refetch, no flicker.
+    function renderGrid() {
+      const filtered = activeCategory === 'all'
+        ? allCourses
+        : allCourses.filter(c => classifyCategory(c.category) === activeCategory);
+
+      countEl.textContent = activeCategory === 'all'
+        ? allCourses.length + (window.__totalCount > allCourses.length ? '+' : '')
+        : filtered.length;
+
+      if (filtered.length === 0) {
+        renderEmpty('No courses in this category yet',
+          'Try a different category, or check "All" for the full list.');
+        return;
+      }
+
+      // Native Task ad — a single sponsored card mixed naturally into
+      // the grid (after the 4th course). Pure browsing content, so it
+      // never touches any core action — fully compliant with Adsgram's
+      // "no ad required for basic functions" rule.
+      const taskCardHTML =
+        `<adsgram-task data-block-id="task-40716" data-debug="false" class="task"></adsgram-task>`;
+      const cards = filtered.map(courseCardHTML);
+      if (cards.length > 4) cards.splice(4, 0, taskCardHTML);
+      else cards.push(taskCardHTML);
+      gridEl.innerHTML = cards.join('');
+
+      gridEl.querySelectorAll('.course-card').forEach(el => {
+        el.addEventListener('click', () => {
+          const course = filtered.find(c => encodeURIComponent(c.detail_url) === el.dataset.id);
+          if (course) openCourse(course);
+        });
+      });
+    }
+
     async function loadCourses() {
       countEl.textContent = '…';
       try {
@@ -708,25 +883,11 @@
           return;
         }
 
-        countEl.textContent = data.length + (count && count > data.length ? '+' : '');
-
-        // Native Task ad — a single sponsored card mixed naturally into
-        // the grid (after the 4th course). Pure browsing content, so it
-        // never touches any core action — fully compliant with Adsgram's
-        // "no ad required for basic functions" rule.
-        const taskCardHTML =
-          `<adsgram-task data-block-id="task-40716" data-debug="false" class="task"></adsgram-task>`;
-        const cards = data.map(courseCardHTML);
-        if (cards.length > 4) cards.splice(4, 0, taskCardHTML);
-        else cards.push(taskCardHTML);
-        gridEl.innerHTML = cards.join('');
-
-        gridEl.querySelectorAll('.course-card').forEach(el => {
-          el.addEventListener('click', () => {
-            const course = data.find(c => encodeURIComponent(c.detail_url) === el.dataset.id);
-            if (course) openCourse(course);
-          });
-        });
+        allCourses = data;
+        window.__totalCount = count;
+        activeCategory = 'all';
+        renderCatBar();
+        renderGrid();
       } catch (err) {
         console.error(err);
         countEl.textContent = '!';
