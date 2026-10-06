@@ -824,9 +824,10 @@
     try {
       const r = await rpc('miniapp_dashboard', { p_init_data: INIT_DATA });
       if (r && r.ok) { dash = r; rewardsError = false; }
-      else { dash = { ok: false }; rewardsError = !!(r && r.reason !== 'auth'); }
+      else { debugLog('dashboard reply:', r); dash = { ok: false }; rewardsError = !!(r && r.reason !== 'auth'); }
     } catch (e) {
       console.warn('dashboard failed', e);
+      debugLog('dashboard RPC error:', (e && (e.message || e.details || e.hint)) || e);
       rewardsError = true; dash = { ok: false };
     }
     renderHeader();
@@ -873,7 +874,9 @@
       }
     } catch (e) {
       console.warn('claim failed', e);
-      toast('Rewards are not available right now.', true);
+      const detail = (e && (e.message || e.details || e.hint)) || String(e);
+      debugLog('claim RPC error:', detail);
+      toast(DEBUG ? 'Rewards error: ' + detail : 'Rewards are not available right now.', true);
     }
   }
 
