@@ -200,6 +200,13 @@
   }
   .bal-chip svg{width:16px;height:16px;fill:var(--gold)}
   .bal-chip.bump{animation:bump .6s ease}
+
+  .streak-chip{
+    display:none;align-items:center;gap:4px;padding:8px 10px;border-radius:999px;position:relative;z-index:1;
+    border:1px solid rgba(217,130,43,.42);background:rgba(217,130,43,.13);color:#f5b36b;font-weight:800;font-size:13px;
+    font-variant-numeric:tabular-nums;
+  }
+  .streak-chip.show{display:flex}
   @keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.18);box-shadow:0 0 0 6px rgba(216,173,103,.18)}100%{transform:scale(1)}}
 
   /* ───────── Content ───────── */
@@ -395,6 +402,7 @@
       <div class="top-title" id="logo-text">File Download</div>
       <div class="top-sub">100% free download</div>
     </div>
+    <button class="streak-chip" id="streak-chip" aria-label="Daily streak">🔥<span id="streak-n">0</span></button>
     <button class="bal-chip" id="bal-chip" aria-label="Open my wallet">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>
       <span id="bal-n">0</span>
@@ -709,6 +717,43 @@
   }
 
   /* ══════════════════════════════════════════════════════════════
+     Daily streak check-in (miniapp_checkin — once per UTC day, bonus grows daily)
+     ══════════════════════════════════════════════════════════════ */
+  let streakInfo = null;
+  function renderStreak() {
+    const chip = $('streak-chip');
+    if (!chip) return;
+    if (!streakInfo || !streakInfo.streak) { chip.classList.remove('show'); return; }
+    $('streak-n').textContent = streakInfo.streak;
+    chip.title = 'Best streak: ' + streakInfo.best + ' days';
+    chip.classList.add('show');
+  }
+  async function checkIn() {
+    if (!INIT_DATA) return;
+    try {
+      const { data, error } = await sb.rpc('miniapp_checkin', { p_init_data: INIT_DATA });
+      if (error) throw error;
+      if (!data || !data.ok) return;
+      streakInfo = data; renderStreak();
+      if (!data.already) {
+        if (data.bonus > 0) {
+          haptic('ok');
+          toast('🔥 Day ' + data.streak + ' streak! +' + data.bonus + ' bonus points');
+          flyPoints('+' + data.bonus, $('streak-chip'));
+        } else {
+          toast('🔥 Streak started — come back tomorrow for +' + data.next_bonus + ' points');
+        }
+      }
+    } catch (e) { debugLog('checkin failed:', (e && (e.message || e.details)) || e); }
+  }
+  (function () {
+    const chip = $('streak-chip');
+    if (chip) chip.addEventListener('click', () => {
+      if (streakInfo) toast('🔥 ' + streakInfo.streak + '-day streak · come back tomorrow for +' + streakInfo.next_bonus + ' points');
+    });
+  })();
+
+  /* ══════════════════════════════════════════════════════════════
      Two-ad unlock flow
      ══════════════════════════════════════════════════════════════ */
   // stepState: ready | locked | loading | done | failed
@@ -972,7 +1017,7 @@
     renderAll();
     $('skeleton').classList.remove('visible');
     $('main-card').classList.add('visible');
-    if (ok) loadDashboard();
+    if (ok) checkIn().finally(loadDashboard);
   });
 })();
 </script>
