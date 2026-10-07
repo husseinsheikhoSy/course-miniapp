@@ -211,7 +211,7 @@
     position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:52px;
     background:linear-gradient(145deg,var(--wine-bright),#390d1c);border:1px solid rgba(217,106,136,.24);box-shadow:var(--shadow-wine);
   }
-  .hero-media img{width:100%;height:100%;object-fit:cover}
+  .hero-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .hero-badge{
     position:absolute;top:10px;left:10px;padding:6px 11px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.7px;
     color:#2a1a05;background:linear-gradient(135deg,#ecca8f,var(--gold));box-shadow:0 6px 16px rgba(0,0,0,.35);
@@ -666,6 +666,25 @@
   }
   const COURSE_URL = resolveCourseUrl();
 
+  function setThumb(src) {
+    const thumb = $('course-thumb');
+    const im = new Image();
+    im.alt = 'Course preview';
+    im.onload = () => { thumb.textContent = ''; thumb.appendChild(im); };
+    im.onerror = () => { thumb.textContent = '🎓'; };
+    im.src = src;
+    $('og-image').setAttribute('content', src);
+  }
+  // The bot sometimes drops the image from the (size-limited) start_param — look it up by URL instead.
+  async function imageFallback() {
+    try {
+      for (const tbl of ['courses', 'courses_udemyxpert']) {
+        const { data } = await sb.from(tbl).select('image_url').or('udemy_url.eq.' + COURSE_URL + ',detail_url.eq.' + COURSE_URL).limit(1);
+        if (data && data[0] && data[0].image_url) { setThumb(data[0].image_url); return; }
+      }
+    } catch (e) { debugLog('image fallback failed', e); }
+  }
+
   function loadCourseMeta() {
     let title, img, cat, price, left, rating, duration, students;
     if (courseData) {
@@ -694,12 +713,9 @@
     }
     if (img) {
       const thumb = $('course-thumb');
-      const im = new Image();
-      im.alt = 'Course preview'; im.referrerPolicy = 'no-referrer';
-      im.onerror = () => { thumb.textContent = '🎓'; };
-      im.src = img;
-      thumb.textContent = ''; thumb.appendChild(im);
-      $('og-image').setAttribute('content', img);
+      setThumb(img);
+    } else {
+      imageFallback();
     }
     if (cat) $('course-cat').textContent = cat;
     if (price) $('course-price-original').textContent = price;
