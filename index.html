@@ -23,6 +23,7 @@
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23a51f46'/%3E%3Ctext x='50' y='70' font-size='62' font-weight='800' text-anchor='middle' fill='white' font-family='sans-serif'%3EU%3C/text%3E%3C/svg%3E" />
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+  <script src="i18n.js"></script>
 
   <!-- Deep-link routing (unchanged behaviour).
        • px_<payload>            → dl.html (Pixel library)
@@ -513,7 +514,7 @@
   let toastTimer = null;
   function toast(msg, isErr) {
     const el = $('toast');
-    el.textContent = msg;
+    el.textContent = tr(msg);
     el.classList.toggle('err', !!isErr);
     el.classList.add('show');
     clearTimeout(toastTimer);
@@ -651,9 +652,9 @@
      ══════════════════════════════════════════════════════════════ */
   function renderHeader() {
     $('hdr-avatar').innerHTML = avatarHTML(userName, TG_USER && TG_USER.photo_url, '');
-    $('hdr-title').textContent = TG_USER ? 'Hi, ' + userName : 'Daily Udemy Coupons';
+    $('hdr-title').textContent = TG_USER ? tr('Hi, {name}', { name: userName }) : 'Daily Udemy Coupons';
     const n = allCourses.length ? allCourses.length + (window.__totalCount > allCourses.length ? '+' : '') : null;
-    $('hdr-sub').textContent = n ? n + ' free courses live right now' : 'Fresh free courses, every day';
+    $('hdr-sub').textContent = n ? tr('{n} free courses live right now', { n: n }) : tr('Fresh free courses, every day');
     animateNumber($('hdr-bal-n'), total());
     renderGoalStrip();
   }
@@ -674,7 +675,7 @@
   function renderGoalStrip() {
     const g = goal(), t = total();
     $('gs-n').textContent = fmt(t);
-    $('gs-of').textContent = 'of ' + fmt(g) + ' pts to the paid channel';
+    $('gs-of').textContent = tr('of {g} pts to the paid channel', { g: fmt(g) });
     $('gs-bar').style.width = Math.min(100, t / g * 100) + '%';
     const btn = $('gs-watch');
     const capped = dash.ok && dash.ads_today >= dash.ads_cap;
@@ -698,7 +699,7 @@
     catBarEl.style.display = 'flex';
     catBarEl.innerHTML = chips.map(ch => `
       <button class="cat-chip${ch.id === activeCategory ? ' active' : ''}" data-act="cat" data-cat="${esc(ch.id)}">
-        <span>${ch.emoji}</span><span>${esc(ch.label)}</span><span class="chip-count">${ch.count}</span>
+        <span>${ch.emoji}</span><span>${esc(tr(ch.label))}</span><span class="chip-count">${ch.count}</span>
       </button>`).join('');
   }
 
@@ -706,18 +707,18 @@
     gridEl.innerHTML = `
       <div class="empty-state">
         <div class="emoji">🎓</div>
-        <h3>${esc(message)}</h3>
-        <p>${esc(sub)}</p>
-        ${withRetry ? '<button class="btn btn-primary" data-act="retry">Retry</button>' : ''}
+        <h3>${esc(tr(message))}</h3>
+        <p>${esc(tr(sub))}</p>
+        ${withRetry ? '<button class="btn btn-primary" data-act="retry">' + tr('Retry') + '</button>' : ''}
       </div>`;
   }
 
   function courseCardHTML(c, idx) {
     const img = c.image_url ? `<img src="${esc(c.image_url)}" alt="" loading="lazy" onerror="this.parentElement.textContent='🎓'" />` : '🎓';
     const catTag = (c.category && c.category !== 'N/A') ? `<span class="tag">${esc(c.category)}</span>` : '';
-    const leftTag = (c.enrollments_left && !['N/A', '0', ''].includes(c.enrollments_left)) ? `<span class="tag left-tag">🔥 ${esc(c.enrollments_left)} left</span>` : '';
+    const leftTag = (c.enrollments_left && !['N/A', '0', ''].includes(c.enrollments_left)) ? `<span class="tag left-tag">🔥 ${esc(tr('{n} left', { n: c.enrollments_left }))}</span>` : '';
     const rating = (c.rating && !['N/A', '0', ''].includes(String(c.rating))) ? `<span><span class="star">★</span> ${esc(c.rating)}</span>` : '';
-    const students = (c.students && !['N/A', '0', ''].includes(String(c.students))) ? `<span>${esc(c.students)} learners</span>` : '';
+    const students = (c.students && !['N/A', '0', ''].includes(String(c.students))) ? `<span>${esc(tr('{n} learners', { n: c.students }))}</span>` : '';
     const saved = savedSet.has(c.detail_url);
     return `
       <div class="course-card" data-act="course" data-idx="${idx}" role="button" tabindex="0">
@@ -725,9 +726,9 @@
         <div class="course-body">
           <div class="course-title">${esc(c.title)}</div>
           <div class="course-tags">${catTag}${leftTag}</div>
-          <div class="course-foot">${rating}${students}<span class="free">FREE</span></div>
+          <div class="course-foot">${rating}${students}<span class="free">${tr('FREE')}</span></div>
         </div>
-        <button class="heart${saved ? ' on' : ''}" data-act="save" data-idx="${idx}" aria-label="${saved ? 'Remove from saved' : 'Save course'}" aria-pressed="${saved}">
+        <button class="heart${saved ? ' on' : ''}" data-act="save" data-idx="${idx}" aria-label="${saved ? tr('Remove from saved') : tr('Save course')}" aria-pressed="${saved}">
           <svg class="ico" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3 5.5 6.2 5.5c2 0 3.2 1 3.8 2 .6-1 1.8-2 3.8-2 3.2 0 5 3.1 3.7 6.3C19.5 16.4 12 21 12 21z"/></svg>
         </button>
       </div>`;
@@ -749,7 +750,7 @@
   }
 
   async function loadCourses() {
-    $('hdr-sub').textContent = 'Loading courses…';
+    $('hdr-sub').textContent = tr('Loading courses…');
     try {
       // Merged from two independent source tables — the catalog is one unified feed.
       const [r1, r2] = await Promise.all([
@@ -779,7 +780,7 @@
       renderHeader();
     } catch (err) {
       console.error(err);
-      $('hdr-sub').textContent = 'Could not load courses';
+      $('hdr-sub').textContent = tr('Could not load courses');
       renderEmpty('Could not load courses', 'Check your connection and try again.', true);
     }
   }
@@ -869,14 +870,14 @@
           ad_points: (dash.ad_points || 0) + r.awarded });
         haptic('ok');
         flyPoints('+' + r.awarded, srcEl);
-        toast(r.unlocked ? '🏆 10,000 reached! Check your chat with the bot for your invite.' : '+' + r.awarded + ' points added');
+        toast(r.unlocked ? '🏆 10,000 reached! Check your chat with the bot for your invite.' : tr('+{n} points added', { n: r.awarded }));
         renderHeader();
         if (currentTab === 'earn') renderEarn();
       } else if (r && r.reason === 'cap') {
-        toast('Daily ad limit reached (' + r.ads_today + '/' + r.cap + '). Come back tomorrow!', true);
+        toast(tr('Daily ad limit reached ({a}/{c}). Come back tomorrow!', { a: r.ads_today, c: r.cap }), true);
         loadDashboard();
       } else if (r && r.reason === 'cooldown') {
-        toast('Almost there — wait ' + (r.retry_in || 20) + 's before the next ad.', true);
+        toast(tr('Almost there — wait {s}s before the next ad.', { s: r.retry_in || 20 }), true);
       } else {
         toast('Could not add points. Reopen the app from the bot.', true);
       }
@@ -935,7 +936,7 @@
   function shareInvite() {
     const link = inviteLink();
     if (!link) { toast('Open this app inside Telegram to get your link.', true); return; }
-    openTg('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('🎓 Free Udemy courses every day — join me and earn rewards!'));
+    openTg('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(tr('🎓 Free Udemy courses every day — join me and earn rewards!')));
   }
   async function copyInvite() {
     const link = inviteLink();
@@ -978,22 +979,22 @@
         <div class="pass-main">
           <div class="ring">
             <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="46"/><circle class="bar" id="ring-bar" cx="50" cy="50" r="46"/></svg>
-            <div class="ring-c"><b id="ring-n" data-v="0">0</b><span>of ${fmt(g)}</span></div>
+            <div class="ring-c"><b id="ring-n" data-v="0">0</b><span>${tr('of {g}', { g: fmt(g) })}</span></div>
           </div>
           <div class="pass-copy">
-            <div class="k">Paid channel pass</div>
-            <h2>${unlocked ? 'Unlocked — enjoy the paid channel' : fmt(g) + ' points unlock it free'}</h2>
+            <div class="k">${tr('Paid channel pass')}</div>
+            <h2>${unlocked ? tr('Unlocked — enjoy the paid channel') : tr('{g} points unlock it free', { g: fmt(g) })}</h2>
             <p>${unlocked
-              ? 'Your invite link was sent to your chat with the bot.'
-              : '<b>' + fmt(left) + ' points to go.</b> Learning worth up to $10,000, on us.'}</p>
+              ? tr('Your invite link was sent to your chat with the bot.')
+              : tr('<b>{n} points to go.</b> Learning worth up to $10,000, on us.', { n: fmt(left) })}</p>
           </div>
         </div>
-        ${unlocked ? `<div class="pass-win"><button class="btn btn-gold btn-block" data-act="openbot" data-start="rewards">${I.chat}Open my chat with the bot</button></div>` : ''}
+        ${unlocked ? `<div class="pass-win"><button class="btn btn-gold btn-block" data-act="openbot" data-start="rewards">${I.chat}${tr('Open my chat with the bot')}</button></div>` : ''}
         <div class="pass-perf"></div>
         <div class="pass-foot">
-          <div class="mini"><b>${fmt(adP)}</b><span>From ads</span></div>
-          <div class="mini"><b>${fmt(rfP)}</b><span>From invites</span></div>
-          <div class="mini"><b>${fmt(chP)}</b><span>From quizzes</span></div>
+          <div class="mini"><b>${fmt(adP)}</b><span>${tr('From ads')}</span></div>
+          <div class="mini"><b>${fmt(rfP)}</b><span>${tr('From invites')}</span></div>
+          <div class="mini"><b>${fmt(chP)}</b><span>${tr('From quizzes')}</span></div>
         </div>
       </div>`;
   }
@@ -1006,20 +1007,20 @@
     const capped = ok && used >= cap;
 
     let guest = '';
-    if (!INIT_DATA) guest = '<div class="guest">You are browsing outside Telegram. Open this app from <b>@' + BOT_USERNAME + '</b> to collect and track your points.</div>';
-    else if (rewardsError) guest = '<div class="guest">Rewards are warming up. Pull this page again in a moment — your points are safe.</div>';
+    if (!INIT_DATA) guest = '<div class="guest">' + tr('You are browsing outside Telegram. Open this app from <b>@{bot}</b> to collect and track your points.', { bot: BOT_USERNAME }) + '</div>';
+    else if (rewardsError) guest = '<div class="guest">' + tr('Rewards are warming up. Pull this page again in a moment — your points are safe.') + '</div>';
 
     let pips = '';
     for (let i = 0; i < cap; i++) pips += '<i class="' + (i < used ? 'on' : '') + '"></i>';
 
     const chDone = ok && dash.challenge_done;
     const challengeBody = chDone
-      ? `<div class="done-badge">${I.check}${dash.challenge_correct ? 'Correct today — +' + chReward + ' earned' : 'Answered today — new quiz tomorrow'}</div>`
-      : `<button class="btn btn-primary btn-block" data-act="openbot" data-start="challenge">${I.quiz}Play today's quiz</button>`;
+      ? `<div class="done-badge">${I.check}${dash.challenge_correct ? tr('Correct today — +{n} earned', { n: chReward }) : tr('Answered today — new quiz tomorrow')}</div>`
+      : `<button class="btn btn-primary btn-block" data-act="openbot" data-start="challenge">${I.quiz}${tr("Play today's quiz")}</button>`;
 
     el.innerHTML = `
-      <h2 class="h2">Your wallet</h2>
-      <p class="sub">Three ways to earn. Reach ${fmt(goal())} points for a free paid-channel membership.</p>
+      <h2 class="h2">${tr('Your wallet')}</h2>
+      <p class="sub">${tr('Three ways to earn. Reach {g} points for a free paid-channel membership.', { g: fmt(goal()) })}</p>
       <div style="height:12px"></div>
       ${passCard()}
       ${guest}
@@ -1027,41 +1028,41 @@
         <div class="earn-card">
           <div class="earn-head">
             <div class="earn-ico">${I.tv}</div>
-            <div><div class="earn-title">Watch ads</div><div class="earn-sub">Each completed ad adds points</div></div>
+            <div><div class="earn-title">${tr('Watch ads')}</div><div class="earn-sub">${tr('Each completed ad adds points')}</div></div>
             <span class="pts">+${adReward}</span>
           </div>
           <div class="earn-body">
             <div class="pips" aria-label="${used} of ${cap} ads watched today">${pips}</div>
-            <div class="note"><b>${used}/${cap}</b> today · resets at midnight UTC</div>
-            <button class="btn btn-primary btn-block" data-act="watch" ${capped ? 'disabled' : ''}>${I.play}${capped ? 'Come back tomorrow' : 'Watch ad · +' + adReward}</button>
+            <div class="note">${tr('<b>{u}/{c}</b> today · resets at midnight UTC', { u: used, c: cap })}</div>
+            <button class="btn btn-primary btn-block" data-act="watch" ${capped ? 'disabled' : ''}>${I.play}${capped ? tr('Come back tomorrow') : tr('Watch ad · +{n}', { n: adReward })}</button>
           </div>
         </div>
 
         <div class="earn-card">
           <div class="earn-head">
             <div class="earn-ico">${I.users}</div>
-            <div><div class="earn-title">Invite friends</div><div class="earn-sub">${ok ? fmt(dash.invited) + ' joined through your link' : 'For every new person who joins'}</div></div>
+            <div><div class="earn-title">${tr('Invite friends')}</div><div class="earn-sub">${ok ? tr('{n} joined through your link', { n: fmt(dash.invited) }) : tr('For every new person who joins')}</div></div>
             <span class="pts">+${refReward}</span>
           </div>
           <div class="earn-body">
             <div class="row-btns">
-              <button class="btn btn-primary" data-act="share">${I.share}Share link</button>
-              <button class="btn btn-ghost" data-act="copy">${I.copy}Copy</button>
+              <button class="btn btn-primary" data-act="share">${I.share}${tr('Share link')}</button>
+              <button class="btn btn-ghost" data-act="copy">${I.copy}${tr('Copy')}</button>
             </div>
-            <div class="note">Only brand-new users count, and each friend is credited once.</div>
+            <div class="note">${tr('Only brand-new users count, and each friend is credited once.')}</div>
           </div>
         </div>
 
         <div class="earn-card">
           <div class="earn-head">
             <div class="earn-ico">${I.quiz}</div>
-            <div><div class="earn-title">Daily challenge</div><div class="earn-sub">One question a day, answered in the bot</div></div>
+            <div><div class="earn-title">${tr('Daily challenge')}</div><div class="earn-sub">${tr('One question a day, answered in the bot')}</div></div>
             <span class="pts">+${chReward}</span>
           </div>
           <div class="earn-body">${challengeBody}</div>
         </div>
       </div>
-      <p class="note" style="margin-top:14px;text-align:center">Courses always unlock for free — points are a bonus on top.</p>`;
+      <p class="note" style="margin-top:14px;text-align:center">${tr('Courses always unlock for free — points are a bonus on top.')}</p>`;
     paintRing();
   }
 
@@ -1083,16 +1084,16 @@
     if (!board) {
       body = '<div class="board">' + '<div class="skel-card"><div class="skel-thumb" style="width:40px;height:40px;flex-basis:40px"></div><div class="skel-lines"><div class="skel-line w60"></div></div></div>'.repeat(5) + '</div>';
     } else if (!board.ok) {
-      body = '<div class="empty-state"><div class="emoji">🏆</div><h3>Leaderboard is warming up</h3><p>Check back in a moment.</p><button class="btn btn-primary" data-act="retryboard">Retry</button></div>';
+      body = '<div class="empty-state"><div class="emoji">🏆</div><h3>' + tr('Leaderboard is warming up') + '</h3><p>' + tr('Check back in a moment.') + '</p><button class="btn btn-primary" data-act="retryboard">' + tr('Retry') + '</button></div>';
     } else if (!board.top.length) {
-      body = '<div class="empty-state"><div class="emoji">🏆</div><h3>No one is on the board yet</h3><p>Watch an ad, invite a friend or play the daily quiz to take the first spot.</p><button class="btn btn-primary" data-act="tab" data-tab="earn">Start earning</button></div>';
+      body = '<div class="empty-state"><div class="emoji">🏆</div><h3>' + tr('No one is on the board yet') + '</h3><p>' + tr('Watch an ad, invite a friend or play the daily quiz to take the first spot.') + '</p><button class="btn btn-primary" data-act="tab" data-tab="earn">' + tr('Start earning') + '</button></div>';
     } else {
       const rows = board.top.map(r => `
         <div class="lb-row${r.me ? ' me' : ''}">
           <div class="lb-rank">${r.rank <= 3 ? ['🥇','🥈','🥉'][r.rank - 1] : r.rank}</div>
           ${avatarHTML(r.name, r.me && TG_USER && TG_USER.photo_url, 'sm')}
-          <div class="lb-name">${esc(r.name)}${r.me ? ' <small>You</small>' : ''}</div>
-          <div class="lb-pts">${fmt(r.points)}<small>pts</small></div>
+          <div class="lb-name">${esc(r.name)}${r.me ? ' <small>' + tr('You') + '</small>' : ''}</div>
+          <div class="lb-pts">${fmt(r.points)}<small>${tr('pts')}</small></div>
         </div>`).join('');
       let mine = '';
       if (board.me && !board.top.some(r => r.me)) {
@@ -1100,26 +1101,26 @@
           <div class="lb-row me">
             <div class="lb-rank">${board.me.rank}</div>
             ${avatarHTML(userName, TG_USER && TG_USER.photo_url, 'sm')}
-            <div class="lb-name">${esc(userName)} <small>You</small></div>
-            <div class="lb-pts">${fmt(board.me.points)}<small>pts</small></div>
+            <div class="lb-name">${esc(userName)} <small>${tr('You')}</small></div>
+            <div class="lb-pts">${fmt(board.me.points)}<small>${tr('pts')}</small></div>
           </div>`;
       } else if (!board.me && INIT_DATA) {
-        mine = '<p class="note" style="margin-top:12px;text-align:center">Earn your first points to join the board.</p>';
+        mine = '<p class="note" style="margin-top:12px;text-align:center">' + tr('Earn your first points to join the board.') + '</p>';
       }
       body = '<div class="board">' + rows + mine + '</div>';
     }
     el.innerHTML = `
-      <h2 class="h2">Leaderboard</h2>
-      <p class="sub">${board && board.ok ? fmt(board.participants) + ' learners are collecting points.' : 'Top learners and their points.'}</p>
+      <h2 class="h2">${tr('Leaderboard')}</h2>
+      <p class="sub">${board && board.ok ? tr('{n} learners are collecting points.', { n: fmt(board.participants) }) : tr('Top learners and their points.')}</p>
       <div style="height:12px"></div>
       <div class="prize">
         <div class="trophy">${I.trophy}</div>
-        <div><b>${fmt(g)} points = free paid-channel membership</b>
-        <span>Everyone who reaches it gets the invite automatically in their chat with the bot. Up to $10,000 of learning, on us.</span></div>
+        <div><b>${tr('{g} points = free paid-channel membership', { g: fmt(g) })}</b>
+        <span>${tr('Everyone who reaches it gets the invite automatically in their chat with the bot. Up to $10,000 of learning, on us.')}</span></div>
       </div>
       ${body}
       <div style="height:16px"></div>
-      <button class="btn btn-ghost btn-block" data-act="openbot" data-start="contact">${I.chat}Contact the owner</button>`;
+      <button class="btn btn-ghost btn-block" data-act="openbot" data-start="contact">${I.chat}${tr('Contact the owner')}</button>`;
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -1147,7 +1148,7 @@
   async function renderMe() {
     const el = $('view-me');
     const ok = dash.ok;
-    const uname = TG_USER && TG_USER.username ? '@' + TG_USER.username : (TG_USER ? 'Telegram learner' : 'Not signed in');
+    const uname = TG_USER && TG_USER.username ? '@' + TG_USER.username : (TG_USER ? tr('Telegram learner') : tr('Not signed in'));
     const rank = ok && dash.rank ? '#' + fmt(dash.rank) : '—';
 
     el.innerHTML = `
@@ -1159,34 +1160,34 @@
         </div>
       </div>
       <div class="stat-grid">
-        <div class="stat"><b>${fmt(total())}</b><span>Points</span></div>
-        <div class="stat"><b>${rank}</b><span>Rank</span></div>
-        <div class="stat"><b>${fmt(savedSet.size)}</b><span>Saved</span></div>
+        <div class="stat"><b>${fmt(total())}</b><span>${tr('Points')}</span></div>
+        <div class="stat"><b>${rank}</b><span>${tr('Rank')}</span></div>
+        <div class="stat"><b>${fmt(savedSet.size)}</b><span>${tr('Saved')}</span></div>
       </div>
       <div class="link-row" style="margin-top:10px;cursor:pointer" data-act="tab" data-tab="earn" role="button" tabindex="0">
         <span class="ico-wrap">${I.trophy}</span>
-        <span>${ok && total() >= goal() ? 'Paid channel unlocked' : fmt(Math.max(0, goal() - total())) + ' points to the paid channel'}
-          <small>${ok ? fmt(dash.ads_today) + '/' + fmt(dash.ads_cap) + ' ads today · ' + fmt(dash.invited) + ' friends invited' : 'Open inside Telegram to track progress'}</small></span>
+        <span>${ok && total() >= goal() ? tr('Paid channel unlocked') : tr('{n} points to the paid channel', { n: fmt(Math.max(0, goal() - total())) })}
+          <small>${ok ? tr('{a}/{c} ads today · {i} friends invited', { a: fmt(dash.ads_today), c: fmt(dash.ads_cap), i: fmt(dash.invited) }) : tr('Open inside Telegram to track progress')}</small></span>
         ${I.chev}
       </div>
 
-      <div class="sec-head"><h3 class="h2" style="font-size:15px">Saved courses</h3></div>
+      <div class="sec-head"><h3 class="h2" style="font-size:15px">${tr('Saved courses')}</h3></div>
       <div class="saved-list" id="saved-list"><div class="skel-card"><div class="skel-thumb" style="width:52px;height:52px;flex-basis:52px"></div><div class="skel-lines"><div class="skel-line w60"></div></div></div></div>
 
-      <div class="sec-head"><h3 class="h2" style="font-size:15px">Help &amp; community</h3></div>
+      <div class="sec-head"><h3 class="h2" style="font-size:15px">${tr('Help & community')}</h3></div>
       <div class="link-list">
-        <button class="link-row" data-act="openbot" data-start="contact">${I.chat}<span>Contact the owner<small>Questions, ideas or problems — we reply in the bot</small></span>${I.chev}</button>
-        <button class="link-row" data-act="share">${I.users}<span>Invite friends<small>+50 points for each new learner</small></span>${I.chev}</button>
-        <button class="link-row" data-act="openbot" data-start="rewards">${I.bell}<span>Rewards in the bot<small>Balance, rank and daily quiz</small></span>${I.chev}</button>
-        <button class="link-row" data-act="tglink" data-url="${esc(CHANNEL_URL)}">${I.tgram}<span>Telegram channel<small>New free courses the moment they drop</small></span>${I.chev}</button>
-        <a class="link-row" href="${esc(WHATSAPP_URL)}" target="_blank" rel="noopener">${I.wa}<span>WhatsApp channel<small>Prefer WhatsApp? Follow along there</small></span>${I.chev}</a>
+        <button class="link-row" data-act="openbot" data-start="contact">${I.chat}<span>${tr('Contact the owner')}<small>${tr('Questions, ideas or problems — we reply in the bot')}</small></span>${I.chev}</button>
+        <button class="link-row" data-act="share">${I.users}<span>${tr('Invite friends')}<small>${tr('+50 points for each new learner')}</small></span>${I.chev}</button>
+        <button class="link-row" data-act="openbot" data-start="rewards">${I.bell}<span>${tr('Rewards in the bot')}<small>${tr('Balance, rank and daily quiz')}</small></span>${I.chev}</button>
+        <button class="link-row" data-act="tglink" data-url="${esc(CHANNEL_URL)}">${I.tgram}<span>${tr('Telegram channel')}<small>${tr('New free courses the moment they drop')}</small></span>${I.chev}</button>
+        <a class="link-row" href="${esc(WHATSAPP_URL)}" target="_blank" rel="noopener">${I.wa}<span>${tr('WhatsApp channel')}<small>${tr('Prefer WhatsApp? Follow along there')}</small></span>${I.chev}</a>
       </div>`;
 
     await loadSavedCourses();
     const list = $('saved-list');
     if (!list || currentTab !== 'me') return;
     if (!savedSet.size) {
-      list.innerHTML = '<p class="note" style="padding:6px 2px">Tap the heart on any course to keep it here.</p>';
+      list.innerHTML = '<p class="note" style="padding:6px 2px">' + tr('Tap the heart on any course to keep it here.') + '</p>';
       return;
     }
     const live = savedCourses || [];
@@ -1196,10 +1197,10 @@
       const ended = c.is_active === false;
       return `<div class="saved-card" data-act="savedcourse" data-idx="${i}" role="button" tabindex="0">
         <div class="course-thumb">${img}</div>
-        <div class="t">${esc(c.title)}<small class="${ended ? 'ended' : ''}">${ended ? 'Offer ended' : (c.category && c.category !== 'N/A' ? esc(c.category) : 'Free course')}</small></div>
-        <button class="heart on" data-act="unsave" data-idx="${i}" aria-label="Remove from saved"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3 5.5 6.2 5.5c2 0 3.2 1 3.8 2 .6-1 1.8-2 3.8-2 3.2 0 5 3.1 3.7 6.3C19.5 16.4 12 21 12 21z"/></svg></button>
+        <div class="t">${esc(c.title)}<small class="${ended ? 'ended' : ''}">${ended ? tr('Offer ended') : (c.category && c.category !== 'N/A' ? esc(c.category) : tr('Free course'))}</small></div>
+        <button class="heart on" data-act="unsave" data-idx="${i}" aria-label="${tr('Remove from saved')}"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3 5.5 6.2 5.5c2 0 3.2 1 3.8 2 .6-1 1.8-2 3.8-2 3.2 0 5 3.1 3.7 6.3C19.5 16.4 12 21 12 21z"/></svg></button>
       </div>`;
-    }).join('') + (missing > 0 ? `<p class="note" style="padding:4px 2px">${missing} saved course${missing > 1 ? 's are' : ' is'} no longer listed.</p>` : '');
+    }).join('') + (missing > 0 ? `<p class="note" style="padding:4px 2px">${tr('Saved courses no longer listed: {n}', { n: missing })}</p>` : '');
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -1289,7 +1290,7 @@
     if (!chip) return;
     if (!streakInfo || !streakInfo.streak) { chip.classList.remove('show'); return; }
     $('streak-n').textContent = streakInfo.streak;
-    chip.title = 'Best streak: ' + streakInfo.best + ' days';
+    chip.title = tr('Best streak: {n} days', { n: streakInfo.best });
     chip.classList.add('show');
   }
   async function checkIn() {
@@ -1302,10 +1303,10 @@
       if (!data.already) {
         if (data.bonus > 0) {
           haptic('ok');
-          toast('🔥 Day ' + data.streak + ' streak! +' + data.bonus + ' bonus points');
+          toast(tr('🔥 Day {n} streak! +{b} bonus points', { n: data.streak, b: data.bonus }));
           flyPoints('+' + data.bonus, $('streak-chip'));
         } else {
-          toast('🔥 Streak started — come back tomorrow for +' + data.next_bonus + ' points');
+          toast(tr('🔥 Streak started — come back tomorrow for +{b} points', { b: data.next_bonus }));
         }
       }
     } catch (e) { debugLog('checkin failed:', (e && (e.message || e.details)) || e); }
@@ -1313,13 +1314,20 @@
   (function () {
     const chip = $('streak-chip');
     if (chip) chip.addEventListener('click', () => {
-      if (streakInfo) toast('🔥 ' + streakInfo.streak + '-day streak · come back tomorrow for +' + streakInfo.next_bonus + ' points');
+      if (streakInfo) toast(tr('🔥 {n}-day streak · come back tomorrow for +{b} points', { n: streakInfo.streak, b: streakInfo.next_bonus }));
     });
   })();
 
   /* ══════════════════════════════════════════════════════════════
      Boot
      ══════════════════════════════════════════════════════════════ */
+  document.addEventListener('langchange', () => {
+    renderHeader();
+    if (allCourses.length) { renderCatBar(); renderGrid(); }
+    renderEarn();
+    if (currentTab === 'board') renderBoard();
+    if (currentTab === 'me') renderMe();
+  });
   renderHeader();
   registerVisitor().then(() => { checkIn().finally(loadDashboard); loadSaved(); });
   loadBoard();
