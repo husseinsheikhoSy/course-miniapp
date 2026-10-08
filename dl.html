@@ -37,6 +37,7 @@
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23a51f46'/%3E%3Ctext x='50' y='70' font-size='62' font-weight='800' text-anchor='middle' fill='white' font-family='sans-serif'%3EU%3C/text%3E%3C/svg%3E" />
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+  <script src="i18n.js"></script>
 
   <script type="application/ld+json" id="course-jsonld">
   {
@@ -603,7 +604,7 @@
   let toastTimer = null;
   function toast(msg) {
     const el = $('toast');
-    el.textContent = msg; el.classList.add('show');
+    el.textContent = tr(msg); el.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
   }
@@ -675,18 +676,18 @@
   async function loadFileMeta() {
     fileData = await decodeFilePayload();
     if (!fileData) {
-      $('course-title').textContent = 'File link unavailable';
-      $('file-status').textContent = 'Invalid or expired file link.';
+      $('course-title').textContent = tr('File link unavailable');
+      $('file-status').textContent = tr('Invalid or expired file link.');
       $('file-pages').style.display = 'none';
       return false;
     }
-    const title = fileData.t || 'Free File';
+    const title = fileData.t || tr('Free File');
     const format = fileData.f || 'File';
     const size = fileData.s || '—';
     $('course-title').textContent = title;
     $('course-cat').textContent = format;
     $('file-size').textContent = '💾 ' + size;
-    if (fileData.p) $('file-pages').textContent = '📄 ' + fileData.p + ' pages'; else $('file-pages').style.display = 'none';
+    if (fileData.p) $('file-pages').textContent = '📄 ' + tr('{n} pages', { n: fileData.p }); else $('file-pages').style.display = 'none';
     if (fileData.d) { const box = $('file-description'); box.textContent = fileData.d; box.style.display = 'block'; }
     if (fileData.c) setThumb(fileData.c);
 
@@ -725,7 +726,7 @@
     if (!chip) return;
     if (!streakInfo || !streakInfo.streak) { chip.classList.remove('show'); return; }
     $('streak-n').textContent = streakInfo.streak;
-    chip.title = 'Best streak: ' + streakInfo.best + ' days';
+    chip.title = tr('Best streak: {n} days', { n: streakInfo.best });
     chip.classList.add('show');
   }
   async function checkIn() {
@@ -738,10 +739,10 @@
       if (!data.already) {
         if (data.bonus > 0) {
           haptic('ok');
-          toast('🔥 Day ' + data.streak + ' streak! +' + data.bonus + ' bonus points');
+          toast(tr('🔥 Day {n} streak! +{b} bonus points', { n: data.streak, b: data.bonus }));
           flyPoints('+' + data.bonus, $('streak-chip'));
         } else {
-          toast('🔥 Streak started — come back tomorrow for +' + data.next_bonus + ' points');
+          toast(tr('🔥 Streak started — come back tomorrow for +{b} points', { b: data.next_bonus }));
         }
       }
     } catch (e) { debugLog('checkin failed:', (e && (e.message || e.details)) || e); }
@@ -749,7 +750,7 @@
   (function () {
     const chip = $('streak-chip');
     if (chip) chip.addEventListener('click', () => {
-      if (streakInfo) toast('🔥 ' + streakInfo.streak + '-day streak · come back tomorrow for +' + streakInfo.next_bonus + ' points');
+      if (streakInfo) toast(tr('🔥 {n}-day streak · come back tomorrow for +{b} points', { n: streakInfo.streak, b: streakInfo.next_bonus }));
     });
   })();
 
@@ -775,24 +776,24 @@
 
   function pointsText(n) {
     switch (pointsState[n]) {
-      case 'earned':  return '+' + awarded[n] + ' pts added to your balance';
-      case 'pending': return 'Adding your points…';
-      case 'skipped': return 'No ad available — unlocked (no points)';
-      case 'cap':     return 'Daily points limit reached';
-      case 'guest':   return 'Open inside Telegram to earn points';
-      case 'error':   return 'Points could not be added';
-      default:        return 'Done';
+      case 'earned':  return tr('+{n} pts added to your balance', { n: awarded[n] });
+      case 'pending': return tr('Adding your points…');
+      case 'skipped': return tr('No ad available — unlocked (no points)');
+      case 'cap':     return tr('Daily points limit reached');
+      case 'guest':   return tr('Open inside Telegram to earn points');
+      case 'error':   return tr('Points could not be added');
+      default:        return tr('Done');
     }
   }
   function pointsShort(n) {
     switch (pointsState[n]) {
-      case 'earned':  return '+' + awarded[n] + ' pts earned';
-      case 'pending': return 'adding points…';
-      case 'skipped': return 'unlocked';
-      case 'cap':     return 'daily cap reached';
-      case 'guest':   return 'sign in via Telegram';
-      case 'error':   return 'points not added';
-      default:        return 'completed';
+      case 'earned':  return tr('+{n} pts earned', { n: awarded[n] });
+      case 'pending': return tr('adding points…');
+      case 'skipped': return tr('unlocked');
+      case 'cap':     return tr('daily cap reached');
+      case 'guest':   return tr('sign in via Telegram');
+      case 'error':   return tr('points not added');
+      default:        return tr('completed');
     }
   }
 
@@ -804,11 +805,11 @@
       btn.dataset.state = st;
       btn.disabled = !(st === 'ready' || st === 'failed');
       let lbl, sub, tlSub;
-      if (st === 'ready')   { lbl = 'Watch Ad ' + n; sub = '+' + rw + ' pts'; tlSub = 'Tap “Watch Ad ' + n + '” below'; }
-      if (st === 'locked')  { lbl = 'Ad ' + n; sub = (n === 1 ? 'Unavailable' : 'Finish Ad 1 first'); tlSub = (n === 1 ? 'This file link is unavailable' : 'Complete Step 1 first'); }
-      if (st === 'loading') { lbl = 'Loading ad…'; sub = 'please wait'; tlSub = 'Loading ad…'; }
-      if (st === 'done')    { lbl = 'Ad ' + n + ' done'; sub = pointsShort(n); tlSub = pointsText(n); }
-      if (st === 'failed')  { lbl = 'Retry Ad ' + n; sub = 'ad unavailable'; tlSub = stepNote[n] || 'Ad unavailable — tap retry'; }
+      if (st === 'ready')   { lbl = tr('Watch Ad {n}', { n: n }); sub = tr('+{n} pts', { n: rw }); tlSub = tr('Tap “Watch Ad {n}” below', { n: n }); }
+      if (st === 'locked')  { lbl = tr('Ad {n}', { n: n }); sub = (n === 1 ? tr('Unavailable') : tr('Finish Ad 1 first')); tlSub = (n === 1 ? tr('This file link is unavailable') : tr('Complete Step 1 first')); }
+      if (st === 'loading') { lbl = tr('Loading ad…'); sub = tr('please wait'); tlSub = tr('Loading ad…'); }
+      if (st === 'done')    { lbl = tr('Ad {n} done', { n: n }); sub = pointsShort(n); tlSub = pointsText(n); }
+      if (st === 'failed')  { lbl = tr('Retry Ad {n}', { n: n }); sub = tr('ad unavailable'); tlSub = stepNote[n] || tr('Ad unavailable — tap retry'); }
       $('lbl-' + n).textContent = lbl;
       $('pts-' + n).textContent = sub;
       $('tl-' + n).dataset.state = st === 'loading' ? 'ready' : st;
@@ -821,7 +822,7 @@
     // Step 3
     $('tl-3').dataset.state = allDone ? 'ready' : 'locked';
     $('num-3').textContent = '3';
-    $('sub-3').textContent = allDone ? 'Tap “Download File Free” below' : 'Unlocks after both ads';
+    $('sub-3').textContent = allDone ? tr('Tap “Download File Free” below') : tr('Unlocks after both ads');
 
     // Dock
     const doneCount = (stepState[1] === 'done' ? 1 : 0) + (stepState[2] === 'done' ? 1 : 0);
@@ -829,15 +830,15 @@
     $('dock').dataset.complete = allDone ? 'true' : 'false';
     const earned = awarded[1] + awarded[2];
     let status;
-    if (allDone) status = '✓ Both ads completed';
-    else if (stepState[1] !== 'done') status = 'Step 1 of 2 · watch Ad 1';
-    else status = 'Step 2 of 2 · watch Ad 2';
+    if (allDone) status = tr('✓ Both ads completed');
+    else if (stepState[1] !== 'done') status = tr('Step 1 of 2 · watch Ad 1');
+    else status = tr('Step 2 of 2 · watch Ad 2');
     $('dock-status').textContent = status;
     let right = '';
     if (INIT_DATA) {
-      if (allDone) right = earned > 0 ? '+' + earned + ' pts earned' : '';
-      else if (capReached()) right = 'Points cap reached';
-      else right = '+' + (rw * 2) + ' pts available';
+      if (allDone) right = earned > 0 ? tr('+{n} pts earned', { n: earned }) : '';
+      else if (capReached()) right = tr('Points cap reached');
+      else right = tr('+{n} pts available', { n: rw * 2 });
     }
     $('dock-pts').textContent = right;
 
@@ -848,18 +849,18 @@
     const bal = balance(), g = goal();
     animateNumber($('bal-n'), bal);
     animateNumber($('w-n'), bal);
-    $('w-goal').textContent = 'of ' + fmt(g) + ' pts';
+    $('w-goal').textContent = tr('of {g} pts', { g: fmt(g) });
     $('w-bar').style.width = Math.min(100, bal / g * 100) + '%';
 
     const anyPending = pointsState[1] === 'pending' || pointsState[2] === 'pending';
     const anyError = pointsState[1] === 'error' || pointsState[2] === 'error';
     let note;
-    if (!INIT_DATA) note = 'Open this page from <b>@UdemySybot</b> inside Telegram to earn points.';
-    else if (anyPending) note = 'Adding your points…';
-    else if (anyError) note = 'Your points could not be added yet. Your download is still unlocked.';
-    else if (earned > 0) note = '<b>+' + earned + ' points</b> added from this download 🎉';
-    else if (capReached()) note = 'Daily points limit reached — you can still unlock this file.';
-    else note = 'Watch both ads to earn <b>+' + (reward() * 2) + ' points</b> on this download.';
+    if (!INIT_DATA) note = tr('Open this page from <b>@UdemySybot</b> inside Telegram to earn points.');
+    else if (anyPending) note = tr('Adding your points…');
+    else if (anyError) note = tr('Your points could not be added yet. Your download is still unlocked.');
+    else if (earned > 0) note = tr('<b>+{n} points</b> added from this download 🎉', { n: earned });
+    else if (capReached()) note = tr('Daily points limit reached — you can still unlock this file.');
+    else note = tr('Watch both ads to earn <b>+{n} points</b> on this download.', { n: reward() * 2 });
     $('wallet-note').innerHTML = note;
     $('retry-points').hidden = !anyError;
   }
@@ -915,7 +916,7 @@
       return;
     }
     stepState[n] = 'failed';
-    stepNote[n] = 'Ad unavailable right now — tap retry' + (MAX_AD_ATTEMPTS - attempts[n] <= 1 ? ' (last try — unlocks automatically after this)' : '');
+    stepNote[n] = tr('Ad unavailable right now — tap retry') + (MAX_AD_ATTEMPTS - attempts[n] <= 1 ? tr(' (last try — unlocks automatically after this)') : '');
     renderAll();
   }
 
@@ -1011,6 +1012,7 @@
   /* ══════════════════════════════════════════════════════════════
      Boot
      ══════════════════════════════════════════════════════════════ */
+  document.addEventListener('langchange', () => { renderAll(); });
   window.addEventListener('load', async () => {
     const ok = await loadFileMeta();
     if (!ok) { stepState[1] = 'locked'; }
