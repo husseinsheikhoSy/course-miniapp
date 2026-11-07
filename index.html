@@ -24,6 +24,7 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
   <script src="i18n.js"></script>
+  <script src="noads.js"></script>
 
   <!-- Deep-link routing (unchanged behaviour).
        • px_<payload>            → dl.html (Pixel library)
@@ -395,6 +396,9 @@
           <svg class="ico" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z" fill="currentColor"/></svg>+15
         </button>
       </div>
+
+      <!-- No Ads: skip the ads + free paid-channel membership -->
+      <div id="noads-slot-home"></div>
 
       <label class="search">
         <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -912,16 +916,20 @@
 
   // Welcome interstitial — at most once per session, never blocks browsing.
   function showWelcomeInterstitialOnce() {
-    try {
-      if (sessionStorage.getItem(WELCOME_AD_KEY) === '1') return;
-      sessionStorage.setItem(WELCOME_AD_KEY, '1');
-    } catch (e) { return; }
-    const ctrl = getAdController();
-    if (!ctrl || adPlaying) return;
-    adPlaying = true;
-    ctrl.show()
-      .then(() => { adPlaying = false; claimAdPoints('welcome'); })
-      .catch(() => { adPlaying = false; });
+    // No Ads subscribers never get the welcome interstitial.
+    NoAds.ready(sb).then(function (isNoAds) {
+      if (isNoAds) return;
+      try {
+        if (sessionStorage.getItem(WELCOME_AD_KEY) === '1') return;
+        sessionStorage.setItem(WELCOME_AD_KEY, '1');
+      } catch (e) { return; }
+      const ctrl = getAdController();
+      if (!ctrl || adPlaying) return;
+      adPlaying = true;
+      ctrl.show()
+        .then(() => { adPlaying = false; claimAdPoints('welcome'); })
+        .catch(() => { adPlaying = false; });
+    });
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -1329,6 +1337,8 @@
     if (currentTab === 'me') renderMe();
   });
   renderHeader();
+  NoAds.mount($('noads-slot-home'), { compact: true });   // No Ads promo / status card on the home tab
+  NoAds.check(sb);
   registerVisitor().then(() => { checkIn().finally(loadDashboard); loadSaved(); });
   loadBoard();
   loadCourses().then(() => {
