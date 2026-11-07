@@ -38,6 +38,7 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
   <script src="i18n.js"></script>
+  <script src="noads.js"></script>
 
   <script type="application/ld+json" id="course-jsonld">
   {
@@ -453,6 +454,9 @@
     </section>
 
     <!-- Unlock steps (status only — the action buttons are pinned at the bottom) -->
+    <!-- No Ads: skip the ads + free paid-channel membership -->
+    <div id="noads-slot"></div>
+
     <section class="unlock-head" aria-labelledby="unlock-title">
       <h2 id="unlock-title">Unlock your free enrollment</h2>
       <p>Watch two short ads, then continue to Udemy. The ad buttons stay pinned at the bottom while you read the details.</p>
@@ -507,6 +511,7 @@
   <div class="dock-info">
     <span class="dock-status" id="dock-status" aria-live="polite">Step 1 of 2 · watch Ad 1</span>
     <span class="dock-pts" id="dock-pts"></span>
+    <button class="na-skip" id="na-skip" type="button">🚫 Skip ads</button>
   </div>
 
   <div class="dock-row">
@@ -851,6 +856,7 @@
     switch (pointsState[n]) {
       case 'earned':  return tr('+{n} pts added to your balance', { n: awarded[n] });
       case 'pending': return tr('Adding your points…');
+      case 'noads':   return tr('No Ads member — unlocked instantly');
       case 'skipped': return tr('No ad available — unlocked (no points)');
       case 'cap':     return tr('Daily points limit reached');
       case 'guest':   return tr('Open inside Telegram to earn points');
@@ -862,6 +868,7 @@
     switch (pointsState[n]) {
       case 'earned':  return tr('+{n} pts earned', { n: awarded[n] });
       case 'pending': return tr('adding points…');
+      case 'noads':   return tr('unlocked with No Ads');
       case 'skipped': return tr('unlocked');
       case 'cap':     return tr('daily cap reached');
       case 'guest':   return tr('sign in via Telegram');
@@ -881,7 +888,7 @@
       if (st === 'ready')   { lbl = tr('Watch Ad {n}', { n: n }); sub = tr('+{n} pts', { n: rw }); tlSub = tr('Tap “Watch Ad {n}” below', { n: n }); }
       if (st === 'locked')  { lbl = tr('Ad {n}', { n: n }); sub = tr('Finish Ad 1 first'); tlSub = tr('Complete Step 1 first'); }
       if (st === 'loading') { lbl = tr('Loading ad…'); sub = tr('please wait'); tlSub = tr('Loading ad…'); }
-      if (st === 'done')    { lbl = tr('Ad {n} done', { n: n }); sub = pointsShort(n); tlSub = pointsText(n); }
+      if (st === 'done')    { lbl = pointsState[n] === 'noads' ? tr('No Ads') : tr('Ad {n} done', { n: n }); sub = pointsShort(n); tlSub = pointsText(n); }
       if (st === 'failed')  { lbl = tr('Retry Ad {n}', { n: n }); sub = tr('ad unavailable'); tlSub = stepNote[n] || tr('Ad unavailable — tap retry'); }
       $('lbl-' + n).textContent = lbl;
       $('pts-' + n).textContent = sub;
@@ -903,10 +910,12 @@
     $('dock').dataset.complete = allDone ? 'true' : 'false';
     const earned = awarded[1] + awarded[2];
     let status;
-    if (allDone) status = tr('✓ Both ads completed');
+    if (allDone && NoAds.active) status = tr('✓ Unlocked with No Ads');
+    else if (allDone) status = tr('✓ Both ads completed');
     else if (stepState[1] !== 'done') status = tr('Step 1 of 2 · watch Ad 1');
     else status = tr('Step 2 of 2 · watch Ad 2');
     $('dock-status').textContent = status;
+    $('na-skip').style.display = (allDone || NoAds.active) ? 'none' : '';
     let right = '';
     if (INIT_DATA) {
       if (allDone) right = earned > 0 ? tr('+{n} pts earned', { n: earned }) : '';
@@ -932,6 +941,7 @@
     else if (anyPending) note = tr('Adding your points…');
     else if (anyError) note = tr('Your points could not be added yet. Your course is still unlocked.');
     else if (earned > 0) note = tr('<b>+{n} points</b> added from this course 🎉', { n: earned });
+    else if (NoAds.active) note = tr('No Ads is active') + ' ✅' ;
     else if (capReached()) note = tr('Daily points limit reached — you can still unlock this course.');
     else note = tr('Watch both ads to earn <b>+{n} points</b> on this course.', { n: reward() * 2 });
     $('wallet-note').innerHTML = note;
@@ -1009,6 +1019,7 @@
   }
 
   function completeStep(n, opts) {
+    if (allDone) return;                 // already unlocked (e.g. No Ads arrived while an ad was loading)
     const auto = !!(opts && opts.autoUnlocked);
     stepState[n] = 'done';
     if (auto) pointsState[n] = 'skipped';
@@ -1040,6 +1051,28 @@
     }
   }
   $('btn-enroll').addEventListener('click', enrollNow);
+
+  /* ══════════════════════════════════════════════════════════════
+     No Ads — subscribers skip both ads and unlock instantly
+     ══════════════════════════════════════════════════════════════ */
+  NoAds.mount($('noads-slot'));
+  $('na-skip').addEventListener('click', () => NoAds.open());
+  function applyNoAds(active) {
+    if (!active) { renderAll(); return; }
+    const task = document.querySelector('adsgram-task');
+    if (task) task.style.display = 'none';
+    if (allDone) { renderAll(); return; }
+    if (!COURSE_URL) { renderAll(); return; }
+    adPlaying = false;
+    [1, 2].forEach(n => { stepState[n] = 'done'; pointsState[n] = 'noads'; });
+    allDone = true;
+    $('btn-enroll').disabled = false;
+    $('success-msg').classList.add('visible');
+    renderAll();
+    haptic('ok');
+  }
+  NoAds.onChange(applyNoAds);
+  NoAds.check(sb).then(applyNoAds);
 
   /* ══════════════════════════════════════════════════════════════
      Navigation
