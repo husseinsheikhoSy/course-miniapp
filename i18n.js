@@ -231,6 +231,29 @@
     'This file link is unavailable': ['رابط هذا الملف غير متاح', 'Эта ссылка на файл недоступна', 'پیوند این فایل در دسترس نیست', 'यह फ़ाइल लिंक उपलब्ध नहीं है', 'Este enlace de archivo no está disponible', 'Ce lien de fichier est indisponible', 'Questo link del file non è disponibile', '此文件链接不可用']
   });
 
+  /* ── Part 3: No Ads subscription ── */
+  Object.assign(S, {
+    'No Ads': ['بدون إعلانات', 'Без рекламы', 'بدون تبلیغ', 'बिना विज्ञापन', 'Sin anuncios', 'Sans pub', 'Senza pubblicità', '无广告'],
+    'Monthly membership: no ads, direct access to every course, plus FREE access to the paid channel — free books & courses, a huge library of programming books in every field and very important courses.': [
+      'اشتراك شهري: بدون إعلانات، ووصول مباشر لأي كورس، إضافةً إلى اشتراك مجاني في القناة المدفوعة — كتب ودورات مجانية وموسوعة ضخمة من الكتب البرمجية في كافة المجالات وكورسات هامة جداً.',
+      'Подписка на месяц: без рекламы, прямой доступ к любому курсу и БЕСПЛАТНЫЙ доступ в платный канал — бесплатные книги и курсы, огромная библиотека книг по программированию во всех областях и очень важные курсы.',
+      'اشتراک ماهانه: بدون تبلیغ، دسترسی مستقیم به همه دوره‌ها و دسترسی رایگان به کانال ویژه — کتاب و دوره رایگان، کتابخانه بزرگ کتاب‌های برنامه‌نویسی در همه زمینه‌ها و دوره‌های بسیار مهم.',
+      'मासिक सदस्यता: कोई विज्ञापन नहीं, हर कोर्स तक सीधी पहुँच, साथ में पेड चैनल का मुफ़्त एक्सेस — मुफ़्त किताबें और कोर्स, हर क्षेत्र की प्रोग्रामिंग किताबों का विशाल संग्रह और बेहद ज़रूरी कोर्स।',
+      'Membresía mensual: sin anuncios, acceso directo a cada curso y acceso GRATIS al canal de pago — libros y cursos gratis, una enorme biblioteca de libros de programación de todas las áreas y cursos muy importantes.',
+      'Abonnement mensuel : sans pub, accès direct à chaque cours et accès GRATUIT au canal payant — livres et cours gratuits, une immense bibliothèque de livres de programmation et des cours très importants.',
+      'Abbonamento mensile: niente pubblicità, accesso diretto a ogni corso e accesso GRATUITO al canale a pagamento — libri e corsi gratuiti, un’enorme biblioteca di libri di programmazione e corsi molto importanti.',
+      '月度会员：无广告，直接访问所有课程，并免费加入付费频道 — 免费图书和课程、涵盖各领域的海量编程图书以及非常重要的课程。'],
+    'Get No Ads · {n}⭐ / month': ['احصل على No Ads · {n}⭐ / شهرياً', 'Подключить No Ads · {n}⭐ / мес.', 'دریافت No Ads · {n}⭐ / ماه', 'No Ads पाएँ · {n}⭐ / माह', 'Obtener No Ads · {n}⭐ / mes', 'Activer No Ads · {n}⭐ / mois', 'Attiva No Ads · {n}⭐ / mese', '开通 No Ads · 每月 {n}⭐'],
+    'No Ads is active': ['No Ads فعّال', 'No Ads активна', 'No Ads فعال است', 'No Ads सक्रिय है', 'No Ads está activo', 'No Ads est actif', 'No Ads è attivo', 'No Ads 已生效'],
+    'Active until {d}': ['ساري حتى {d}', 'Действует до {d}', 'معتبر تا {d}', '{d} तक मान्य', 'Válido hasta {d}', 'Valable jusqu’au {d}', 'Valido fino al {d}', '有效期至 {d}'],
+    'Thank you for supporting us 💛': ['شكراً لدعمك 💛', 'Спасибо за поддержку 💛', 'از حمایت شما سپاسگزاریم 💛', 'सपोर्ट के लिए धन्यवाद 💛', 'Gracias por apoyarnos 💛', 'Merci de votre soutien 💛', 'Grazie per il supporto 💛', '感谢你的支持 💛'],
+    'Paid channel': ['القناة المدفوعة', 'Платный канал', 'کانال ویژه', 'पेड चैनल', 'Canal de pago', 'Canal payant', 'Canale a pagamento', '付费频道'],
+    'No Ads member — unlocked instantly': ['عضو No Ads — تم الفتح فوراً', 'Участник No Ads — открыто сразу', 'عضو No Ads — فوراً باز شد', 'No Ads सदस्य — तुरंत अनलॉक', 'Miembro No Ads — desbloqueado al instante', 'Membre No Ads — débloqué instantanément', 'Membro No Ads — sbloccato subito', 'No Ads 会员 — 立即解锁'],
+    'unlocked with No Ads': ['تم الفتح بدون إعلان', 'открыто без рекламы', 'بدون تبلیغ باز شد', 'बिना विज्ञापन अनलॉक', 'desbloqueado sin anuncios', 'débloqué sans pub', 'sbloccato senza annunci', '无广告解锁'],
+    '✓ Unlocked with No Ads': ['✓ تم الفتح عبر No Ads', '✓ Открыто через No Ads', '✓ با No Ads باز شد', '✓ No Ads से अनलॉक', '✓ Desbloqueado con No Ads', '✓ Débloqué avec No Ads', '✓ Sbloccato con No Ads', '✓ 已通过 No Ads 解锁'],
+    '🚫 Skip ads': ['🚫 تخطَّ الإعلانات', '🚫 Без рекламы', '🚫 رد کردن تبلیغ', '🚫 विज्ञापन छोड़ें', '🚫 Sin anuncios', '🚫 Sans pub', '🚫 Salta gli annunci', '🚫 跳过广告']
+  });
+
   var tg = window.Telegram && window.Telegram.WebApp;
   function supported(c) { return LANGS.some(function (l) { return l[0] === c; }); }
 
