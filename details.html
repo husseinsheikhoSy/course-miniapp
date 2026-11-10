@@ -703,7 +703,7 @@
   async function courseLookup(hasImage) {
     try {
       const q = '"' + COURSE_URL.replace(/"/g, '') + '"';
-      for (const tbl of ['courses', 'courses_udemyxpert']) {
+      for (const tbl of ['courses', 'courses_udemyxpert', 'courses_coursefolder']) {
         const { data } = await sb.from(tbl).select('detail_url,image_url').or('udemy_url.eq.' + q + ',detail_url.eq.' + q).limit(1);
         if (data && data[0]) {
           saveKey = data[0].detail_url || null;
@@ -1191,13 +1191,14 @@
 
   async function loadLatestCourses() {
     try {
-      const [r1, r2] = await Promise.all([
+      const [r1, r2, r3] = await Promise.all([
         sb.from('courses').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(40),
         sb.from('courses_udemyxpert').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(40),
+        sb.from('courses_coursefolder').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(40),
       ]);
       if (r1.error && r2.error) return;
       const currentUrl = (courseData && courseData.u) || COURSE_URL;
-      const pool = [...(r1.data || []), ...(r2.data || [])]
+      const pool = [...(r1.data || []), ...(r2.data || []), ...(r3.error ? [] : (r3.data || []))]
         .filter(c => (c.udemy_url || c.detail_url) !== currentUrl)
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       if (!pool.length) return;
