@@ -461,6 +461,9 @@
   // Udemy interstitial — Adsgram unit int-46421
   const ADSGRAM_BLOCK_ID = 'int-46421';
   const WELCOME_AD_KEY = 'udemy_interstitial_shown';
+  // Udemy Reward — Adsgram unit 25863: used ONLY by the "Watch ad → +points" button.
+  // show() resolves only when the ad was watched to the end, so points can't be farmed by skipping.
+  const ADSGRAM_REWARD_BLOCK_ID = '25863';
 
   const SUPABASE_URL = "https://wqnxyxrbtvmasuvdogrg.supabase.co";
   const SUPABASE_KEY = "sb_publishable_63UWVbOlukOiUqsmtfQ9Jw_Go1dV3tt";
@@ -869,6 +872,13 @@
     return adCtrl;
   }
 
+  let rewardCtrl = null;
+  function getRewardController() {
+    if (rewardCtrl) return rewardCtrl;
+    if (window.Adsgram && typeof window.Adsgram.init === 'function') rewardCtrl = window.Adsgram.init({ blockId: ADSGRAM_REWARD_BLOCK_ID });
+    return rewardCtrl;
+  }
+
   async function claimAdPoints(placement, srcEl) {
     if (!INIT_DATA) { toast('Open this app inside Telegram to earn points.', true); return; }
     try {
@@ -910,12 +920,16 @@
   function watchAd(placement, srcEl) {
     if (adPlaying) return;
     if (dash.ok && dash.ads_today >= dash.ads_cap) { toast('Daily ad limit reached. Come back tomorrow!', true); return; }
-    const ctrl = getAdController();
+    const ctrl = getRewardController();
     if (!ctrl) { toast('Ads are unavailable right now. Try again in a moment.', true); return; }
     adPlaying = true;
     ctrl.show()
       .then(() => { adPlaying = false; claimAdPoints(placement, srcEl); })
-      .catch(err => { adPlaying = false; console.warn('Adsgram show() failed', err); toast('No ad available right now — try again shortly.', true); });
+      .catch(err => {
+        adPlaying = false; console.warn('Adsgram reward show() failed', err);
+        // error:false = the user closed the ad before the end (no points); otherwise no fill / playback error
+        if (err && err.error === false) { toast(tr('Watch the ad to the end to earn points.'), true); return; }
+        toast('No ad available right now — try again shortly.', true); });
   }
 
   // Welcome interstitial — at most once per session, never blocks browsing.
